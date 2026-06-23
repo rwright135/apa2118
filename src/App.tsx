@@ -16,10 +16,13 @@ import { StepVoteNo } from './components/wizard/StepVoteNo'
 import { StepJCBA } from './components/wizard/StepJCBA'
 import { StepAdvanced } from './components/wizard/StepAdvanced'
 import { ReviewScreen } from './components/review/ReviewScreen'
-import { ResultsPlaceholder } from './components/results/ResultsPlaceholder'
+import { ResultsScreen } from './components/results/ResultsScreen'
+import { LoadingScreen } from './components/shared/LoadingScreen'
 
 function App() {
-  const { currentStep, setInputs } = useStore()
+  const { currentStep, isComputing, setInputs } = useStore()
+
+  if (isComputing) return <LoadingScreen />
 
   useEffect(() => {
     const fromURL = decodeFromURL()
@@ -48,7 +51,7 @@ function App() {
     case 'jcba': return <StepJCBA />
     case 'advanced': return <StepAdvanced />
     case 'review': return <ReviewScreen />
-    case 'results': return <ResultsPlaceholder />
+    case 'results': return <ResultsScreen />
     default: return <StepWelcome />
   }
 }

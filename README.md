@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# APA2118 Contract Comparison Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A discounted cash flow analysis tool for Allegiant Air pilots (APA Local 2118) to compare the Tentative Agreement against Vote No scenarios.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Walks pilots through a guided onboarding to collect:
+- Seat (FO / Captain) and longevity as of July 1, 2026
+- Line type (Flying / Reserve) and average monthly hours
+- Date of birth (to compute horizon to mandatory retirement at 65)
+- Profit sharing, retention bonus, and investment return assumptions
+- Vote-No scenario assumptions: 2nd offer probability, JCBA timeline, post-JCBA negotiating position
 
-## React Compiler
+Then produces a full **monthly discounted cash flow comparison** of three scenarios:
+- **A**: Vote Yes — accept the Tentative Agreement
+- **B**: Vote No, and a second bridge offer arrives (probability-weighted)
+- **C**: Vote No, no second offer (stay on current CBA until JCBA)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Output includes headline present values, projected retirement balances, transparent month-by-month tables, charts, and PDF export.
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Vite + React + TypeScript + Tailwind CSS + Recharts + Zustand + Vitest
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev       # dev server at localhost:5173
+npm test          # run unit tests
+npm run build     # production build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Embedding
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This tool is designed to be embedded in an iframe on an external site:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```html
+<iframe id="apa-tool" src="https://your-deploy-url" height="600" frameborder="0" style="width:100%"></iframe>
+<script>
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'apa2118-resize') {
+      document.getElementById('apa-tool').style.height = e.data.height + 'px'
+    }
+  })
+</script>
 ```
+
+## Data
+
+Pay scales are hardcoded in `src/data/payScales.ts`. Rate updates require editing that file only — no logic changes needed.
