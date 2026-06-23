@@ -10,7 +10,7 @@ function fmtAxis(n: number) {
 }
 
 function totalValue(s: ScenarioSummary) {
-  return s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions
+  return s.presentValueTotal
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,13 +37,13 @@ export function ComparisonBarChart({ results }: Props) {
       name: 'Vote Yes',
       value: totalValue(scenarioA),
       fill: '#c9a84c',
-      sub: 'Accept the Tentative Agreement',
+      sub: 'Accept the TA — value in today\'s dollars',
     },
     {
       name: 'Vote No',
       value: totalValue(voteNo),
       fill: '#1a2b4a',
-      sub: `${Math.round(p * 100)}% 2nd offer + ${Math.round((1 - p) * 100)}% no offer`,
+      sub: `Probability-weighted · ${Math.round(p * 100)}% offer / ${Math.round((1 - p) * 100)}% no offer`,
     },
   ]
 

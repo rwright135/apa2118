@@ -8,12 +8,15 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function totalValue(s: ScenarioSummary) {
-  return s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions
+// PV = all cash flows discounted to today at the user's investment rate.
+// This is the correct comparison metric — it accounts for the time value
+// of money, so getting $100K now beats getting $165K in 2 years uncertain.
+function pvTotal(s: ScenarioSummary) {
+  return s.presentValueTotal
 }
 
 function Card({ summary, isYes }: { summary: ScenarioSummary; isYes: boolean }) {
-  const value = totalValue(summary)
+  const value = pvTotal(summary)
 
   return (
     <div
@@ -36,7 +39,9 @@ function Card({ summary, isYes }: { summary: ScenarioSummary; isYes: boolean }) 
       <div className="text-3xl font-black" style={{ color: isYes ? 'var(--gold)' : 'var(--text-base)' }}>
         {fmt(value)}
       </div>
-      <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Total career compensation</div>
+      <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+        What it's worth in today's dollars
+      </div>
     </div>
   )
 }
@@ -45,17 +50,20 @@ export function HeroCards({ results }: Props) {
   const scenarioA = results.scenarios.find(s => s.scenarioId === 'A')!
   const voteNo    = results.voteNoExpected
   const p         = results.inputs.voteNoOffer.probability
+  const r         = results.inputs.investmentRate
 
-  const diff      = totalValue(scenarioA) - totalValue(voteNo)
+  const diff      = pvTotal(scenarioA) - pvTotal(voteNo)
   const aIsBetter = diff > 0
 
   return (
     <div className="space-y-3">
+      {/* Two primary cards */}
       <div className="flex gap-3">
         <Card summary={scenarioA} isYes />
         <Card summary={voteNo}    isYes={false} />
       </div>
 
+      {/* Difference callout */}
       <div
         className="rounded-xl p-4 text-center"
         style={
@@ -68,11 +76,22 @@ export function HeroCards({ results }: Props) {
           {aIsBetter ? '+' : ''}{fmt(diff)}
         </div>
         <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {aIsBetter ? 'Vote Yes pays more over your career' : 'Vote No expected value is higher'}{' '}
+          {aIsBetter ? 'Vote Yes is worth more in today\'s dollars' : 'Expected Vote No value is higher in today\'s dollars'}{' '}
           <span style={{ color: 'var(--text-faint)' }}>
-            ({Math.round(p * 100)}% 2nd offer + {Math.round((1 - p) * 100)}% no offer)
+            · {Math.round(r * 100)}% rate · {Math.round(p * 100)}% offer / {Math.round((1 - p) * 100)}% no offer
           </span>
         </div>
+      </div>
+
+      {/* Why TVM matters here — inline explainer */}
+      <div
+        className="rounded-xl px-4 py-3 text-xs leading-relaxed"
+        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
+      >
+        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Why "today's dollars"? </span>
+        Getting a 70% raise starting now is worth more than the same raise starting in 2 years, even if the later number looks bigger on paper.
+        The retention bonus also accrues more under Vote No, but that extra accrual is uncertain, delayed, and worth less today than money in hand.
+        This number accounts for all of that.
       </div>
     </div>
   )

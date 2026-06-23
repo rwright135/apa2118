@@ -21,16 +21,16 @@ function BreakdownCard({
   sublabel: string
 }) {
   const rows = [
-    { label: 'Total Gross Pay',      value: fmt(s.totalGrossPay),           sub: 'Base pay × hours, all months',            icon: '✈️',  highlight: false },
-    { label: '401(k) Contributions', value: fmt(s.total401kContributions),  sub: `Projected balance at 65: ${fmt(s.retirementBalanceAt65)}`, icon: '🏦', highlight: false },
-    { label: 'Profit Sharing',       value: fmt(s.totalProfitSharing),      sub: 'Semi-annual, scales with pay rate',       icon: '📈', highlight: false },
-    { label: 'Retention Bonus',      value: fmt(s.totalRetention),          sub: 'Accrual through payout date',             icon: '💰', highlight: false },
     {
-      label: 'Total Career Compensation',
-      value: fmt(s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions),
-      sub: 'Gross pay + 401k + profit sharing + retention',
+      label: 'Value in Today\'s Dollars',
+      value: fmt(s.presentValueTotal),
+      sub: 'All cash flows discounted — money now beats money later',
       icon: '⭐', highlight: true,
     },
+    { label: 'Projected Retirement Balance', value: fmt(s.retirementBalanceAt65), sub: '401(k) contributions compounded to age 65',   icon: '🏦', highlight: false },
+    { label: 'Total Gross Pay (nominal)',     value: fmt(s.totalGrossPay),         sub: 'Undiscounted — does not account for timing',  icon: '✈️', highlight: false },
+    { label: 'Profit Sharing (nominal)',      value: fmt(s.totalProfitSharing),    sub: 'Semi-annual payouts, scales with pay rate',   icon: '📈', highlight: false },
+    { label: 'Retention Bonus (nominal)',     value: fmt(s.totalRetention),        sub: 'Accrual + payout, probability-weighted',      icon: '💰', highlight: false },
   ]
 
   return (
@@ -91,8 +91,7 @@ export function ScenarioBreakdown({ results }: Props) {
   const voteNo    = results.voteNoExpected
   const p         = results.inputs.voteNoOffer.probability
 
-  const val = (s: ScenarioSummary) =>
-    s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions
+  const val = (s: ScenarioSummary) => s.presentValueTotal
 
   return (
     <div className="space-y-4">
