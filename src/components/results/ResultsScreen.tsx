@@ -1,27 +1,17 @@
-import { useState } from 'react'
+// useState no longer needed here — moved to ShareSheet
 import { useStore } from '../../state/store'
 import { HeroCards } from './HeroCards'
 import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { ComparisonBarChart } from './ComparisonBarChart'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
-import { ExportButton } from './ExportButton'
+import { ShareSheet } from './ShareSheet'
 import { ThemeToggle } from '../shared/ThemeToggle'
-import { encodeToURL } from '../../state/persistence'
 
 export function ResultsScreen() {
   const { results, goToStep, inputs } = useStore()
-  const [copiedURL, setCopiedURL] = useState(false)
 
   if (!results) return null
-
-  const handleShare = () => {
-    const url = encodeToURL(inputs)
-    navigator.clipboard?.writeText(url).then(() => {
-      setCopiedURL(true)
-      setTimeout(() => setCopiedURL(false), 2000)
-    })
-  }
 
   return (
     <div
@@ -62,18 +52,7 @@ export function ResultsScreen() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleShare}
-              className="text-xs px-3 py-1.5 rounded-lg transition-colors"
-              style={{
-                color: copiedURL ? 'var(--positive)' : 'var(--accent)',
-                background: 'var(--chip-bg)',
-                border: '1px solid var(--chip-border)',
-              }}
-            >
-              {copiedURL ? '✓ Copied!' : 'Share'}
-            </button>
-            <ExportButton />
+            <ShareSheet inputs={inputs} />
             <ThemeToggle />
           </div>
         </div>
