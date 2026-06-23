@@ -71,10 +71,10 @@ export function StepWelcome() {
           career and retirement.
         </p>
 
-        {/* Feature bullets */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 mb-10" style={{ color: 'var(--text-faint)' }}>
+        {/* Feature bullets — icons vertically aligned in a left-anchored column */}
+        <div className="flex flex-col gap-3 mb-10 mx-auto" style={{ color: 'var(--text-faint)' }}>
           {BULLETS.map((text) => (
-            <div key={text} className="flex items-center gap-2 justify-center text-sm">
+            <div key={text} className="flex items-center gap-3 text-sm">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="var(--positive)" strokeWidth="1.5"/>
                 <path d="M5 8l2 2 4-4" stroke="var(--positive)" strokeWidth="1.5" strokeLinecap="round"/>

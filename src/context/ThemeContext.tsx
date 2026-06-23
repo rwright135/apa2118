@@ -17,7 +17,7 @@ const CROSSOVER_POINT    = 0.42  // fraction — where opacity hits 0 (matches 4
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    try { return (localStorage.getItem('apa2118-theme') as Theme) || 'dark' } catch { return 'dark' }
+    try { return (localStorage.getItem('apa2118-theme') as Theme) || 'light' } catch { return 'light' }
   })
 
   const isAnimating = useRef(false)
