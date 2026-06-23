@@ -148,6 +148,16 @@ export function buildMonthlyStream(
     scenarioId === 'B' ? inputs.voteNoOffer.arrivalMonths : Infinity
   const jcbaMonth = inputs.jcbaDurationMonths
 
+  // ── Retention payout month index (months from startDate) ─────────────────
+  // A: Oct 1, 2026 = month 3 from Jul 1, 2026 (fixed — ~60 days after ratification)
+  // B: offer arrival date + 50 days ≈ arrivalMonths + 2 months
+  // C: JCBA conclusion month
+  const RETENTION_PAYOUT_MONTH_A = monthsDiff(startDate, new Date(2026, 9, 1)) // Oct 1 = index 3
+  const retentionPayoutMonth =
+    scenarioId === 'A' ? RETENTION_PAYOUT_MONTH_A :
+    scenarioId === 'B' ? inputs.voteNoOffer.arrivalMonths + Math.round(50 / 30.44) :
+    jcbaMonth  // Scenario C: accrues until JCBA
+
   const rows: MonthlyRow[] = []
   let cumulativePV = 0
   let cumulativePV401k = 0
@@ -214,8 +224,7 @@ export function buildMonthlyStream(
     let retentionAccrualNote = 0
 
     if (scenarioId === 'A') {
-      const payoutMonth = monthsDiff(startDate, inputs.retentionPayoutDate)
-      if (m === payoutMonth) {
+      if (m === retentionPayoutMonth) {
         retentionCashFlow = inputs.retentionCurrentBalance
       }
     } else {
@@ -224,11 +233,7 @@ export function buildMonthlyStream(
       retentionAccruedBalance += monthlyAccrual
       retentionAccrualNote = monthlyAccrual
 
-      const payoutTriggerMonth = scenarioId === 'B'
-        ? Math.min(offerArrivalMonth, jcbaMonth)
-        : jcbaMonth
-
-      if (m === payoutTriggerMonth) {
+      if (m === retentionPayoutMonth) {
         retentionCashFlow = retentionAccruedBalance * inputs.retentionPayoutProbability
       }
     }

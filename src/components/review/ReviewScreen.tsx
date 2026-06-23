@@ -35,7 +35,7 @@ export function ReviewScreen() {
       items: [
         { label: 'Annual Profit Sharing', value: formatCurrency(inputs.profitSharingLastYear) },
         { label: 'Retention Bonus Balance', value: formatCurrency(inputs.retentionCurrentBalance) },
-        { label: 'Retention Payout Date', value: formatDate(inputs.retentionPayoutDate) },
+        { label: 'Retention Payout (Vote Yes)', value: 'Oct 1, 2026 (fixed)' },
         { label: 'Retention Payout Certainty', value: formatPct(inputs.retentionPayoutProbability) },
         { label: 'Investment Return Rate', value: formatPct(inputs.investmentRate) },
       ],

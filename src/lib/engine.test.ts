@@ -13,8 +13,7 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   investmentRate: 0.0795,
   profitSharingLastYear: 1000,
   retentionCurrentBalance: 50000,
-  retentionPayoutDate: new Date(2026, 9, 1), // Oct 1 2026
-  retentionPayoutProbability: 0.95,
+  retentionPayoutProbability: 0.95,  // payout date now computed by engine per scenario
   voteNoOffer: { probability: 0.25, arrivalMonths: 18, percentAboveTA: 0.03 },
   jcbaDurationMonths: 24,
   advancedPostJCBA: {
