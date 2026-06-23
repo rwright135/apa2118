@@ -7,7 +7,7 @@ const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
 function fmt(n: number) { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow'
 
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
@@ -50,12 +50,10 @@ export function TransparentTable({ results }: Props) {
   const hasMore = rows.length > steadyStateIndex + 1
 
   const columns: { key: ColumnKey; label: string }[] = [
-    { key: 'grossPay', label: 'Gross Pay' },
-    { key: 'k401Contribution', label: '401(k)' },
+    { key: 'grossPay',          label: 'Gross Pay' },
+    { key: 'k401Contribution',  label: '401(k)' },
     { key: 'profitSharingCash', label: 'Profit Sharing' },
     { key: 'retentionCashFlow', label: 'Retention' },
-    { key: 'presentValue', label: 'PV' },
-    { key: 'cumulativePV', label: 'Cum. PV' },
   ]
 
   return (
@@ -129,7 +127,7 @@ export function TransparentTable({ results }: Props) {
                   {isSteadyStateStart && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
                       <td
-                        colSpan={9}
+                        colSpan={7}
                         className="px-3 py-2 text-center text-xs font-medium"
                         style={{ color: 'var(--gold)' }}
                       >
@@ -163,10 +161,7 @@ export function TransparentTable({ results }: Props) {
                           key={col.key}
                           className="px-3 py-2 text-right whitespace-nowrap"
                           style={{
-                            color: col.key === 'cumulativePV'
-                              ? 'var(--gold)'
-                              : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
-                            fontWeight: col.key === 'cumulativePV' ? 600 : 400,
+                            color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
                           }}
                         >
                           {val !== 0 ? fmt(val) : '—'}

@@ -11,7 +11,6 @@ import { encodeToURL } from '../../state/persistence'
 
 export function ResultsScreen() {
   const { results, goToStep, inputs } = useStore()
-  const [viewMode, setViewMode] = useState<'today' | 'age65'>('today')
   const [copiedURL, setCopiedURL] = useState(false)
 
   if (!results) return null
@@ -59,9 +58,7 @@ export function ResultsScreen() {
               className="w-6 h-6 object-contain opacity-80"
               onError={(e) => { e.currentTarget.src = '/teamsters-logo.svg'; e.currentTarget.onerror = null }}
             />
-            <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>
-              APA2118
-            </span>
+            <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>APA2118</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -83,53 +80,26 @@ export function ResultsScreen() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* View toggle */}
-        <div
-          className="flex rounded-xl p-1 gap-1"
-          style={{ background: 'var(--bg-elevated)' }}
-        >
-          {(['today', 'age65'] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
-              style={
-                viewMode === mode
-                  ? { background: 'var(--btn-bg)', color: 'var(--btn-text)' }
-                  : { color: 'var(--text-muted)' }
-              }
-            >
-              {mode === 'today' ? "Today's Dollars" : 'Value at Age 65'}
-            </button>
-          ))}
-        </div>
-
-        <HeroCards results={results} viewMode={viewMode} />
+        <HeroCards results={results} />
 
         <div
           className="rounded-2xl p-4"
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
         >
-          <h2
-            className="font-semibold mb-4 text-sm uppercase tracking-wide"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Present Value Comparison
+          <h2 className="font-semibold mb-4 text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            Total Compensation Comparison
           </h2>
-          <ComparisonBarChart results={results} viewMode={viewMode} />
+          <ComparisonBarChart results={results} />
         </div>
 
-        <ScenarioBreakdown results={results} viewMode={viewMode} />
+        <ScenarioBreakdown results={results} />
 
         <div
           className="rounded-2xl p-4"
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
         >
-          <h2
-            className="font-semibold mb-4 text-sm uppercase tracking-wide"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Cumulative Discounted Cash Flow
+          <h2 className="font-semibold mb-4 text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            Cumulative Cash Flow Over Time
           </h2>
           <CumulativeLineChart results={results} />
         </div>

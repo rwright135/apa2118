@@ -1,12 +1,16 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts'
-import type { ComparisonResult } from '../../lib/types'
+import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 
-interface Props { results: ComparisonResult; viewMode: 'today' | 'age65' }
+interface Props { results: ComparisonResult }
 
 function fmtAxis(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
   return `$${n}`
+}
+
+function totalValue(s: ScenarioSummary) {
+  return s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,24 +27,21 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export function ComparisonBarChart({ results, viewMode }: Props) {
+export function ComparisonBarChart({ results }: Props) {
   const scenarioA = results.scenarios.find(s => s.scenarioId === 'A')!
   const voteNo    = results.voteNoExpected
   const p         = results.inputs.voteNoOffer.probability
 
-  const val = (s: typeof scenarioA) =>
-    viewMode === 'today' ? s.presentValueTotal : s.retirementBalanceAt65
-
   const data = [
     {
       name: 'Vote Yes',
-      value: val(scenarioA),
+      value: totalValue(scenarioA),
       fill: '#c9a84c',
       sub: 'Accept the Tentative Agreement',
     },
     {
       name: 'Vote No',
-      value: val(voteNo),
+      value: totalValue(voteNo),
       fill: '#1a2b4a',
       sub: `${Math.round(p * 100)}% 2nd offer + ${Math.round((1 - p) * 100)}% no offer`,
     },
@@ -54,9 +55,7 @@ export function ComparisonBarChart({ results, viewMode }: Props) {
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(201,168,76,0.04)' }} />
         <ReferenceLine y={0} stroke="var(--border)" />
         <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.fill} />
-          ))}
+          {data.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
         </Bar>
       </BarChart>
     </ResponsiveContainer>

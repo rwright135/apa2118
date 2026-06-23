@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 
-interface Props { results: ComparisonResult; viewMode: 'today' | 'age65' }
+interface Props { results: ComparisonResult }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
@@ -11,25 +11,24 @@ function fmt(n: number) {
 
 function BreakdownCard({
   s,
-  viewMode,
   accentColor,
   label,
   sublabel,
 }: {
   s: ScenarioSummary
-  viewMode: 'today' | 'age65'
   accentColor: string
   label: string
   sublabel: string
 }) {
   const rows = [
-    { label: 'Projected Retirement Balance (age 65)', value: fmt(s.retirementBalanceAt65), sub: `PV today: ${fmt(s.retirementBalancePV)}`, icon: '🏦', highlight: false },
-    { label: 'Interim Earnings Before JCBA',          value: fmt(s.interimEarningsPV),     sub: 'Present value of pre-JCBA pay',           icon: '💰', highlight: false },
-    { label: '401(k) Compounding Gain',               value: fmt(s.total401kCompoundingGain), sub: 'Extra growth from earlier contributions', icon: '📈', highlight: false },
+    { label: 'Total Gross Pay',      value: fmt(s.totalGrossPay),           sub: 'Base pay × hours, all months',            icon: '✈️',  highlight: false },
+    { label: '401(k) Contributions', value: fmt(s.total401kContributions),  sub: `Projected balance at 65: ${fmt(s.retirementBalanceAt65)}`, icon: '🏦', highlight: false },
+    { label: 'Profit Sharing',       value: fmt(s.totalProfitSharing),      sub: 'Semi-annual, scales with pay rate',       icon: '📈', highlight: false },
+    { label: 'Retention Bonus',      value: fmt(s.totalRetention),          sub: 'Accrual through payout date',             icon: '💰', highlight: false },
     {
-      label: 'Total Present Value',
-      value: fmt(viewMode === 'today' ? s.presentValueTotal : s.retirementBalanceAt65),
-      sub: viewMode === 'today' ? "All cash flows in today's dollars" : 'Estimated value at age 65',
+      label: 'Total Career Compensation',
+      value: fmt(s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions),
+      sub: 'Gross pay + 401k + profit sharing + retention',
       icon: '⭐', highlight: true,
     },
   ]
@@ -83,7 +82,7 @@ function WeightingRow({ label, weight, color, pv }: { label: string; weight: num
   )
 }
 
-export function ScenarioBreakdown({ results, viewMode }: Props) {
+export function ScenarioBreakdown({ results }: Props) {
   const [showWeighting, setShowWeighting] = useState(false)
 
   const scenarioA = results.scenarios.find(s => s.scenarioId === 'A')!
@@ -93,7 +92,7 @@ export function ScenarioBreakdown({ results, viewMode }: Props) {
   const p         = results.inputs.voteNoOffer.probability
 
   const val = (s: ScenarioSummary) =>
-    viewMode === 'today' ? s.presentValueTotal : s.retirementBalanceAt65
+    s.totalGrossPay + s.totalProfitSharing + s.totalRetention + s.total401kContributions
 
   return (
     <div className="space-y-4">
@@ -104,14 +103,12 @@ export function ScenarioBreakdown({ results, viewMode }: Props) {
       {/* Two primary cards */}
       <BreakdownCard
         s={scenarioA}
-        viewMode={viewMode}
         accentColor="var(--gold)"
         label="Vote Yes — Accept the TA"
         sublabel="Guaranteed: TA rates effective July 1, 2026"
       />
       <BreakdownCard
         s={voteNo}
-        viewMode={viewMode}
         accentColor="var(--navy)"
         label="Vote No — Expected Value"
         sublabel={`Probability-weighted: ${Math.round(p * 100)}% chance of 2nd offer, ${Math.round((1 - p) * 100)}% no offer`}
