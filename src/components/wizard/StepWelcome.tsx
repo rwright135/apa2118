@@ -36,24 +36,19 @@ export function StepWelcome() {
           />
         </div>
 
-        {/* Badge pill */}
+        {/* Title badge — pill style, slightly larger than the old chip */}
         <div
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold mb-5 uppercase tracking-widest"
-          style={{ background: 'var(--chip-bg)', border: '1px solid var(--chip-border)', color: 'var(--chip-text)' }}
-        >
-          Teamsters Local 2118
-        </div>
-
-        {/* Title — single line on md+, wraps gracefully on narrow */}
-        <h1
-          className="font-black mb-4 leading-none whitespace-nowrap"
+          className="inline-flex items-center rounded-full mb-6 font-black uppercase tracking-widest whitespace-nowrap"
           style={{
-            color: 'var(--text-base)',
-            fontSize: 'clamp(1.75rem, 4vw, 3.25rem)',
+            background: 'var(--chip-bg)',
+            border: '1px solid var(--chip-border)',
+            color: 'var(--chip-text)',
+            fontSize: 'clamp(0.8rem, 1.6vw, 1.05rem)',
+            padding: 'clamp(0.35rem, 0.8vw, 0.55rem) clamp(1rem, 2.5vw, 1.75rem)',
           }}
         >
           Contract Comparison Calculator
-        </h1>
+        </div>
 
         {/* Subtitle */}
         <p
