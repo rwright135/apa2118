@@ -15,9 +15,7 @@ export function StepDOB() {
     ? Math.max(0, 65 - (new Date().getFullYear() - dob.getFullYear()))
     : null
 
-  const dobString = dob
-    ? dob.toISOString().split('T')[0]
-    : ''
+  const dobString = dob ? dob.toISOString().split('T')[0] : ''
 
   return (
     <WizardLayout
@@ -27,28 +25,41 @@ export function StepDOB() {
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
-        <div className="bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500 transition-colors">
+        <div
+          className="rounded-xl overflow-hidden border-2 transition-colors"
+          style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)' }}
+          onFocusCapture={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)')}
+          onBlurCapture={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--border)')}
+        >
           <input
             type="date"
             value={dobString}
             onChange={handleChange}
             max={new Date(new Date().getFullYear() - 21, 0, 1).toISOString().split('T')[0]}
             min={new Date(new Date().getFullYear() - 65, 0, 1).toISOString().split('T')[0]}
-            className="w-full bg-transparent px-4 py-4 text-lg font-semibold text-white outline-none [color-scheme:dark]"
+            className="w-full bg-transparent px-4 py-4 text-lg font-semibold outline-none"
+            style={{ color: 'var(--text-base)' }}
           />
         </div>
 
         {yearsToRetirement !== null && (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-            <div className="text-sm text-gray-400">Years until mandatory retirement (age 65)</div>
-            <div className="text-3xl font-bold text-blue-400 mt-1">{yearsToRetirement} years</div>
-            <div className="text-xs text-gray-500 mt-1">Your calculation runs through {new Date().getFullYear() + yearsToRetirement}</div>
+          <div
+            className="rounded-xl p-4"
+            style={{ background: 'var(--chip-bg)', border: '1px solid var(--chip-border)' }}
+          >
+            <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              Years until mandatory retirement (age 65)
+            </div>
+            <div className="text-3xl font-bold mt-1" style={{ color: 'var(--gold)' }}>
+              {yearsToRetirement} years
+            </div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+              Your calculation runs through {new Date().getFullYear() + yearsToRetirement}
+            </div>
           </div>
         )}
       </div>
-      <NavButton onClick={nextStep} disabled={!dob}>
-        Continue
-      </NavButton>
+      <NavButton onClick={nextStep} disabled={!dob}>Continue</NavButton>
     </WizardLayout>
   )
 }

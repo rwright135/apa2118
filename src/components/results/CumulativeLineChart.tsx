@@ -10,21 +10,21 @@ function fmtAxis(n: number) {
 }
 
 const COLORS: Record<string, string> = {
-  A: '#3b82f6',
-  B: '#a855f7',
-  C: '#ef4444',
+  A: '#c9a84c',   // gold — Vote Yes
+  B: '#a855f7',   // purple — Vote No + offer
+  C: '#ef4444',   // red — Vote No, no offer
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-xs shadow-xl space-y-1">
-      <div className="text-gray-400 font-medium">{label}</div>
+    <div className="rounded-xl px-3 py-2 text-xs shadow-xl space-y-1" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+      <div className="font-medium" style={{ color: 'var(--text-muted)' }}>{label}</div>
       {(payload as { name: string; value: number; color: string }[]).map(p => (
         <div key={p.name} className="flex justify-between gap-4">
           <span style={{ color: p.color }}>{p.name}</span>
-          <span className="text-white font-bold">{fmtAxis(p.value)}</span>
+          <span className="font-bold" style={{ color: 'var(--text-base)' }}>{fmtAxis(p.value)}</span>
         </div>
       ))}
     </div>

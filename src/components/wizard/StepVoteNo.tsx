@@ -15,7 +15,7 @@ export function StepVoteNo() {
     <WizardLayout
       step="voteNo"
       title="If we vote no — what do you think happens?"
-      subtitle="Allegiant just offered this as a bridge deal before joint JCBA negotiations. Some pilots think a second offer is coming. What do you believe?"
+      subtitle="This is a bridge deal before joint JCBA negotiations. Some pilots think a second offer is coming. What do you believe?"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-8">
@@ -30,11 +30,15 @@ export function StepVoteNo() {
             label="Probability of a second bridge offer (Scenario B)"
             showMinMax
           />
-          <p className="text-xs text-gray-500 mt-2">How confident are you that management comes back with another offer before JCBA?</p>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+            How confident are you that management comes back with another offer before JCBA?
+          </p>
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-3">If the second offer comes — how many months from now?</label>
+          <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+            If the second offer comes — how many months from now?
+          </label>
           <SliderInput
             value={offer.arrivalMonths}
             min={3}
@@ -47,7 +51,9 @@ export function StepVoteNo() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-3">How much better would that offer be vs. the TA?</label>
+          <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+            How much better would that offer be vs. the TA?
+          </label>
           <SliderInput
             value={Math.round(offer.percentAboveTA * 100)}
             min={0}
@@ -57,16 +63,22 @@ export function StepVoteNo() {
             formatValue={(v) => `+${v.toFixed(1)}%`}
             showMinMax
           />
-          <p className="text-xs text-gray-500 mt-2">A positive number means the new offer beats the current TA rates.</p>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+            A positive number means the new offer beats the current TA rates.
+          </p>
         </div>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-amber-200/80 leading-relaxed">
-          <span className="font-medium text-amber-300">Important:</span> If there's no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes. You set that timeline on the next screen.
+        <div
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Important: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            If there's no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes. You set that timeline on the next screen.
+          </span>
         </div>
       </div>
-      <NavButton onClick={nextStep}>
-        Continue
-      </NavButton>
+      <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
   )
 }

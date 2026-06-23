@@ -6,6 +6,7 @@ import { ComparisonBarChart } from './ComparisonBarChart'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
 import { ExportButton } from './ExportButton'
+import { ThemeToggle } from '../shared/ThemeToggle'
 import { encodeToURL } from '../../state/persistence'
 
 export function ResultsScreen() {
@@ -24,13 +25,26 @@ export function ResultsScreen() {
   }
 
   return (
-    <div id="results-container" className="min-h-screen bg-[#0a0f1e] text-white">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0a0f1e]/95 backdrop-blur border-b border-white/5 px-4 py-3">
+    <div
+      id="results-container"
+      className="min-h-screen"
+      style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
+    >
+      {/* Sticky header */}
+      <div
+        className="sticky top-0 z-10 backdrop-blur border-b px-4 py-3"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-base) 94%, transparent)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
             onClick={() => goToStep('review')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+            className="flex items-center gap-1.5 text-sm transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-base)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10 4L6 8l4 4"/>
@@ -38,64 +52,83 @@ export function ResultsScreen() {
             Edit Inputs
           </button>
 
-          <div className="text-sm font-semibold text-white">APA2118 Results</div>
+          <div className="flex items-center gap-1">
+            <img src="/teamsters-logo.png" alt="" className="w-6 h-6 object-contain opacity-80" />
+            <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>
+              APA2118
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20"
+              className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{
+                color: copiedURL ? 'var(--positive)' : 'var(--accent)',
+                background: 'var(--chip-bg)',
+                border: '1px solid var(--chip-border)',
+              }}
             >
               {copiedURL ? '✓ Copied!' : 'Share'}
             </button>
             <ExportButton />
+            <ThemeToggle />
           </div>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* View toggle */}
-        <div className="flex bg-white/5 rounded-xl p-1 gap-1">
-          <button
-            onClick={() => setViewMode('today')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === 'today'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Today's Dollars
-          </button>
-          <button
-            onClick={() => setViewMode('age65')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === 'age65'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Value at Age 65
-          </button>
+        <div
+          className="flex rounded-xl p-1 gap-1"
+          style={{ background: 'var(--bg-elevated)' }}
+        >
+          {(['today', 'age65'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              style={
+                viewMode === mode
+                  ? { background: 'var(--btn-bg)', color: 'var(--btn-text)' }
+                  : { color: 'var(--text-muted)' }
+              }
+            >
+              {mode === 'today' ? "Today's Dollars" : 'Value at Age 65'}
+            </button>
+          ))}
         </div>
 
-        {/* Hero comparison */}
         <HeroCards results={results} viewMode={viewMode} />
 
-        {/* Bar chart */}
-        <div className="bg-[#1a2235] rounded-2xl p-4 border border-white/5">
-          <h2 className="font-semibold text-white mb-4 text-sm uppercase tracking-wide">Present Value Comparison</h2>
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <h2
+            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Present Value Comparison
+          </h2>
           <ComparisonBarChart results={results} viewMode={viewMode} />
         </div>
 
-        {/* Four-line breakdown per scenario */}
         <ScenarioBreakdown results={results} viewMode={viewMode} />
 
-        {/* Cumulative line chart */}
-        <div className="bg-[#1a2235] rounded-2xl p-4 border border-white/5">
-          <h2 className="font-semibold text-white mb-4 text-sm uppercase tracking-wide">Cumulative Discounted Cash Flow</h2>
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <h2
+            className="font-semibold mb-4 text-sm uppercase tracking-wide"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Cumulative Discounted Cash Flow
+          </h2>
           <CumulativeLineChart results={results} />
         </div>
 
-        {/* Transparent table */}
         <TransparentTable results={results} />
       </div>
     </div>

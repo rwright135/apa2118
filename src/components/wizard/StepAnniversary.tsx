@@ -21,23 +21,25 @@ export function StepAnniversary() {
             <button
               key={month}
               onClick={() => setInput('anniversaryMonth', idx)}
-              className={`py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className="py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+              style={
                 anniversaryMonth === idx
-                  ? 'bg-blue-600 text-white ring-2 ring-blue-400'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-              }`}
+                  ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
+                  : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
+              }
             >
-              {month.slice(0,3)}
+              {month.slice(0, 3)}
             </button>
           ))}
         </div>
-        <p className="text-sm text-gray-500 mt-4">
-          Selected: <span className="text-white font-medium">{MONTHS[anniversaryMonth]}</span>
+        <p className="text-sm mt-4" style={{ color: 'var(--text-faint)' }}>
+          Selected:{' '}
+          <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>
+            {MONTHS[anniversaryMonth]}
+          </span>
         </p>
       </div>
-      <NavButton onClick={nextStep}>
-        Continue
-      </NavButton>
+      <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
   )
 }

@@ -1,9 +1,6 @@
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 
-interface Props {
-  results: ComparisonResult
-  viewMode: 'today' | 'age65'
-}
+interface Props { results: ComparisonResult; viewMode: 'today' | 'age65' }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
@@ -11,14 +8,16 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-const SCENARIO_COLORS: Record<string, string> = {
-  A: 'text-blue-400',
-  B: 'text-purple-400',
-  C: 'text-red-400',
-  VOTE_NO_EXPECTED: 'text-amber-400',
+const SCENARIO_CSS_COLOR: Record<string, string> = {
+  A: 'var(--gold)',
+  B: '#a855f7',
+  C: 'var(--negative)',
+  VOTE_NO_EXPECTED: 'var(--warning)',
 }
 
 function SummaryCard({ s, viewMode }: { s: ScenarioSummary; viewMode: 'today' | 'age65' }) {
+  const accentColor = SCENARIO_CSS_COLOR[s.scenarioId] || 'var(--text-base)'
+
   const rows = [
     {
       label: 'Projected Retirement Balance (age 65)',
@@ -28,16 +27,16 @@ function SummaryCard({ s, viewMode }: { s: ScenarioSummary; viewMode: 'today' | 
       highlight: false,
     },
     {
-      label: 'Extra Interim Earnings (before JCBA)',
+      label: 'Interim Earnings Before JCBA',
       value: fmt(s.interimEarningsPV),
       sub: 'Present value of pre-JCBA pay',
       icon: '💰',
       highlight: false,
     },
     {
-      label: 'Extra Growth from 401(k) Timing',
+      label: '401(k) Compounding Gain',
       value: fmt(s.total401kCompoundingGain),
-      sub: 'Compounding gain vs. no-contribution baseline',
+      sub: 'Compounding gain vs. zero-contribution baseline',
       icon: '📈',
       highlight: false,
     },
@@ -50,28 +49,50 @@ function SummaryCard({ s, viewMode }: { s: ScenarioSummary; viewMode: 'today' | 
     },
   ]
 
-  const colorClass = SCENARIO_COLORS[s.scenarioId] || 'text-white'
-
   return (
-    <div className="bg-[#1a2235] rounded-2xl border border-white/5 overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-        <div>
-          <div className={`font-bold text-base ${colorClass}`}>{s.label}</div>
-          <div className="text-xs text-gray-500">{s.description}</div>
-        </div>
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+    >
+      <div
+        className="px-4 py-3 border-b"
+        style={{ borderColor: 'var(--border-subtle)' }}
+      >
+        <div className="font-bold text-base" style={{ color: accentColor }}>{s.label}</div>
+        <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{s.description}</div>
       </div>
-      <div className="divide-y divide-white/5">
+      <div>
         {rows.map(({ label, value, sub, icon, highlight }) => (
-          <div key={label} className={`px-4 py-3 ${highlight ? 'bg-white/[0.03]' : ''}`}>
+          <div
+            key={label}
+            className="px-4 py-3 border-b last:border-b-0"
+            style={{
+              borderColor: 'var(--border-subtle)',
+              background: highlight ? 'var(--bg-elevated)' : undefined,
+            }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2 flex-1 min-w-0">
                 <span className="mt-0.5 text-base shrink-0">{icon}</span>
                 <div className="min-w-0">
-                  <div className={`text-sm ${highlight ? 'text-white font-semibold' : 'text-gray-300'} leading-tight`}>{label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{sub}</div>
+                  <div
+                    className="text-sm leading-tight"
+                    style={{
+                      color: highlight ? 'var(--text-base)' : 'var(--text-muted)',
+                      fontWeight: highlight ? 600 : 400,
+                    }}
+                  >
+                    {label}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>{sub}</div>
                 </div>
               </div>
-              <div className={`font-bold text-sm whitespace-nowrap ${highlight ? colorClass : 'text-white'}`}>{value}</div>
+              <div
+                className="text-sm font-bold whitespace-nowrap"
+                style={{ color: highlight ? accentColor : 'var(--text-base)' }}
+              >
+                {value}
+              </div>
             </div>
           </div>
         ))}
@@ -82,13 +103,15 @@ function SummaryCard({ s, viewMode }: { s: ScenarioSummary; viewMode: 'today' | 
 
 export function ScenarioBreakdown({ results, viewMode }: Props) {
   const all = [...results.scenarios, results.voteNoExpected]
-
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-white text-sm uppercase tracking-wide">Scenario Breakdown</h2>
-      {all.map(s => (
-        <SummaryCard key={s.scenarioId} s={s} viewMode={viewMode} />
-      ))}
+      <h2
+        className="font-semibold text-sm uppercase tracking-wide"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Scenario Breakdown
+      </h2>
+      {all.map(s => <SummaryCard key={s.scenarioId} s={s} viewMode={viewMode} />)}
     </div>
   )
 }

@@ -19,41 +19,40 @@ export function StepLongevity() {
     <WizardLayout
       step="longevity"
       title="What's your longevity as of July 1, 2026?"
-      subtitle="This is your pay step on the contract scale. Longevity 1 is your first year, max is 12."
+      subtitle="Your pay step on the contract scale. Year 1 is your first full year, max is 12."
       onBack={prevStep}
     >
       <div className="mb-8">
-        {/* Longevity grid — large tap targets */}
         <div className="grid grid-cols-4 gap-2 mb-6">
           {Array.from({ length: 12 }, (_, i) => i + 1).map((yr) => (
             <button
               key={yr}
               onClick={() => setInput('longevityAsOfJul2026', yr)}
-              className={`py-4 rounded-xl text-lg font-bold transition-all duration-200 ${
+              className="py-4 rounded-xl text-lg font-bold transition-all duration-200"
+              style={
                 longevity === yr
-                  ? 'bg-blue-600 text-white ring-2 ring-blue-400'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-              }`}
+                  ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
+                  : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
+              }
             >
               {yr}
             </button>
           ))}
         </div>
 
-        {/* Current rate preview */}
         {inputs.seat && currentRate !== null && (
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Your current hourly rate</div>
-            <div className="text-2xl font-bold text-blue-400">
+          <div className="rounded-xl p-4" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--text-faint)' }}>
+              Your current hourly rate
+            </div>
+            <div className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>
               ${currentRate.toFixed(2)}/hr
             </div>
-            <div className="text-xs text-gray-500 mt-1">Current CBA (DOS+5)</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Current CBA (DOS+5)</div>
           </div>
         )}
       </div>
-      <NavButton onClick={nextStep}>
-        Continue
-      </NavButton>
+      <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
   )
 }

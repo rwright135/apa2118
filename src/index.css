@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+/* ── Brand palette ─────────────────────────────────────────────────────────
+   Teamsters Local 2118 — Navy & Gold
+   ────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Dark mode (default) */
+  --bg-base:       #0c1427;
+  --bg-surface:    #152040;
+  --bg-elevated:   #1e2f52;
+  --bg-subtle:     rgba(255, 255, 255, 0.04);
+
+  --border-subtle: rgba(201, 168, 76, 0.10);
+  --border:        rgba(201, 168, 76, 0.22);
+  --border-strong: rgba(201, 168, 76, 0.45);
+
+  --text-base:     #ffffff;
+  --text-muted:    #94a3b8;
+  --text-faint:    #475569;
+
+  --gold:          #c9a84c;
+  --gold-light:    #e8c97a;
+  --gold-dark:     #96771f;
+  --navy:          #1a2b4a;
+
+  /* Primary CTA button */
+  --btn-bg:        #c9a84c;
+  --btn-bg-hover:  #e8c97a;
+  --btn-text:      #0c1427;
+
+  /* Accent for links, icons, highlights */
+  --accent:        #c9a84c;
+  --accent-dim:    rgba(201, 168, 76, 0.15);
+
+  /* Selection (cards) */
+  --sel-bg:        rgba(201, 168, 76, 0.12);
+  --sel-border:    #c9a84c;
+
+  /* Info / warning chips */
+  --chip-bg:       rgba(201, 168, 76, 0.10);
+  --chip-border:   rgba(201, 168, 76, 0.25);
+  --chip-text:     #c9a84c;
+
+  /* Positive / negative */
+  --positive:      #22c55e;
+  --negative:      #ef4444;
+  --warning:       #f59e0b;
+}
+
+/* ── Light mode overrides ────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-base:       #f1f5f9;
+  --bg-surface:    #ffffff;
+  --bg-elevated:   #f8fafc;
+  --bg-subtle:     rgba(26, 43, 74, 0.04);
+
+  --border-subtle: rgba(26, 43, 74, 0.08);
+  --border:        rgba(26, 43, 74, 0.15);
+  --border-strong: rgba(26, 43, 74, 0.35);
+
+  --text-base:     #0f1e3a;
+  --text-muted:    #4a6080;
+  --text-faint:    #94a3b8;
+
+  /* Button uses navy in light mode */
+  --btn-bg:        #1a2b4a;
+  --btn-bg-hover:  #263c6a;
+  --btn-text:      #ffffff;
+
+  /* Accent stays gold but darker for readability on light bg */
+  --accent:        #96771f;
+  --accent-dim:    rgba(150, 119, 31, 0.10);
+
+  --sel-bg:        rgba(26, 43, 74, 0.06);
+  --sel-border:    #1a2b4a;
+
+  --chip-bg:       rgba(26, 43, 74, 0.07);
+  --chip-border:   rgba(26, 43, 74, 0.20);
+  --chip-text:     #1a2b4a;
+}
+
+/* ── Slider thumb styling ────────────────────────────────────────────────── */
+input[type="range"] {
+  accent-color: var(--gold);
+}
+
+/* ── Date input dark/light chrome ───────────────────────────────────────── */
+input[type="date"] {
+  color-scheme: dark;
+}
+[data-theme="light"] input[type="date"] {
+  color-scheme: light;
+}
+
+/* ── Scrollbar (subtle gold tint in dark, subtle in light) ──────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }

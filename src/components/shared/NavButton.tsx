@@ -5,16 +5,28 @@ interface Props {
   variant?: 'primary' | 'secondary'
   className?: string
 }
+
 export function NavButton({ onClick, disabled, children, variant = 'primary', className = '' }: Props) {
+  const primary = variant === 'primary'
+
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-        variant === 'primary'
-          ? 'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed'
-          : 'bg-white/10 hover:bg-white/15 active:bg-white/5 text-gray-300'
-      } ${className}`}
+      className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+      style={
+        primary
+          ? { background: 'var(--btn-bg)', color: 'var(--btn-text)' }
+          : { background: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
+      }
+      onMouseEnter={e => {
+        if (!disabled) {
+          e.currentTarget.style.background = primary ? 'var(--btn-bg-hover)' : 'var(--bg-surface)'
+        }
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = primary ? 'var(--btn-bg)' : 'var(--bg-elevated)'
+      }}
     >
       {children}
     </button>

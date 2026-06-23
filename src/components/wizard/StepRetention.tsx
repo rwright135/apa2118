@@ -20,12 +20,14 @@ export function StepRetention() {
     <WizardLayout
       step="retention"
       title="Tell us about your retention bonus"
-      subtitle="The retention bonus is a key financial variable — it's worth over $100K for many pilots and is treated differently under each contract path."
+      subtitle="Worth over $100K for many pilots — this is treated very differently under each contract path."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Current retention bonus balance</label>
+          <label className="block text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+            Current retention bonus balance
+          </label>
           <NumberInput
             value={balance}
             onChange={(v) => setInput('retentionCurrentBalance', Math.max(0, v))}
@@ -34,20 +36,32 @@ export function StepRetention() {
             min={0}
             step={1000}
           />
-          <p className="text-xs text-gray-600 mt-1">Formula: rate × 85 hrs × 35%. This is your accrued balance.</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+            Formula: hourly rate × 85 hrs × 35%
+          </p>
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Expected payout date (if TA passes)</label>
-          <div className="bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500 transition-colors">
+          <label className="block text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+            Expected payout date (if TA passes)
+          </label>
+          <div
+            className="rounded-xl overflow-hidden border-2 transition-colors"
+            style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)' }}
+            onFocusCapture={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)')}
+            onBlurCapture={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--border)')}
+          >
             <input
               type="date"
               value={payoutDateString}
               onChange={handlePayoutDateChange}
-              className="w-full bg-transparent px-4 py-4 text-base font-semibold text-white outline-none [color-scheme:dark]"
+              className="w-full bg-transparent px-4 py-4 text-base font-semibold outline-none"
+              style={{ color: 'var(--text-base)' }}
             />
           </div>
-          <p className="text-xs text-gray-600 mt-1">E.g., October 1, 2026 for 2.5-year anniversary</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+            E.g., October 1, 2026 for 2.5-year anniversary
+          </p>
         </div>
 
         <div>
@@ -58,15 +72,15 @@ export function StepRetention() {
             step={5}
             onChange={(v) => setInput('retentionPayoutProbability', v / 100)}
             formatValue={(v) => `${v}%`}
-            label="Probability the retention bonus is paid out if we vote no (bankruptcy risk factor)"
+            label="Probability the bonus is fully paid if we vote no (bankruptcy risk)"
             showMinMax
           />
-          <p className="text-xs text-gray-500 mt-2">If the company faces financial trouble, there's a risk this bonus is never paid. Default: 95% certain.</p>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+            Default: 95%. Adjust down if you believe there's meaningful financial risk.
+          </p>
         </div>
       </div>
-      <NavButton onClick={nextStep}>
-        Continue
-      </NavButton>
+      <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
   )
 }
