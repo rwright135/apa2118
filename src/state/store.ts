@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
+import { saveToLocalStorage } from './persistence'
 
 export type WizardStep =
   | 'welcome'
@@ -103,15 +104,19 @@ export const useStore = create<AppState>((set, get) => ({
   goToStep: (step) => set({ currentStep: step }),
 
   setInput: (key, value) => {
-    set((state) => ({
-      inputs: { ...state.inputs, [key]: value },
-    }))
+    set((state) => {
+      const newInputs = { ...state.inputs, [key]: value }
+      saveToLocalStorage(newInputs)
+      return { inputs: newInputs }
+    })
   },
 
   setInputs: (partial) => {
-    set((state) => ({
-      inputs: { ...state.inputs, ...partial },
-    }))
+    set((state) => {
+      const newInputs = { ...state.inputs, ...partial }
+      saveToLocalStorage(newInputs)
+      return { inputs: newInputs }
+    })
   },
 
   compute: () => {
