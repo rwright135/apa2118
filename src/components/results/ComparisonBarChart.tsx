@@ -10,7 +10,7 @@ function fmtAxis(n: number) {
 }
 
 function totalValue(s: ScenarioSummary) {
-  return s.presentValueTotal
+  return s.preJcbaTotal
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

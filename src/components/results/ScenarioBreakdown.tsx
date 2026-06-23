@@ -22,9 +22,9 @@ function BreakdownCard({
 }) {
   const rows = [
     {
-      label: 'Value in Today\'s Dollars',
-      value: fmt(s.presentValueTotal),
-      sub: 'All cash flows discounted — money now beats money later',
+      label: 'Pre-JCBA Value (Today\'s Dollars)',
+      value: fmt(s.preJcbaTotal),
+      sub: 'PV of all cash flows in the decision window only',
       icon: '⭐', highlight: true,
     },
     { label: 'Projected Retirement Balance', value: fmt(s.retirementBalanceAt65), sub: '401(k) contributions compounded to age 65',   icon: '🏦', highlight: false },
@@ -91,7 +91,7 @@ export function ScenarioBreakdown({ results }: Props) {
   const voteNo    = results.voteNoExpected
   const p         = results.inputs.voteNoOffer.probability
 
-  const val = (s: ScenarioSummary) => s.presentValueTotal
+  const val = (s: ScenarioSummary) => s.preJcbaTotal
 
   return (
     <div className="space-y-4">

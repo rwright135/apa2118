@@ -94,7 +94,8 @@ export interface ScenarioSummary {
   steadyStateIndex: number    // rows index after which annual pattern repeats
 
   // Headlines
-  presentValueTotal: number          // sum of all PV cash flows (pay + PS + retention)
+  preJcbaTotal: number               // PV of all cash flows + 401k in the pre-JCBA window ONLY (the decision metric)
+  presentValueTotal: number          // sum of all PV cash flows (pay + PS + retention) full career
   retirementBalanceAt65: number      // 401k balance projected at age 65
   retirementBalancePV: number        // that balance discounted back to today
   interimEarningsPV: number          // PV of pay before JCBA conclusion

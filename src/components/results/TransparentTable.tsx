@@ -167,9 +167,13 @@ export function TransparentTable({ results }: Props) {
   const summary = allSummaries.find(s => s.scenarioId === scenarioId)
   if (!summary) return null
 
+  const jcbaMonth   = results.inputs.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
-  const displayRows = expanded ? rows : rows.slice(0, steadyStateIndex + 1)
-  const hasMore     = rows.length > steadyStateIndex + 1
+
+  // Truncate at JCBA: post-JCBA rows are identical across all scenarios and add nothing to the comparison
+  const preJcbaRows  = rows.slice(0, jcbaMonth)
+  const displayRows  = expanded ? preJcbaRows : preJcbaRows.slice(0, steadyStateIndex + 1)
+  const hasMore      = preJcbaRows.length > steadyStateIndex + 1
   const isVoteYes   = activeTab === 'YES'
 
   const prob = isVoteYes ? 1 : results.inputs.retentionPayoutProbability
@@ -282,10 +286,15 @@ export function TransparentTable({ results }: Props) {
       {hasMore && (
         <div className="px-4 py-3 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
           <button onClick={() => setExpanded(!expanded)} className="text-sm font-medium" style={{ color: 'var(--accent)' }}>
-            {expanded ? `Collapse (hide ${rows.length - steadyStateIndex - 1} repeating months)` : `Show all ${rows.length - steadyStateIndex - 1} remaining months`}
+            {expanded
+              ? `Collapse (show only pre-steady-state months)`
+              : `Show all ${preJcbaRows.length - steadyStateIndex - 1} remaining pre-JCBA months`}
           </button>
         </div>
       )}
+      <div className="px-4 py-2 text-center text-xs" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+        Table stops at JCBA month {jcbaMonth} — all scenarios converge to identical rates after this point
+      </div>
 
       {/* Retention bonus expansion */}
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>

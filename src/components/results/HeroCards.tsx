@@ -8,11 +8,10 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-// PV = all cash flows discounted to today at the user's investment rate.
-// This is the correct comparison metric — it accounts for the time value
-// of money, so getting $100K now beats getting $165K in 2 years uncertain.
+// Pre-JCBA total = PV of all cash flows + 401k in the decision window only.
+// Post-JCBA is identical for all paths, so it adds nothing to the comparison.
 function pvTotal(s: ScenarioSummary) {
-  return s.presentValueTotal
+  return s.preJcbaTotal
 }
 
 function Card({ summary, isYes }: { summary: ScenarioSummary; isYes: boolean }) {
@@ -40,7 +39,7 @@ function Card({ summary, isYes }: { summary: ScenarioSummary; isYes: boolean }) 
         {fmt(value)}
       </div>
       <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-        What it's worth in today's dollars
+        Value of the pre-JCBA window (today's dollars)
       </div>
     </div>
   )
@@ -83,15 +82,14 @@ export function HeroCards({ results }: Props) {
         </div>
       </div>
 
-      {/* Why TVM matters here — inline explainer */}
+      {/* Pre-JCBA window explainer */}
       <div
         className="rounded-xl px-4 py-3 text-xs leading-relaxed"
         style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
       >
-        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Why "today's dollars"? </span>
-        Getting a 70% raise starting now is worth more than the same raise starting in 2 years, even if the later number looks bigger on paper.
-        The retention bonus also accrues more under Vote No, but that extra accrual is uncertain, delayed, and worth less today than money in hand.
-        This number accounts for all of that.
+        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Only the pre-JCBA window counts. </span>
+        After the JCBA concludes, all paths converge to the same rates — so those years cancel out.
+        Getting a 70% raise now is worth more than the same raise in {results.inputs.jcbaDurationMonths} months. This number shows exactly how much more, in today's dollars.
       </div>
     </div>
   )

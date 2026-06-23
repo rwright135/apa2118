@@ -318,16 +318,24 @@ export function buildScenarioSummary(
     return sum + r.k401Contribution * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
   }, 0)
 
-  const interimEarningsPV = rows
-    .filter(r => r.monthIndex < jcbaMonth)
-    .reduce((sum, r) => sum + r.presentValue, 0)
+  // Pre-JCBA window only — this is the only period that differs between scenarios.
+  // Everything after JCBA converges to identical rates, so only these months drive the comparison.
+  const preJcbaRows = rows.filter(r => r.monthIndex < jcbaMonth)
+
+  const interimEarningsPV = preJcbaRows.reduce((sum, r) => sum + r.presentValue, 0)
+
+  // preJcbaTotal = PV of all pre-JCBA cash flows + PV of pre-JCBA 401k contributions
+  // (401k contributions made before JCBA keep compounding post-JCBA, so they're still
+  //  meaningfully different between scenarios)
+  const preJcbaTotal =
+    preJcbaRows.reduce((sum, r) => sum + r.presentValue + r.presentValue401k, 0)
 
   const total401kCompoundingGain = retirementBalanceAt65 - rows.reduce((sum, r) => sum + r.k401Contribution, 0)
 
-  const totalGrossPay = rows.reduce((sum, r) => sum + r.grossPay, 0)
-  const totalProfitSharing = rows.reduce((sum, r) => sum + r.profitSharingCash, 0)
-  const totalRetention = rows.reduce((sum, r) => sum + r.retentionCashFlow, 0)
-  const total401kContributions = rows.reduce((sum, r) => sum + r.k401Contribution, 0)
+  const totalGrossPay        = preJcbaRows.reduce((sum, r) => sum + r.grossPay, 0)
+  const totalProfitSharing   = preJcbaRows.reduce((sum, r) => sum + r.profitSharingCash, 0)
+  const totalRetention       = rows.reduce((sum, r) => sum + r.retentionCashFlow, 0) // may span JCBA
+  const total401kContributions = preJcbaRows.reduce((sum, r) => sum + r.k401Contribution, 0)
 
   const steadyStateIndex = detectSteadyState(rows)
 
@@ -338,6 +346,7 @@ export function buildScenarioSummary(
     rows,
     totalRows: rows.length,
     steadyStateIndex,
+    preJcbaTotal,
     presentValueTotal,
     retirementBalanceAt65,
     retirementBalancePV,

@@ -34,7 +34,9 @@ export function CumulativeLineChart({ results }: Props) {
   const scenarioC  = results.scenarios.find(s => s.scenarioId === 'C')!
   const voteNo     = results.voteNoExpected
 
-  const maxLen = scenarioA.rows.length
+  const jcbaMonth = results.inputs.jcbaDurationMonths
+  // Only chart the pre-JCBA window — post-JCBA is identical across scenarios
+  const maxLen = Math.min(jcbaMonth + 1, scenarioA.rows.length)
   const step   = Math.max(1, Math.floor(maxLen / 120))
 
   const chartData = []
