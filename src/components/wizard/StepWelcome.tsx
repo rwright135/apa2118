@@ -26,7 +26,7 @@ export function StepWelcome() {
         {/* Logo */}
         <div className="mb-6">
           <img
-            src="/teamsters-logo.png"
+            src="/APA Teamsters Local 2118 Logo.png"
             alt="Teamsters Local 2118"
             className="w-32 h-32 object-contain drop-shadow-lg"
             onError={(e) => {
