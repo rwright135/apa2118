@@ -92,6 +92,26 @@ input[type="date"] {
   color-scheme: light;
 }
 
+/* ── Theme transition — whole-page breathe ──────────────────────────────── */
+/*
+ * When the toggle fires, the <html> element gets .theme-transitioning for
+ * ~420ms. The #root fades to black at the midpoint, the CSS variables flip
+ * (invisibly), then the page fades back in showing the new theme — all as
+ * a single coordinated pulse. pointer-events are disabled during the fade
+ * so a double-tap can't trigger a second toggle mid-animation.
+ */
+@keyframes theme-breathe {
+  0%   { opacity: 1; }
+  42%  { opacity: 0; }
+  58%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+html.theme-transitioning #root {
+  animation: theme-breathe 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
 /* ── Scrollbar (subtle gold tint in dark, subtle in light) ──────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
