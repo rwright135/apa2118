@@ -79,6 +79,17 @@
   --chip-text:     #1a2b4a;
 }
 
+/* ── Remove number input spinners (up/down arrows) ──────────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* ── Slider thumb styling ────────────────────────────────────────────────── */
 input[type="range"] {
   accent-color: var(--gold);
