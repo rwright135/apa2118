@@ -54,7 +54,7 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col px-4 pt-6 pb-8 max-w-lg mx-auto w-full">
+      <div className="flex-1 flex flex-col px-4 pt-6 pb-8 max-w-xl mx-auto w-full">
         <div className="mb-8">
           <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--text-base)' }}>
             {title}

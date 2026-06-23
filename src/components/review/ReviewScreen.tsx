@@ -68,7 +68,7 @@ export function ReviewScreen() {
         <ThemeToggle />
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-12">
+      <div className="max-w-xl mx-auto px-4 pt-6 pb-12">
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold mb-3"

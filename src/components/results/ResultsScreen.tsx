@@ -38,7 +38,7 @@ export function ResultsScreen() {
           borderColor: 'var(--border-subtle)',
         }}
       >
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
             onClick={() => goToStep('review')}
             className="flex items-center gap-1.5 text-sm transition-colors"
@@ -82,7 +82,7 @@ export function ResultsScreen() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* View toggle */}
         <div
           className="flex rounded-xl p-1 gap-1"
