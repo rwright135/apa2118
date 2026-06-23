@@ -22,8 +22,7 @@ import { LoadingScreen } from './components/shared/LoadingScreen'
 function App() {
   const { currentStep, isComputing, setInputs } = useStore()
 
-  if (isComputing) return <LoadingScreen />
-
+  // useEffect MUST come before any conditional returns — Rules of Hooks
   useEffect(() => {
     const fromURL = decodeFromURL()
     if (fromURL) {
@@ -34,25 +33,27 @@ function App() {
     if (fromStorage) {
       setInputs(fromStorage)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isComputing) return <LoadingScreen />
 
   switch (currentStep) {
-    case 'welcome': return <StepWelcome />
-    case 'seat': return <StepSeat />
-    case 'longevity': return <StepLongevity />
-    case 'anniversary': return <StepAnniversary />
-    case 'lineType': return <StepLineType />
-    case 'extraHours': return <StepExtraHours />
-    case 'dob': return <StepDOB />
-    case 'profitSharing': return <StepProfitSharing />
-    case 'retention': return <StepRetention />
-    case 'investmentRate': return <StepInvestmentRate />
-    case 'voteNo': return <StepVoteNo />
-    case 'jcba': return <StepJCBA />
-    case 'advanced': return <StepAdvanced />
-    case 'review': return <ReviewScreen />
-    case 'results': return <ResultsScreen />
-    default: return <StepWelcome />
+    case 'welcome':      return <StepWelcome />
+    case 'seat':         return <StepSeat />
+    case 'longevity':    return <StepLongevity />
+    case 'anniversary':  return <StepAnniversary />
+    case 'lineType':     return <StepLineType />
+    case 'extraHours':   return <StepExtraHours />
+    case 'dob':          return <StepDOB />
+    case 'profitSharing':return <StepProfitSharing />
+    case 'retention':    return <StepRetention />
+    case 'investmentRate':return <StepInvestmentRate />
+    case 'voteNo':       return <StepVoteNo />
+    case 'jcba':         return <StepJCBA />
+    case 'advanced':     return <StepAdvanced />
+    case 'review':       return <ReviewScreen />
+    case 'results':      return <ResultsScreen />
+    default:             return <StepWelcome />
   }
 }
 

@@ -113,7 +113,14 @@ export const useStore = create<AppState>((set, get) => ({
 
   setInputs: (partial) => {
     set((state) => {
-      const newInputs = { ...state.inputs, ...partial }
+      // Ensure any Date-typed fields that arrive as strings (e.g. from old
+      // localStorage sessions or URL params) are coerced back to real Dates.
+      const sanitized = { ...partial }
+      if (sanitized.dateOfBirth && !(sanitized.dateOfBirth instanceof Date)) {
+        const d = new Date(sanitized.dateOfBirth as unknown as string)
+        sanitized.dateOfBirth = isNaN(d.getTime()) ? undefined : d
+      }
+      const newInputs = { ...state.inputs, ...sanitized }
       saveToLocalStorage(newInputs)
       return { inputs: newInputs }
     })

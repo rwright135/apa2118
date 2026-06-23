@@ -15,7 +15,9 @@ export function StepDOB() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
 
   // Parse existing DOB or use defaults
-  const dob = inputs.dateOfBirth
+  // Guard: localStorage may deserialize dates as strings from a prior session
+  const rawDob = inputs.dateOfBirth
+  const dob = rawDob instanceof Date ? rawDob : undefined
   const selectedMonth = dob ? dob.getMonth() : -1          // 0-indexed, -1 = unset
   const selectedYear  = dob ? dob.getFullYear() : DEFAULT_YEAR
 
