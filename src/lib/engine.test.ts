@@ -156,6 +156,28 @@ describe('buildMonthlyStream - Scenario C', () => {
   })
 })
 
+describe('post-JCBA convergence', () => {
+  it('all three scenarios use identical rates after JCBA concludes', () => {
+    const inputs = makeInputs({ jcbaDurationMonths: 24, voteNoOffer: { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10 } })
+    const rowsA = buildMonthlyStream(inputs, 'A')
+    const rowsB = buildMonthlyStream(inputs, 'B')
+    const rowsC = buildMonthlyStream(inputs, 'C')
+    // At month 30 (6 months past JCBA), all should have the same rate
+    expect(rowsA[30].hourlyRate).toBeCloseTo(rowsB[30].hourlyRate, 2)
+    expect(rowsA[30].hourlyRate).toBeCloseTo(rowsC[30].hourlyRate, 2)
+  })
+
+  it('Scenario B uplift only applies between offer arrival and JCBA', () => {
+    const inputs = makeInputs({ jcbaDurationMonths: 24, voteNoOffer: { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10 } })
+    const rows = buildMonthlyStream(inputs, 'B')
+    // Month 18 (between offer at 12 and JCBA at 24): should have uplift
+    const rateAtMonth18 = rows[18].hourlyRate
+    // Month 30 (post JCBA): should be back to plain TA rate, no uplift
+    const rateAtMonth30 = rows[30].hourlyRate
+    expect(rateAtMonth18).toBeGreaterThan(rateAtMonth30)
+  })
+})
+
 describe('detectSteadyState', () => {
   it('detects steady state when pay stops changing', () => {
     const inputs = makeInputs()

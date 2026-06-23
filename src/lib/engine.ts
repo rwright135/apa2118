@@ -180,17 +180,26 @@ export function buildMonthlyStream(
     let isTA: boolean
     let k401Rate: number
 
-    if (scenarioId === 'A') {
+    // Post-JCBA: ALL scenarios converge to the same TA Jan-2028 rates.
+    // Only the pre-JCBA window drives the comparison; the tail cancels.
+    if (m >= jcbaMonth) {
+      isTA = true
+      hourlyRate = getRate(inputs.seat, longevity, 'TA_JAN2028')
+      k401Rate = CONTRACT_PARAMS.K401_TA_PHASE2
+    } else if (scenarioId === 'A') {
+      // Vote Yes: TA rates from day one through each effective-date tier
       isTA = true
       const tier = getTATier(date)
       hourlyRate = getRate(inputs.seat, longevity, tier)
       k401Rate = get401kRate('A', date)
     } else if (scenarioId === 'B') {
+      // Vote No + 2nd offer: CBA until offer arrives, then uplifted TA until JCBA
       if (m < offerArrivalMonth) {
         isTA = false
         hourlyRate = getRate(inputs.seat, longevity, 'CBA')
         k401Rate = CONTRACT_PARAMS.K401_CURRENT
       } else {
+        // Offer arrived, between offer and JCBA: TA + uplift
         isTA = true
         const tier = getTATier(date)
         const taRate = getRate(inputs.seat, longevity, tier)
@@ -198,15 +207,10 @@ export function buildMonthlyStream(
         k401Rate = get401kRate('A', date)
       }
     } else {
-      if (m < jcbaMonth) {
-        isTA = false
-        hourlyRate = getRate(inputs.seat, longevity, 'CBA')
-        k401Rate = CONTRACT_PARAMS.K401_CURRENT
-      } else {
-        isTA = true
-        hourlyRate = getRate(inputs.seat, longevity, 'TA_JAN2028')
-        k401Rate = CONTRACT_PARAMS.K401_TA_PHASE2
-      }
+      // Scenario C: CBA until JCBA (handled by post-JCBA guard above)
+      isTA = false
+      hourlyRate = getRate(inputs.seat, longevity, 'CBA')
+      k401Rate = CONTRACT_PARAMS.K401_CURRENT
     }
 
     const totalHours = getMonthlyHours(inputs, isTA)
