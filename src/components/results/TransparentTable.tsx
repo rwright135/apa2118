@@ -9,23 +9,40 @@ function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'presentValue' | 'cumulativePV'
 
-const SCENARIO_ACTIVE: Record<'A'|'B'|'C', React.CSSProperties> = {
-  A: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)', color: 'var(--gold)' },
-  B: { background: 'rgba(168,85,247,0.15)', border: '1px solid #a855f7', color: '#a855f7' },
-  C: { background: 'rgba(239,68,68,0.15)', border: '1px solid var(--negative)', color: 'var(--negative)' },
+type TabId = 'YES' | 'NO' | 'B' | 'C'
+
+const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
+  YES: {
+    label: 'Vote Yes',
+    active:   { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)', color: 'var(--gold)' },
+    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' },
+  },
+  NO: {
+    label: 'Vote No (blended)',
+    active:   { background: 'rgba(26,43,74,0.15)', border: '1px solid var(--navy)', color: 'var(--navy)' },
+    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' },
+  },
+  B: {
+    label: 'Scenario B detail',
+    active:   { background: 'rgba(168,85,247,0.12)', border: '1px solid #a855f7', color: '#a855f7' },
+    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-faint)' },
+  },
+  C: {
+    label: 'Scenario C detail',
+    active:   { background: 'rgba(239,68,68,0.12)', border: '1px solid var(--negative)', color: 'var(--negative)' },
+    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-faint)' },
+  },
 }
 
 export function TransparentTable({ results }: Props) {
   const [expanded, setExpanded] = useState(false)
-  const [activeScenario, setActiveScenario] = useState<'A'|'B'|'C'>('A')
+  const [activeTab, setActiveTab] = useState<TabId>('YES')
 
-  const scenarioMap: Record<'A'|'B'|'C', string> = {
-    A: 'Vote Yes',
-    B: 'Vote No + Offer',
-    C: 'Vote No, No Offer',
-  }
+  const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
+  const scenarioId = tabToScenario[activeTab]
 
-  const summary = results.scenarios.find(s => s.scenarioId === activeScenario)
+  const allSummaries = [...results.scenarios, results.voteNoExpected]
+  const summary = allSummaries.find(s => s.scenarioId === scenarioId)
   if (!summary) return null
 
   const { rows, steadyStateIndex } = summary
@@ -59,19 +76,24 @@ export function TransparentTable({ results }: Props) {
             {rows.length} months total
           </span>
         </div>
-        <div className="flex gap-1.5">
-          {(['A','B','C'] as const).map(id => (
-            <button
-              key={id}
-              onClick={() => setActiveScenario(id)}
+        {/* Primary tabs: Vote Yes / Vote No */}
+        <div className="flex gap-1.5 flex-wrap">
+          {(['YES', 'NO'] as const).map(id => (
+            <button key={id} onClick={() => setActiveTab(id)}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={
-                activeScenario === id
-                  ? SCENARIO_ACTIVE[id]
-                  : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-              }
+              style={activeTab === id ? TAB_STYLES[id].active : TAB_STYLES[id].inactive}
             >
-              {scenarioMap[id]}
+              {TAB_STYLES[id].label}
+            </button>
+          ))}
+          <span className="w-px self-stretch" style={{ background: 'var(--border)', margin: '0 2px' }} />
+          {/* Detail tabs */}
+          {(['B', 'C'] as const).map(id => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={activeTab === id ? TAB_STYLES[id].active : TAB_STYLES[id].inactive}
+            >
+              {TAB_STYLES[id].label}
             </button>
           ))}
         </div>
