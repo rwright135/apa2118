@@ -22,24 +22,11 @@ export function StepWelcome() {
             alt="Teamsters Local 2118"
             className="w-28 h-28 object-contain drop-shadow-lg"
             onError={(e) => {
-              /* Fallback badge if image isn't placed yet */
-              const target = e.currentTarget
-              target.style.display = 'none'
-              const fallback = target.nextElementSibling as HTMLElement
-              if (fallback) fallback.style.display = 'flex'
+              /* Fall back to the SVG version */
+              e.currentTarget.src = '/teamsters-logo.svg'
+              e.currentTarget.onerror = null
             }}
           />
-          {/* Fallback SVG badge — hidden unless image fails */}
-          <div
-            className="w-28 h-28 rounded-full border-4 items-center justify-center hidden"
-            style={{ borderColor: 'var(--gold)', background: 'var(--navy)' }}
-          >
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-              <path d="M10 42L28 10l18 32H10z" stroke="var(--gold)" strokeWidth="2.5" fill="none"/>
-              <path d="M16 36h24M28 10v6" stroke="var(--gold)" strokeWidth="2"/>
-              <text x="28" y="48" textAnchor="middle" fontSize="7" fill="var(--gold)" fontFamily="sans-serif" fontWeight="bold">LOCAL 2118</text>
-            </svg>
-          </div>
         </div>
 
         {/* Pill badge */}

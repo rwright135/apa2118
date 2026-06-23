@@ -53,7 +53,12 @@ export function ResultsScreen() {
           </button>
 
           <div className="flex items-center gap-1">
-            <img src="/teamsters-logo.png" alt="" className="w-6 h-6 object-contain opacity-80" />
+            <img
+              src="/teamsters-logo.png"
+              alt=""
+              className="w-6 h-6 object-contain opacity-80"
+              onError={(e) => { e.currentTarget.src = '/teamsters-logo.svg'; e.currentTarget.onerror = null }}
+            />
             <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>
               APA2118
             </span>
