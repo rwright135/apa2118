@@ -19,7 +19,6 @@ export function StepLongevity() {
     <WizardLayout
       step="longevity"
       title="What's your longevity as of July 1, 2026?"
-      subtitle="Your pay step on the contract scale. Year 1 is your first full year, max is 12."
       onBack={prevStep}
     >
       <div className="mb-8">
