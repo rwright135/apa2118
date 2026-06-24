@@ -12,7 +12,6 @@ export function StepLineType() {
     <WizardLayout
       step="lineType"
       title="Are you primarily a Line Holder or Reserve?"
-      subtitle="This affects your minimum monthly guarantee (MMG) — the base hours used to calculate your pay."
       onBack={prevStep}
     >
       <div className="space-y-3 mb-8">
