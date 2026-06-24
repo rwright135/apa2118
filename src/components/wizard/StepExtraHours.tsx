@@ -11,7 +11,7 @@ export function StepExtraHours() {
   return (
     <WizardLayout
       step="extraHours"
-      title="How many additional PCH do you Credit Monthly on Average?"
+      title="How many additional PCH do you credit on average each month?"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
