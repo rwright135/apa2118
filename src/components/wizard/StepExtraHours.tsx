@@ -47,9 +47,6 @@ export function StepExtraHours() {
           </div>
         )}
 
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Flying an extra 20 hours means you're not just losing the MMG pay difference — you're losing 20 more hours of that pay gap every month.
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
