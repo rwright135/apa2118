@@ -23,7 +23,7 @@ export function StepInvestmentRate() {
       <div className="mb-8 space-y-6">
         <SliderInput
           value={ratePct}
-          min={3}
+          min={4}
           max={20}
           step={0.1}
           onChange={(v) => setInput('investmentRate', v / 100)}
