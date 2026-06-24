@@ -60,7 +60,6 @@ export function StepSeat() {
     <WizardLayout
       step="seat"
       title="What's your current seat?"
-      subtitle="This determines which pay scale applies to your calculations."
       onBack={prevStep}
     >
       <div className="space-y-3 mb-8">
