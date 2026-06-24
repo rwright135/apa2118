@@ -28,7 +28,7 @@ export function StepLineType() {
           onClick={() => setInput('lineType', 'RESERVE' as LineType)}
           icon="🧑‍✈️"
           title="Reserve Line Holder"
-          description="MMG: 72 hrs (CBA) → 75 hrs (TA) — that's 3 extra guaranteed hours per month under the new deal"
+          description="MMG: 72 hrs (CBA) → 75 hrs (TA)"
         />
       </div>
       <NavButton onClick={nextStep} disabled={!lineType}>
