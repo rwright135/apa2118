@@ -43,6 +43,29 @@ export function StepDOB() {
     >
       <div className="mb-8 space-y-6">
 
+        {/* ── Month grid ── */}
+        <div>
+          <div className="text-xs uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>
+            Birth month
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {MONTHS.map((m, idx) => (
+              <button
+                key={m}
+                onClick={() => setMonth(idx)}
+                className="py-3 rounded-xl text-sm font-semibold transition-all duration-150"
+                style={
+                  selectedMonth === idx
+                    ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
+                    : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
+                }
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* ── Year slider ── */}
         <div>
           <div className="text-xs uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>
@@ -69,29 +92,6 @@ export function StepDOB() {
               <span style={{ color: 'var(--text-muted)' }}>age {CURRENT_YEAR - selectedYear} in {CURRENT_YEAR}</span>
               <span>{MAX_YEAR}</span>
             </div>
-          </div>
-        </div>
-
-        {/* ── Month grid ── */}
-        <div>
-          <div className="text-xs uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>
-            Birth month
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {MONTHS.map((m, idx) => (
-              <button
-                key={m}
-                onClick={() => setMonth(idx)}
-                className="py-3 rounded-xl text-sm font-semibold transition-all duration-150"
-                style={
-                  selectedMonth === idx
-                    ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
-                    : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
-                }
-              >
-                {m}
-              </button>
-            ))}
           </div>
         </div>
 
