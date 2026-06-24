@@ -18,7 +18,6 @@ export function StepInvestmentRate() {
     <WizardLayout
       step="investmentRate"
       title="What return do you expect on your money?"
-      subtitle="This single rate discounts future pay to today's dollars AND compounds your 401(k) contributions forward to retirement."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
