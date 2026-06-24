@@ -19,7 +19,7 @@ export function StepRetention() {
       <div className="mb-8 space-y-6">
         <div>
           <label className="block text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
-            Current retention bonus balance
+            What will your estimated Rentention Bonus amount be on June 30th? Please include your estimated &ldquo;True Up&rdquo; as part of the total.
           </label>
           <NumberInput
             value={balance}
