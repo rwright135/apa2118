@@ -49,9 +49,9 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.90,
   voteNoOffer: {
-    probability: 0.25,
-    arrivalMonths: 18,
-    percentAboveTA: 0.03,
+    probability: 0.50,
+    arrivalMonths: 6,
+    percentAboveTA: 0.10,
   },
   jcbaDurationMonths: 24,
   advancedPostJCBA: {

@@ -6,7 +6,7 @@ import { RetentionPayoutTable } from '../shared/RetentionPayoutTable'
 
 export function StepVoteNo() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const offer = inputs.voteNoOffer ?? { probability: 0.25, arrivalMonths: 18, percentAboveTA: 0.03 }
+  const offer = inputs.voteNoOffer ?? { probability: 0.50, arrivalMonths: 6, percentAboveTA: 0.10 }
 
   const update = (patch: Partial<typeof offer>) => {
     setInput('voteNoOffer', { ...offer, ...patch })
@@ -15,17 +15,27 @@ export function StepVoteNo() {
   return (
     <WizardLayout
       step="voteNo"
-      title="If we vote no — what do you think happens?"
-      subtitle="This is a bridge deal before joint JCBA negotiations. Some pilots think a second offer is coming. What do you believe?"
+      title="Your call: What happens if we vote no?"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-8">
+
+        <div
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Explain: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            This calculator lets you set your own probability assumptions so you can empirically evaluate the value of a potential second offer — and a no-offer outcome — across multiple scenarios and timelines. There is no right or wrong answer; your inputs reflect your read of the situation.
+          </span>
+        </div>
+
         <div>
           <SliderInput
             value={Math.round(offer.probability * 100)}
-            min={5}
-            max={50}
-            step={2.5}
+            min={0}
+            max={100}
+            step={5}
             onChange={(v) => update({ probability: v / 100 })}
             formatValue={(v) => `${v}%`}
             label="Probability of a second bridge offer (Scenario B)"
@@ -43,7 +53,7 @@ export function StepVoteNo() {
           <SliderInput
             value={offer.arrivalMonths}
             min={3}
-            max={36}
+            max={12}
             step={1}
             onChange={(v) => update({ arrivalMonths: v })}
             formatValue={(v) => `${v} months`}
@@ -56,8 +66,8 @@ export function StepVoteNo() {
             How much better would that offer be vs. the TA?
           </label>
           <SliderInput
-            value={Math.round(offer.percentAboveTA * 100)}
-            min={0}
+            value={Math.round(offer.percentAboveTA * 1000) / 10}
+            min={5}
             max={20}
             step={0.5}
             onChange={(v) => update({ percentAboveTA: v / 100 })}
