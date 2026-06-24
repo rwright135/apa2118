@@ -6,11 +6,11 @@ import { saveToLocalStorage } from './persistence'
 export type WizardStep =
   | 'welcome'
   | 'seat'
+  | 'dob'
   | 'longevity'
   | 'anniversary'
   | 'lineType'
   | 'extraHours'
-  | 'dob'
   | 'profitSharing'
   | 'investmentRate'
   | 'voteNo'
@@ -23,11 +23,11 @@ export type WizardStep =
 export const WIZARD_STEPS: WizardStep[] = [
   'welcome',
   'seat',
+  'dob',
   'longevity',
   'anniversary',
   'lineType',
   'extraHours',
-  'dob',
   'profitSharing',
   'investmentRate',
   'voteNo',
