@@ -2,6 +2,7 @@ import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
+import { RetentionPayoutTable } from '../shared/RetentionPayoutTable'
 
 export function StepVoteNo() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
@@ -67,6 +68,12 @@ export function StepVoteNo() {
             A positive number means the new offer beats the current TA rates.
           </p>
         </div>
+
+        <RetentionPayoutTable
+          arrivalMonths={offer.arrivalMonths}
+          jcbaMonths={inputs.jcbaDurationMonths ?? 24}
+          offerProbability={offer.probability}
+        />
 
         <div
           className="rounded-xl p-4 text-sm leading-relaxed"
