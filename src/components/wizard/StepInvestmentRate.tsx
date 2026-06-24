@@ -4,14 +4,14 @@ import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
 
 const PRESETS = [
-  { label: 'HYSA', value: 4.1, desc: 'Safe / conservative' },
-  { label: 'S&P 500', value: 7.95, desc: '50-yr inflation-adj avg' },
-  { label: 'S&P Nominal', value: 10.7, desc: '50-yr nominal avg' },
+  { label: 'HYSA', value: 4, desc: 'Safe / conservative' },
+  { label: 'S&P 500', value: 8, desc: '50-yr inflation-adj avg' },
+  { label: 'S&P Nominal', value: 11, desc: '50-yr nominal avg' },
 ]
 
 export function StepInvestmentRate() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const rate = inputs.investmentRate ?? 0.0795
+  const rate = inputs.investmentRate ?? 0.08
   const ratePct = Math.round(rate * 1000) / 10
 
   return (

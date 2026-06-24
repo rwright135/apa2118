@@ -27,7 +27,7 @@ export const CONTRACT_PARAMS = {
   PROFIT_SHARING_MONTHS: [5, 10] as const, // June and November (5=June, 10=November)
 
   // Default investment return rate
-  DEFAULT_RATE: 0.0795,
+  DEFAULT_RATE: 0.08,
 
   // Mandatory retirement age
   RETIREMENT_AGE: 65,

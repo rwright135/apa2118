@@ -30,7 +30,7 @@ export interface UserInputs {
   dateOfBirth: Date                     // to compute horizon to age 65
 
   // Financial
-  investmentRate: number                 // default 0.0795
+  investmentRate: number                 // default 0.08
   profitSharingLastYear: number          // $ amount
 
   // Retention bonus
