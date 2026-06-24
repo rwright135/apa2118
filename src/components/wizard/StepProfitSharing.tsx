@@ -127,9 +127,6 @@ export function StepProfitSharing() {
           </div>
         )}
 
-        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Paid semi-annually in June and November. Enter 0 if you don't receive profit sharing.
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
