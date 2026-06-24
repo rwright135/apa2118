@@ -12,7 +12,7 @@ export function StepRetention() {
   return (
     <WizardLayout
       step="retention"
-      title="Tell us about your retention bonus"
+      title="Retention Bonus Information"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
