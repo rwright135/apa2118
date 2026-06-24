@@ -21,9 +21,11 @@ interface Props {
   arrivalMonths: number
   jcbaMonths: number
   offerProbability: number
+  probB?: number
+  probC?: number
 }
 
-export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbability }: Props) {
+export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbability, probB, probC }: Props) {
   const payoutDateB = addDays(addMonthsTo(START_DATE, arrivalMonths), 50)
   const payoutDateC = addMonthsTo(START_DATE, jcbaMonths)
   const noOfferProbability = 1 - offerProbability
@@ -100,6 +102,16 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
                     ? '100% if Vote Yes'
                     : `${Math.round(row.probability * 100)}% scenario weight`}
                 </div>
+                {row.scenario === 'B' && probB !== undefined && (
+                  <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                    {Math.round(probB * 100)}% bonus certainty
+                  </div>
+                )}
+                {row.scenario === 'C' && probC !== undefined && (
+                  <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                    {Math.round(probC * 100)}% bonus certainty
+                  </div>
+                )}
               </div>
             </div>
           </div>

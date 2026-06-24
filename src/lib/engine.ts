@@ -238,7 +238,10 @@ export function buildMonthlyStream(
       retentionAccrualNote = monthlyAccrual
 
       if (m === retentionPayoutMonth) {
-        retentionCashFlow = retentionAccruedBalance * inputs.retentionPayoutProbability
+        const prob = scenarioId === 'B'
+          ? inputs.retentionPayoutProbabilityB
+          : inputs.retentionPayoutProbabilityC
+        retentionCashFlow = retentionAccruedBalance * prob
       }
     }
 

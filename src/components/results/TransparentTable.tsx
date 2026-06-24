@@ -176,7 +176,9 @@ export function TransparentTable({ results }: Props) {
   const hasMore      = preJcbaRows.length > steadyStateIndex + 1
   const isVoteYes   = activeTab === 'YES'
 
-  const prob = isVoteYes ? 1 : results.inputs.retentionPayoutProbability
+  const prob = isVoteYes ? 1
+    : activeTab === 'B' ? results.inputs.retentionPayoutProbabilityB
+    : results.inputs.retentionPayoutProbabilityC
 
   const columns: { key: ColumnKey; label: string; gold?: boolean }[] = [
     { key: 'grossPay',          label: 'Gross Pay' },

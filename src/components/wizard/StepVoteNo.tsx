@@ -73,6 +73,8 @@ export function StepVoteNo() {
           arrivalMonths={offer.arrivalMonths}
           jcbaMonths={inputs.jcbaDurationMonths ?? 24}
           offerProbability={offer.probability}
+          probB={inputs.retentionPayoutProbabilityB}
+          probC={inputs.retentionPayoutProbabilityC}
         />
 
         <div

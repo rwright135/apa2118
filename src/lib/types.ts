@@ -39,7 +39,8 @@ export interface UserInputs {
   //   A: Oct 1, 2026 (fixed — ~60 days after ratification)
   //   B: startDate + offerArrivalMonths + 50 days
   //   C: startDate + jcbaDurationMonths
-  retentionPayoutProbability: number     // 0–1, probability it's paid if vote no (bankruptcy risk)
+  retentionPayoutProbabilityB: number    // 0–1, probability paid if vote no + 2nd offer (Scenario B)
+  retentionPayoutProbabilityC: number    // 0–1, probability paid if vote no + wait for JCBA (Scenario C)
 
   // Vote-No assumptions
   voteNoOffer: VoteNoOffer

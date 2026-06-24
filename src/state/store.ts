@@ -12,10 +12,10 @@ export type WizardStep =
   | 'extraHours'
   | 'dob'
   | 'profitSharing'
-  | 'retention'
   | 'investmentRate'
   | 'voteNo'
   | 'jcba'
+  | 'retention'
   | 'advanced'
   | 'review'
   | 'results'
@@ -29,10 +29,10 @@ export const WIZARD_STEPS: WizardStep[] = [
   'extraHours',
   'dob',
   'profitSharing',
-  'retention',
   'investmentRate',
   'voteNo',
   'jcba',
+  'retention',
   'advanced',
   'review',
   'results',
@@ -46,7 +46,8 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   investmentRate: 0.0795,
   profitSharingLastYear: 0,
   retentionCurrentBalance: 0,
-  retentionPayoutProbability: 0.95,
+  retentionPayoutProbabilityB: 0.95,
+  retentionPayoutProbabilityC: 0.90,
   voteNoOffer: {
     probability: 0.25,
     arrivalMonths: 18,
