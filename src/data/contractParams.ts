@@ -23,6 +23,9 @@ export const CONTRACT_PARAMS = {
   RETENTION_ACCRUAL_HOURS: 85,
   RETENTION_ACCRUAL_FACTOR: 0.35,
 
+  // Retention bonus pays this many days after new contract ratification
+  RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION: 60,
+
   // Profit sharing payment months (0-indexed: May=5, October=10)
   PROFIT_SHARING_MONTHS: [5, 10] as const, // June and November (5=June, 10=November)
 

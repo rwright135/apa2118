@@ -37,7 +37,7 @@ export interface UserInputs {
   retentionCurrentBalance: number        // current accrued balance $
   // Payout dates are computed automatically per scenario (no user input):
   //   A: Oct 1, 2026 (fixed — ~60 days after ratification)
-  //   B: startDate + offerArrivalMonths + 50 days
+  //   B: startDate + offerArrivalMonths + 60 days after ratification
   //   C: startDate + jcbaDurationMonths
   retentionPayoutProbabilityB: number    // 0–1, probability paid if vote no + 2nd offer (Scenario B)
   retentionPayoutProbabilityC: number    // 0–1, probability paid if vote no + wait for JCBA (Scenario C)

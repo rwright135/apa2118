@@ -1,3 +1,5 @@
+import { CONTRACT_PARAMS } from '../../data/contractParams'
+
 function addDays(date: Date, days: number): Date {
   const d = new Date(date)
   d.setDate(d.getDate() + days)
@@ -26,7 +28,8 @@ interface Props {
 }
 
 export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbability, probB, probC }: Props) {
-  const payoutDateB = addDays(addMonthsTo(START_DATE, arrivalMonths), 50)
+  const payoutDays = CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
+  const payoutDateB = addDays(addMonthsTo(START_DATE, arrivalMonths), payoutDays)
   const payoutDateC = addMonthsTo(START_DATE, jcbaMonths)
   const noOfferProbability = 1 - offerProbability
 
@@ -36,7 +39,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: 'Vote Yes',
       color: 'var(--gold)',
       date: fmtDate(PAYOUT_DATE_A),
-      note: 'Fixed — ~60 days after ratification',
+      note: 'Fixed — 60 days after ratification',
       probability: 1,
     },
     {
@@ -44,7 +47,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: 'Vote No + 2nd offer',
       color: '#a855f7',
       date: fmtDate(payoutDateB),
-      note: `Offer arrival + 50 days (${arrivalMonths} mo from now)`,
+      note: `Offer arrival + ${payoutDays} days (${arrivalMonths} mo from now)`,
       probability: offerProbability,
     },
     {

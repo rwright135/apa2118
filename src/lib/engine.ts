@@ -12,6 +12,12 @@ export function addMonths(date: Date, n: number): Date {
   return d
 }
 
+export function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
 export function monthsDiff(from: Date, to: Date): number {
   return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
 }
@@ -149,14 +155,21 @@ export function buildMonthlyStream(
   const jcbaMonth = inputs.jcbaDurationMonths
 
   // ── Retention payout month index (months from startDate) ─────────────────
-  // A: Oct 1, 2026 = month 3 from Jul 1, 2026 (fixed — ~60 days after ratification)
-  // B: offer arrival date + 50 days ≈ arrivalMonths + 2 months
+  // A: Oct 1, 2026 = month 3 from Jul 1, 2026 (fixed — 60 days after ratification)
+  // B: offer arrival date + 60 days after ratification
   // C: JCBA conclusion month
   const RETENTION_PAYOUT_MONTH_A = monthsDiff(startDate, new Date(2026, 9, 1)) // Oct 1 = index 3
   const retentionPayoutMonth =
     scenarioId === 'A' ? RETENTION_PAYOUT_MONTH_A :
-    scenarioId === 'B' ? inputs.voteNoOffer.arrivalMonths + Math.round(50 / 30.44) :
-    jcbaMonth  // Scenario C: accrues until JCBA
+    scenarioId === 'B'
+      ? monthsDiff(
+          startDate,
+          addDays(
+            addMonths(startDate, inputs.voteNoOffer.arrivalMonths),
+            CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
+          )
+        )
+      : jcbaMonth  // Scenario C: accrues until JCBA
 
   const rows: MonthlyRow[] = []
   let cumulativePV = 0
