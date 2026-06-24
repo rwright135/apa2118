@@ -12,7 +12,6 @@ export function StepExtraHours() {
     <WizardLayout
       step="extraHours"
       title="How many additional PCH do you Credit Monthly on Average?"
-      subtitle="Most pilots fly more than the MMG. Every extra hour multiplies the pay-rate difference between scenarios."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
