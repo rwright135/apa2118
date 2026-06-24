@@ -44,26 +44,32 @@ export function StepDOB() {
     >
       <div className="mb-8 space-y-6">
 
-        {/* ── Year grid ── */}
+        {/* ── Year slider ── */}
         <div>
           <div className="text-xs uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>
             Year of birth
           </div>
-          <div className="grid grid-cols-6 gap-1.5">
-            {Array.from({ length: MAX_YEAR - 1960 + 1 }, (_, i) => 1960 + i).map(yr => (
-              <button
-                key={yr}
-                onClick={() => setYear(yr)}
-                className="py-2.5 rounded-xl text-sm font-semibold transition-all duration-150"
-                style={
-                  selectedYear === yr
-                    ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
-                    : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
-                }
-              >
-                {yr}
-              </button>
-            ))}
+          <div
+            className="rounded-xl px-6 py-5 flex flex-col items-center gap-4"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+          >
+            <div className="text-5xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+              {selectedYear}
+            </div>
+            <input
+              type="range"
+              min={1960}
+              max={MAX_YEAR}
+              value={selectedYear}
+              onChange={e => setYear(Number(e.target.value))}
+              className="w-full"
+              style={{ accentColor: 'var(--gold)', cursor: 'pointer' }}
+            />
+            <div className="flex justify-between w-full text-xs" style={{ color: 'var(--text-faint)' }}>
+              <span>1960</span>
+              <span style={{ color: 'var(--text-muted)' }}>age {CURRENT_YEAR - selectedYear} in {CURRENT_YEAR}</span>
+              <span>{MAX_YEAR}</span>
+            </div>
           </div>
         </div>
 
