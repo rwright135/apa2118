@@ -31,12 +31,6 @@ export function StepAnniversary() {
             </button>
           ))}
         </div>
-        <p className="text-sm mt-4" style={{ color: 'var(--text-faint)' }}>
-          Selected:{' '}
-          <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>
-            {MONTHS[anniversaryMonth]}
-          </span>
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
