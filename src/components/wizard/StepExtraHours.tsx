@@ -18,7 +18,7 @@ export function StepExtraHours() {
         <NumberInput
           value={extra}
           onChange={(v) => setInput('extraHoursAboveMMG', Math.max(0, v))}
-          suffix="hrs/mo above MMG"
+          suffix="hrs/mon"
           min={0}
           max={50}
           placeholder="0"
