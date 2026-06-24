@@ -39,7 +39,6 @@ export function StepDOB() {
     <WizardLayout
       step="dob"
       title="When were you born?"
-      subtitle="Select your birth month and year. We use this to calculate how long your cash flows run to mandatory retirement at age 65."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
