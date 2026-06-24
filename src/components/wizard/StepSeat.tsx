@@ -75,7 +75,7 @@ export function StepSeat() {
             />
           }
           title="First Officer"
-          description="Right seat — 3 stripes — FO pay scales apply"
+          description="A320 · Right seat · 3 stripes"
         />
         <SeatCard
           selected={seat === 'CA'}
@@ -88,7 +88,7 @@ export function StepSeat() {
             />
           }
           title="Captain"
-          description="Left seat — 4 stripes — Captain pay scales apply"
+          description="B737 · Left seat · 4 stripes"
         />
       </div>
       <NavButton onClick={nextStep} disabled={!seat}>
