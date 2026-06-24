@@ -38,7 +38,7 @@ export function StepDOB() {
   return (
     <WizardLayout
       step="dob"
-      title="When were you born?"
+      title="Select your Birth Year and Month"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
