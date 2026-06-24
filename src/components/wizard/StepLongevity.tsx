@@ -19,7 +19,6 @@ export function StepLongevity() {
     <WizardLayout
       step="longevity"
       title="What's your longevity as of July 1, 2026?"
-      subtitle="Your pay step on the contract scale. Year 1 is your first full year, max is 12."
       onBack={prevStep}
     >
       <div className="mb-8">
@@ -45,10 +44,12 @@ export function StepLongevity() {
             <div className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--text-faint)' }}>
               Your current hourly rate
             </div>
-            <div className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>
-              ${currentRate.toFixed(2)}/hr
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>
+                ${currentRate.toFixed(2)}/hr
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Current CBA (DOS+5)</div>
             </div>
-            <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Current CBA (DOS+5)</div>
           </div>
         )}
       </div>

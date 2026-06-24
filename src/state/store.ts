@@ -8,14 +8,14 @@ export type WizardStep =
   | 'seat'
   | 'longevity'
   | 'anniversary'
+  | 'dob'
   | 'lineType'
   | 'extraHours'
-  | 'dob'
   | 'profitSharing'
-  | 'retention'
   | 'investmentRate'
   | 'voteNo'
   | 'jcba'
+  | 'retention'
   | 'advanced'
   | 'review'
   | 'results'
@@ -25,14 +25,14 @@ export const WIZARD_STEPS: WizardStep[] = [
   'seat',
   'longevity',
   'anniversary',
+  'dob',
   'lineType',
   'extraHours',
-  'dob',
   'profitSharing',
-  'retention',
   'investmentRate',
   'voteNo',
   'jcba',
+  'retention',
   'advanced',
   'review',
   'results',
@@ -43,10 +43,11 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   anniversaryMonth: 0,
   lineType: 'FLYING',
   extraHoursAboveMMG: 0,
-  investmentRate: 0.0795,
+  investmentRate: 0.08,
   profitSharingLastYear: 0,
   retentionCurrentBalance: 0,
-  retentionPayoutProbability: 0.95,
+  retentionPayoutProbabilityB: 0.95,
+  retentionPayoutProbabilityC: 0.90,
   voteNoOffer: {
     probability: 0.25,
     arrivalMonths: 18,

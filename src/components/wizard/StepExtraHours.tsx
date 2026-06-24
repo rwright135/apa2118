@@ -11,15 +11,14 @@ export function StepExtraHours() {
   return (
     <WizardLayout
       step="extraHours"
-      title="How many extra pay-credit hours do you average per month?"
-      subtitle="Most pilots fly more than the MMG. Every extra hour multiplies the pay-rate difference between scenarios."
+      title="How many additional PCH do you credit on average each month?"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
         <NumberInput
           value={extra}
           onChange={(v) => setInput('extraHoursAboveMMG', Math.max(0, v))}
-          suffix="hrs/mo above MMG"
+          suffix="hrs/mon"
           min={0}
           max={50}
           placeholder="0"
@@ -48,9 +47,6 @@ export function StepExtraHours() {
           </div>
         )}
 
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Flying an extra 20 hours means you're not just losing the MMG pay difference — you're losing 20 more hours of that pay gap every month.
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>

@@ -12,7 +12,6 @@ export function StepAnniversary() {
     <WizardLayout
       step="anniversary"
       title="What month is your new-hire anniversary?"
-      subtitle="Your longevity steps up each year on this month. This matters for timing your pay increases."
       onBack={prevStep}
     >
       <div className="mb-8">
@@ -32,12 +31,6 @@ export function StepAnniversary() {
             </button>
           ))}
         </div>
-        <p className="text-sm mt-4" style={{ color: 'var(--text-faint)' }}>
-          Selected:{' '}
-          <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>
-            {MONTHS[anniversaryMonth]}
-          </span>
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>

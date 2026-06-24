@@ -12,23 +12,22 @@ export function StepLineType() {
     <WizardLayout
       step="lineType"
       title="Are you primarily a Line Holder or Reserve?"
-      subtitle="This affects your minimum monthly guarantee (MMG) — the base hours used to calculate your pay."
       onBack={prevStep}
     >
       <div className="space-y-3 mb-8">
         <SelectCard
           selected={lineType === 'FLYING'}
           onClick={() => setInput('lineType', 'FLYING' as LineType)}
-          icon="📋"
+          icon="🛫"
           title="Flying Line Holder"
           description="MMG: 70 hrs/month (both CBA and TA)"
         />
         <SelectCard
           selected={lineType === 'RESERVE'}
           onClick={() => setInput('lineType', 'RESERVE' as LineType)}
-          icon="🔄"
+          icon="🧑‍✈️"
           title="Reserve Line Holder"
-          description="MMG: 72 hrs (CBA) → 75 hrs (TA) — that's 3 extra guaranteed hours per month under the new deal"
+          description="MMG: 72 hrs (CBA) → 75 hrs (TA)"
         />
       </div>
       <NavButton onClick={nextStep} disabled={!lineType}>

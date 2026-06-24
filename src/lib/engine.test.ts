@@ -10,10 +10,11 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   lineType: 'FLYING',
   extraHoursAboveMMG: 0,
   dateOfBirth: new Date(1985, 0, 1), // Age 41 in 2026, retires 2050
-  investmentRate: 0.0795,
+  investmentRate: 0.08,
   profitSharingLastYear: 1000,
   retentionCurrentBalance: 50000,
-  retentionPayoutProbability: 0.95,  // payout date now computed by engine per scenario
+  retentionPayoutProbabilityB: 0.95,
+  retentionPayoutProbabilityC: 0.90,
   voteNoOffer: { probability: 0.25, arrivalMonths: 18, percentAboveTA: 0.03 },
   jcbaDurationMonths: 24,
   advancedPostJCBA: {
@@ -65,10 +66,10 @@ describe('getTATier', () => {
 
 describe('discountFactor', () => {
   it('returns 1 at month 0', () => {
-    expect(discountFactor(0.0795, 0)).toBeCloseTo(1, 5)
+    expect(discountFactor(0.08, 0)).toBeCloseTo(1, 5)
   })
   it('returns correct value at 12 months', () => {
-    expect(discountFactor(0.0795, 12)).toBeCloseTo(1 / 1.0795, 4)
+    expect(discountFactor(0.08, 12)).toBeCloseTo(1 / 1.08, 4)
   })
 })
 

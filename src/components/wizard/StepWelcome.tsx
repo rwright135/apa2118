@@ -87,7 +87,7 @@ export function StepWelcome() {
             background: 'var(--btn-bg)',
             color: 'var(--btn-text)',
             fontSize: 'clamp(1rem, 1.5vw, 1.15rem)',
-            width: 'min(100%, 26rem)',
+            width: 'min(100%, 16rem)',
             letterSpacing: '0.02em',
           }}
           onMouseEnter={e => (e.currentTarget.style.background = 'var(--btn-bg-hover)')}

@@ -41,7 +41,11 @@ export function StepProfitSharing() {
     <WizardLayout
       step="profitSharing"
       title="What was your profit sharing last year?"
-      subtitle="Enter your total annual payout. We'll project how it changes under each TA rate tier — it scales proportionally with your pay."
+      subtitle={
+        <>
+          Enter your <strong>total</strong> estimated annual profit sharing payment and see how it scales proportionally with new pay rates for <u>your</u> seat and longevity.
+        </>
+      }
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
@@ -113,7 +117,7 @@ export function StepProfitSharing() {
                   </span>
                   <span
                     className="font-bold"
-                    style={{ color: isLast ? 'var(--gold)' : 'var(--positive)' }}
+                    style={{ color: 'var(--positive)' }}
                   >
                     ${psAmt.toLocaleString()}
                   </span>
@@ -123,9 +127,6 @@ export function StepProfitSharing() {
           </div>
         )}
 
-        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Paid semi-annually in June and November. Enter 0 if you don't receive profit sharing.
-        </p>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>

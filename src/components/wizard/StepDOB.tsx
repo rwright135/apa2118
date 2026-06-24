@@ -6,8 +6,6 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 const CURRENT_YEAR = new Date().getFullYear()
-// Allegiant pilots: youngest ~21 (born 2005), mandatory retirement at 65 (born no earlier than 1961)
-const MIN_YEAR = 1959
 const MAX_YEAR = CURRENT_YEAR - 21
 const DEFAULT_YEAR = 1985
 
@@ -31,11 +29,6 @@ export function StepDOB() {
     setInput('dateOfBirth', new Date(year, month, 1))
   }
 
-  const stepYear = (delta: number) => {
-    const next = Math.min(MAX_YEAR, Math.max(MIN_YEAR, selectedYear + delta))
-    setYear(next)
-  }
-
   const yearsToRetirement = dob
     ? Math.max(0, 65 - (CURRENT_YEAR - dob.getFullYear()))
     : null
@@ -45,76 +38,37 @@ export function StepDOB() {
   return (
     <WizardLayout
       step="dob"
-      title="When were you born?"
-      subtitle="Select your birth month and year. We use this to calculate how long your cash flows run to mandatory retirement at age 65."
+      title="Select your Birth Year and Month"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
 
-        {/* ── Year stepper ── */}
+        {/* ── Year slider ── */}
         <div>
           <div className="text-xs uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>
             Year of birth
           </div>
           <div
-            className="flex items-center justify-between rounded-xl px-4 py-4"
+            className="rounded-xl px-6 py-5 flex flex-col items-center gap-4"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
           >
-            {/* Decrement */}
-            <button
-              onClick={() => stepYear(-1)}
-              className="w-11 h-11 flex items-center justify-center rounded-lg transition-all active:scale-90"
-              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-              aria-label="Previous year"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M11 4L6 9l5 5"/>
-              </svg>
-            </button>
-
-            {/* Year display */}
-            <div className="text-center">
-              <div className="text-4xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-                {selectedYear}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                age {CURRENT_YEAR - selectedYear} in {CURRENT_YEAR}
-              </div>
+            <div className="text-5xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+              {selectedYear}
             </div>
-
-            {/* Increment */}
-            <button
-              onClick={() => stepYear(1)}
-              className="w-11 h-11 flex items-center justify-center rounded-lg transition-all active:scale-90"
-              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-              aria-label="Next year"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M7 4l5 5-5 5"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Year quick-jumps */}
-          <div className="flex gap-2 mt-2">
-            {[1970, 1975, 1980, 1985, 1990, 1995, 2000].map(yr => (
-              <button
-                key={yr}
-                onClick={() => setYear(yr)}
-                className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={
-                  selectedYear === yr
-                    ? { background: 'var(--sel-bg)', border: '1px solid var(--sel-border)', color: 'var(--gold)' }
-                    : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-faint)' }
-                }
-              >
-                {yr}
-              </button>
-            ))}
+            <input
+              type="range"
+              min={1960}
+              max={MAX_YEAR}
+              value={selectedYear}
+              onChange={e => setYear(Number(e.target.value))}
+              className="w-full"
+              style={{ accentColor: 'var(--gold)', cursor: 'pointer' }}
+            />
+            <div className="flex justify-between w-full text-xs" style={{ color: 'var(--text-faint)' }}>
+              <span>1960</span>
+              <span style={{ color: 'var(--text-muted)' }}>age {CURRENT_YEAR - selectedYear} in {CURRENT_YEAR}</span>
+              <span>{MAX_YEAR}</span>
+            </div>
           </div>
         </div>
 
@@ -148,7 +102,7 @@ export function StepDOB() {
             style={{ background: 'var(--chip-bg)', border: '1px solid var(--chip-border)' }}
           >
             <div>
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Years to mandatory retirement (age 65)</div>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Years until Mandatory Retirement (Age 65)</div>
               <div className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 {MONTH_FULL[selectedMonth]} {selectedYear}
               </div>

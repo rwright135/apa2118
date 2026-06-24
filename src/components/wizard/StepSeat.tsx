@@ -60,7 +60,6 @@ export function StepSeat() {
     <WizardLayout
       step="seat"
       title="What's your current seat?"
-      subtitle="This determines which pay scale applies to your calculations."
       onBack={prevStep}
     >
       <div className="space-y-3 mb-8">
@@ -75,7 +74,7 @@ export function StepSeat() {
             />
           }
           title="First Officer"
-          description="A320 · Right seat · 3 stripes"
+          description="A320 | B737"
         />
         <SeatCard
           selected={seat === 'CA'}
@@ -88,7 +87,7 @@ export function StepSeat() {
             />
           }
           title="Captain"
-          description="B737 · Left seat · 4 stripes"
+          description="A320 | B737"
         />
       </div>
       <NavButton onClick={nextStep} disabled={!seat}>
