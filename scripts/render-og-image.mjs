@@ -18,6 +18,10 @@ try {
   await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' })
   await page.screenshot({ path: outputPath, type: 'png' })
   console.log(`Wrote ${outputPath}`)
+
+  const jpgPath = outputPath.replace(/\.png$/, '.jpg')
+  await page.screenshot({ path: jpgPath, type: 'jpeg', quality: 85 })
+  console.log(`Wrote ${jpgPath}`)
 } finally {
   await browser.close()
 }

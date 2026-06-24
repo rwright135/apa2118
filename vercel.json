@@ -1,0 +1,17 @@
+{
+  "headers": [
+    {
+      "source": "/og-image.(jpg|png)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(apple-touch-icon.png|apa-teamsters-local-2118-logo-.*\\.png|favicon.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    }
+  ]
+}
