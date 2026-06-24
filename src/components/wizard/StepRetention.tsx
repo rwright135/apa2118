@@ -13,7 +13,6 @@ export function StepRetention() {
     <WizardLayout
       step="retention"
       title="Tell us about your retention bonus"
-      subtitle="Worth over $100K for many pilots — this is treated very differently under each contract path."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
