@@ -97,7 +97,7 @@ export function StepDOB() {
             style={{ background: 'var(--chip-bg)', border: '1px solid var(--chip-border)' }}
           >
             <div>
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Years to mandatory retirement (age 65)</div>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Years until Mandatory Retirement (Age 65)</div>
               <div className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 {MONTH_FULL[selectedMonth]} {selectedYear}
               </div>
