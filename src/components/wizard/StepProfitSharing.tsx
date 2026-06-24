@@ -117,7 +117,7 @@ export function StepProfitSharing() {
                   </span>
                   <span
                     className="font-bold"
-                    style={{ color: isLast ? 'var(--gold)' : 'var(--positive)' }}
+                    style={{ color: 'var(--positive)' }}
                   >
                     ${psAmt.toLocaleString()}
                   </span>
