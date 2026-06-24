@@ -23,9 +23,9 @@ export type WizardStep =
 export const WIZARD_STEPS: WizardStep[] = [
   'welcome',
   'seat',
-  'dob',
   'longevity',
   'anniversary',
+  'dob',
   'lineType',
   'extraHours',
   'profitSharing',
