@@ -6,7 +6,7 @@ import type { WizardStep } from '../../state/store'
 interface Props {
   step: WizardStep
   title: string
-  subtitle?: string
+  subtitle?: React.ReactNode
   onBack?: () => void
   children: React.ReactNode
 }

@@ -41,7 +41,11 @@ export function StepProfitSharing() {
     <WizardLayout
       step="profitSharing"
       title="What was your profit sharing last year?"
-      subtitle="Enter your total annual payout. We'll project how it changes under each TA rate tier — it scales proportionally with your pay."
+      subtitle={
+        <>
+          Enter your <strong>total</strong> estimated annual profit sharing payment and see how it scales proportionally with new pay rates for <u>your</u> seat and longevity.
+        </>
+      }
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
