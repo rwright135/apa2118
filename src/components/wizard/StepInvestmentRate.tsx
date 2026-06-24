@@ -60,7 +60,7 @@ export function StepInvestmentRate() {
         >
           <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Why this matters: </span>
           <span style={{ color: 'var(--text-muted)' }}>
-            Getting $50K more in 401(k) contributions today vs 2 years from now — and growing it for 20 years — is a much bigger number than it looks.
+            The rate above discounts future pay into today's dollars AND compounds retirement contributions moving forward. In order to evaluate your options from an unbiased standpoint, you have to account for the time value of money. For example, $50,000 in your 401(k) starting today vs. starting in two years has a serious compound interest effect. Simply put, money today is worth more than money tomorrow.
           </span>
         </div>
       </div>
