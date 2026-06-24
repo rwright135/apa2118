@@ -12,7 +12,7 @@ export function StepAnniversary() {
     <WizardLayout
       step="anniversary"
       title="What month is your new-hire anniversary?"
-      subtitle="Your longevity steps up each year on this month. This matters for timing your pay increases."
+      subtitle="This determines when you receive longevity step increases."
       onBack={prevStep}
     >
       <div className="mb-8">
