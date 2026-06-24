@@ -45,10 +45,12 @@ export function StepLongevity() {
             <div className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--text-faint)' }}>
               Your current hourly rate
             </div>
-            <div className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>
-              ${currentRate.toFixed(2)}/hr
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>
+                ${currentRate.toFixed(2)}/hr
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>Current CBA (DOS+5)</div>
             </div>
-            <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Current CBA (DOS+5)</div>
           </div>
         )}
       </div>
