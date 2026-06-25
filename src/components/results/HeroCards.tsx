@@ -82,7 +82,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
   const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
-  const { retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
+  const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
   // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
   // Raw, non-probability-weighted — what you'd actually get if the offer comes
@@ -151,8 +151,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at +{(percentAboveTA * 100).toFixed(0)}% above TA, JCBA closes at {jcba} months.
-              Your <strong style={{ color: 'var(--text-muted)' }}>{Math.round(result.voteNoScenario.probability * 100)}% offer arrival probability is not applied</strong> — this treats the offer as guaranteed so you can see the ceiling. Retention payout probability is still factored in.
+              The maximum present value advantage over the next <strong style={{ color: 'var(--text-muted)' }}>{jcba} months</strong> if the second offer materializes — a +{(percentAboveTA * 100).toFixed(0)}% premium arriving in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}, with retention bonus included at a <strong style={{ color: 'var(--text-muted)' }}>{Math.round(pB * 100)}% payout probability</strong>. Your {Math.round(result.voteNoScenario.probability * 100)}% offer arrival probability is not applied here — this is the ceiling assuming the offer comes.
             </p>
           </div>
 
