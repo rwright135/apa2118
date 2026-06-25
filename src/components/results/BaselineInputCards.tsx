@@ -41,13 +41,15 @@ function SeatProfileCard({
       className="rounded-xl px-3 py-2.5"
       style={{ background: 'var(--bg-elevated)' }}
     >
-      <div className="text-xs mb-1.5" style={{ color: 'var(--text-faint)' }}>
-        {longevity}
-      </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-2">
         {icon}
-        <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
-          {seatName}
+        <div className="min-w-0">
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            {longevity}
+          </div>
+          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+            {seatName}
+          </div>
         </div>
       </div>
     </div>
