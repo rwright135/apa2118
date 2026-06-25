@@ -159,14 +159,14 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
           {/* Card 2: Worst case — Outcome C earnings shortfall */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
             <div className="flex items-center gap-1.5 mb-2.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }} />
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }} />
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
                 If no offer arrives — Outcome C · {jcba}-month window
               </span>
             </div>
             <div className="flex justify-end mb-1.5">
               <span className="text-base font-black tabular-nums"
-                style={{ color: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }}>
+                style={{ color: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                 {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
               </span>
               <span className="text-xs ml-1 self-end" style={{ color: 'var(--text-faint)' }}>nominal</span>
