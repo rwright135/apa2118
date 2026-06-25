@@ -47,7 +47,6 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   longevityAsOfJul2026: 1,
   anniversaryMonth: 0,
   lineType: 'FLYING',
-  extraHoursAboveMMG: 0,
   investmentRate: 0.08,
   profitSharingLastYear: 0,
   retentionCurrentBalance: 0,

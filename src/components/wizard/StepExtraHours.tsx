@@ -6,6 +6,7 @@ import { NumberInput } from '../shared/NumberInput'
 export function StepExtraHours() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
   const extra = inputs.extraHoursAboveMMG ?? 0
+  const hasValue = inputs.extraHoursAboveMMG !== undefined
   const mmg = inputs.lineType === 'RESERVE' ? 72 : 70
 
   return (
@@ -48,7 +49,7 @@ export function StepExtraHours() {
         )}
 
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
     </WizardLayout>
   )
 }

@@ -81,7 +81,7 @@ export function getMonthlyHours(
       : isTA
       ? CONTRACT_PARAMS.MMG_RESERVE_TA
       : CONTRACT_PARAMS.MMG_RESERVE_CBA
-  return mmg + inputs.extraHoursAboveMMG
+  return mmg + (inputs.extraHoursAboveMMG ?? 0)
 }
 
 // ─── 401k rate ────────────────────────────────────────────────────────────────
