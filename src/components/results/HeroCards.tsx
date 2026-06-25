@@ -89,14 +89,6 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
 
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
-  const bRetPV = bRetPayoutRow
-    ? bRetPayoutRow.retentionCashFlow * bRetPayoutRow.discountFactor
-    : 0
-  const bRetNominal = pB > 0 && bRetPayoutRow
-    ? bRetPayoutRow.retentionCashFlow / pB
-    : 0
-
-  const monthsFromNow = (n: number) => `${n} month${n !== 1 ? 's' : ''} from now`
 
   // ── Worst case: Outcome C (no offer, stay on CBA) ────────────────────────────
   // Nominal wages + PS you give up compared to accepting the TA today
@@ -163,10 +155,9 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
               If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
               <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bPVGap))}</strong> in today&apos;s dollars between now and JCBA closing in {jcba} months vs. Voting Yes.
-              {bRetPV > 0 && (
+              {bRetPayoutRow && (
                 <>
-                  {' '}This number also includes the present value of your Retention Bonus payment of{' '}
-                  <strong style={{ color: 'var(--text-muted)' }}>{fmt(bRetNominal)}</strong> on {monthsFromNow(bRetPayoutMonths)} at {Math.round(pB * 100)}% payout probability.
+                  {' '}This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.
                 </>
               )}
             </p>
