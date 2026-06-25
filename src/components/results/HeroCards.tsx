@@ -141,7 +141,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
             <div className="flex items-center gap-1.5 mb-2.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ background: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }} />
               <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                If the offer arrives — Outcome B
+                If the second offer arrives
               </span>
             </div>
             <div className="flex items-baseline justify-between mb-1.5">
