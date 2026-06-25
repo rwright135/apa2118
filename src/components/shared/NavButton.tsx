@@ -13,7 +13,7 @@ export function NavButton({ onClick, disabled, children, variant = 'primary', cl
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-4 rounded-xl font-semibold text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+      className={`wizard-nav-footer w-full py-4 rounded-xl font-semibold text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
       style={
         primary
           ? { background: 'var(--btn-bg)', color: 'var(--btn-text)' }

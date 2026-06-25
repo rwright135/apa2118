@@ -9,7 +9,27 @@ interface Props {
   step?: number
 }
 
+function parseNumericInput(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (trimmed === '' || trimmed === '-') return 0
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function NumberInput({ value, onChange, prefix, suffix, min, max, placeholder, step = 1 }: Props) {
+  const clamp = (n: number) => {
+    let next = n
+    if (min !== undefined) next = Math.max(min, next)
+    if (max !== undefined) next = Math.min(max, next)
+    return next
+  }
+
+  const handleChange = (raw: string) => {
+    const parsed = parseNumericInput(raw)
+    if (parsed === null) return
+    onChange(clamp(parsed))
+  }
+
   return (
     <div
       className="flex items-center rounded-xl overflow-hidden transition-colors border-2"
@@ -29,14 +49,20 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
         </span>
       )}
       <input
-        type="number"
+        type="text"
+        inputMode={step % 1 === 0 ? 'numeric' : 'decimal'}
+        enterKeyHint="done"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
         value={value || ''}
-        min={min}
-        max={max}
-        step={step}
         placeholder={placeholder ?? '0'}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={(e) => handleChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
+        className="wizard-text-input flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
         style={{ color: 'var(--text-base)' }}
       />
       {suffix && (

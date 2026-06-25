@@ -128,3 +128,17 @@ html.theme-transitioning #root {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── iOS keyboard: keep wizard footer out of the accessory bar zone ─────── */
+.wizard-text-input {
+  scroll-margin-bottom: 1rem;
+}
+
+/*
+ * When a text field is focused, hide the Continue button so it does not stack
+ * under Safari's native keyboard accessory bar (Done/checkmark + field arrows).
+ */
+.wizard-layout:has(.wizard-text-input:focus) .wizard-nav-footer {
+  visibility: hidden;
+  pointer-events: none;
+}

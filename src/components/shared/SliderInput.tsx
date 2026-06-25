@@ -25,6 +25,7 @@ export function SliderInput({ value, min, max, step, onChange, formatValue, labe
       </div>
       <input
         type="range"
+        tabIndex={-1}
         min={min}
         max={max}
         step={step}
