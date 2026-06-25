@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
 
 const VOTE_YES_COLOR = 'var(--gold)'
@@ -28,6 +29,58 @@ function fmtAssumptionsSentence(
   return `${offerPct}% second offer probability arriving in ${vns.arrivalMonths} months at ${premiumPct}% higher above TA with JCBA closing in ${vns.jcbaDurationMonths} months. RB probability weighted at ${probB}% and ${probC}% respectively.`
 }
 
+const BOTTOM_LINE_HELP = (
+  'These are Pre-JCBA decision window numbers: the present value of all earnings during this period in today\'s dollars. '
+  + 'After the JCBA concludes, all paths converge to the same rates, therefore cancelling out those years for a more simplified estimate.'
+)
+
+function BottomLineHelp() {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const close = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        aria-label="About this bottom line comparison"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
+        style={{
+          color: 'var(--text-faint)',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        ?
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-2 z-20 w-64 rounded-xl px-3 py-2.5 text-xs leading-relaxed shadow-lg"
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-muted)',
+          }}
+        >
+          {BOTTOM_LINE_HELP}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Single scenario: verdict card ─────────────────────────────────────────────
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
@@ -43,17 +96,17 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
       {/* Verdict */}
       <div className="px-5 pt-5 pb-4">
-        <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
-          Bottom line
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+            Bottom line
+          </div>
+          <BottomLineHelp />
         </div>
         <div className="text-3xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
           {aWins ? 'Vote Yes' : 'Vote No'} leads
         </div>
         <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
           by {fmt(Math.abs(diff))}
-        </div>
-        <div className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA decision window · present value in today's dollars
         </div>
       </div>
 
@@ -178,14 +231,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
 
 export function HeroCards({ results }: Props) {
   if (results.length === 1) {
-    return (
-      <div className="space-y-2">
-        <SingleScenarioVerdict result={results[0]} />
-        <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
-          After the JCBA concludes, all paths converge to the same rates — those years cancel out.
-        </p>
-      </div>
-    )
+    return <SingleScenarioVerdict result={results[0]} />
   }
 
   return (
