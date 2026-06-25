@@ -179,8 +179,17 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
               {cWagesShortfall > 0
-                ? `Over ${jcba} months on the current CBA you\u2019d earn ${fmt(cWagesShortfall)} less in wages & profit sharing than if you\u2019d accepted the TA today. The retention bonus is what partially makes you whole \u2014 see below.`
-                : `Even without a second offer, CBA pay rates in this scenario keep Vote No\u2019s earnings competitive.`}
+                ? <>
+                    If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in {jcba} months, you&apos;d be missing out on{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
+                    Additionally, you&apos;d delay your lump sum Retention Bonus payment of{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong>.
+                  </>
+                : <>
+                    If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
+                    You&apos;d still delay your lump sum Retention Bonus payment of{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> until JCBA closes in {jcba} months.
+                  </>}
             </p>
           </div>
 
