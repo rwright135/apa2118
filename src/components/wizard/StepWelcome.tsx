@@ -96,8 +96,12 @@ export function StepWelcome() {
           Get Started
         </button>
 
-        <p className="text-xs mt-4" style={{ color: 'var(--text-faint)' }}>
-          Your data stays on your device and is never sent to a server.
+        <p
+          className="text-xs mt-4 leading-relaxed mx-auto"
+          style={{ color: 'var(--text-faint)', maxWidth: '22rem' }}
+        >
+          This tool does not collect any personally identifiable information. Your answers
+          remain on your device only — nothing is sent to or stored on a server.
         </p>
 
       </div>
