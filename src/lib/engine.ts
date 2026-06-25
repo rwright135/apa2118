@@ -158,7 +158,7 @@ export function buildMonthlyStream(
   // ── Retention payout month index (months from startDate) ─────────────────
   // A: Oct 1, 2026 = month 3 from Jul 1, 2026 (fixed — 60 days after ratification)
   // B: offer arrival date + 60 days after ratification
-  // C: JCBA conclusion month
+  // C: JCBA conclusion date + 60 days after ratification
   const RETENTION_PAYOUT_MONTH_A = monthsDiff(startDate, new Date(2026, 9, 1)) // Oct 1 = index 3
   const retentionPayoutMonth =
     scenarioId === 'A' ? RETENTION_PAYOUT_MONTH_A :
@@ -170,7 +170,13 @@ export function buildMonthlyStream(
             CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
           )
         )
-      : jcbaMonth  // Scenario C: accrues until JCBA
+      : monthsDiff(
+          startDate,
+          addDays(
+            addMonths(startDate, vns.jcbaDurationMonths),
+            CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
+          )
+        )
 
   const rows: MonthlyRow[] = []
   let cumulativePV = 0
@@ -345,8 +351,17 @@ export function buildScenarioSummary(
   // preJcbaTotal = PV of all pre-JCBA cash flows + PV of pre-JCBA 401k contributions
   // (401k contributions made before JCBA keep compounding post-JCBA, so they're still
   //  meaningfully different between scenarios)
+  //
+  // Retention bonuses are accrued during the pre-JCBA period but may pay out shortly
+  // after JCBA concludes (e.g. Scenario C: JCBA + 60 days). Their PV must be added to
+  // preJcbaTotal so the headline comparison reflects the full value of each path.
+  const postJcbaRetentionPV = rows
+    .filter(r => r.monthIndex >= jcbaMonth && r.retentionCashFlow > 0)
+    .reduce((sum, r) => sum + r.retentionCashFlow * r.discountFactor, 0)
+
   const preJcbaTotal =
-    preJcbaRows.reduce((sum, r) => sum + r.presentValue + r.presentValue401k, 0)
+    preJcbaRows.reduce((sum, r) => sum + r.presentValue + r.presentValue401k, 0) +
+    postJcbaRetentionPV
 
   const total401kCompoundingGain = retirementBalanceAt65 - rows.reduce((sum, r) => sum + r.k401Contribution, 0)
 

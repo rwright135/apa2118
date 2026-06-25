@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getLongevityAt, getTATier, discountFactor, getMonthlyRetentionAccrual, detectSteadyState, buildMonthlyStream } from './engine'
+import { getLongevityAt, getTATier, discountFactor, getMonthlyRetentionAccrual, detectSteadyState, buildMonthlyStream, buildScenarioSummary } from './engine'
 import { CURRENT_CBA, getRate } from '../data/payScales'
 import type { UserInputs } from './types'
 
@@ -155,6 +155,42 @@ describe('buildMonthlyStream - Scenario C', () => {
     const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
     expect(rows[0].k401Rate).toBe(0.10)
     expect(rows[23].k401Rate).toBe(0.10)
+  })
+
+  it('pays retention bonus 60 days after JCBA, not at JCBA itself', () => {
+    const inputs = makeInputs()
+    // DEFAULT_VNS has jcbaDurationMonths: 24. JCBA concludes Jul 1 2028.
+    // 60 days later ≈ Aug 30 2028, which is monthsDiff(Jul2026, Aug2028) = 25 months (index 25).
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    // No retention at JCBA month (index 24)
+    expect(rows[24].retentionCashFlow).toBe(0)
+    // Retention fires at index 25 or 26 (60 days after Jul 1 2028 = Aug 30 2028 = month index 25)
+    const retentionRow = rows.find(r => r.retentionCashFlow > 0)
+    expect(retentionRow).toBeDefined()
+    expect(retentionRow!.monthIndex).toBeGreaterThan(24)
+    // Amount = accrued balance × probability (0.90)
+    expect(retentionRow!.retentionCashFlow).toBeGreaterThan(0)
+  })
+})
+
+describe('buildScenarioSummary - Scenario C retention in preJcbaTotal', () => {
+  it('includes Scenario C retention payment PV in preJcbaTotal even though it fires post-JCBA', () => {
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    const summary = buildScenarioSummary(rows, 'C', 'Vote No — No Offer', 'desc', inputs, DEFAULT_VNS.jcbaDurationMonths)
+
+    // Verify there is a retention cash flow after jcbaMonth
+    const retentionRow = rows.find(r => r.monthIndex >= DEFAULT_VNS.jcbaDurationMonths && r.retentionCashFlow > 0)
+    expect(retentionRow).toBeDefined()
+
+    // preJcbaTotal must include the PV of that retention payment
+    const expectedPostJcbaRetentionPV = retentionRow!.retentionCashFlow * retentionRow!.discountFactor
+    expect(summary.preJcbaTotal).toBeGreaterThan(0)
+    // Recalculate preJcbaTotal without retention to confirm the retention PV is the delta
+    const preJcbaRowsOnlyPV = rows
+      .filter(r => r.monthIndex < DEFAULT_VNS.jcbaDurationMonths)
+      .reduce((sum, r) => sum + r.presentValue + r.presentValue401k, 0)
+    expect(summary.preJcbaTotal).toBeCloseTo(preJcbaRowsOnlyPV + expectedPostJcbaRetentionPV, 2)
   })
 })
 
