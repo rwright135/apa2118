@@ -153,7 +153,14 @@ export function BaselineInputCards({ inputs }: Props) {
           )
         })}
         {financialItems.map(({ label, value }) => (
-          <InputCard key={label} label={label} value={value} />
+          <InputCard
+            key={label}
+            label={label}
+            value={value}
+            icon={label === 'Retention Bonus Balance' ? (
+              <span className="text-xl shrink-0 leading-none" aria-hidden="true">💰</span>
+            ) : undefined}
+          />
         ))}
       </div>
     </div>
