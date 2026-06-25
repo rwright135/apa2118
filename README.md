@@ -31,6 +31,23 @@ npm test          # run unit tests
 npm run build     # production build
 ```
 
+## Deployment
+
+Git pushes (including Cursor Cloud feature branches) **do not** trigger Vercel builds. Automatic deployments are disabled in `vercel.json` so you stay within the free-tier build limit.
+
+When you're ready to ship:
+
+```bash
+npm run build              # verify locally first
+npm run deploy             # build + deploy to production via Vercel CLI
+```
+
+First time: run `npx vercel login` and `npx vercel link` in this repo.
+
+You can also deploy from the [Vercel dashboard](https://vercel.com/robert-wright/apa2118) → **Deployments** → **Create Deployment** (paste a commit SHA or pick a branch) without waiting for a Git hook.
+
+To preview locally after a production build: `npx vite preview`.
+
 ## Embedding
 
 This tool is designed to be embedded in an iframe on an external site:

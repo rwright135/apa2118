@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../state/store'
+import { APP_BUILD } from '../../lib/buildInfo'
 import { ThemeToggle } from '../shared/ThemeToggle'
 import { TermsOfServiceScreen } from '../legal/TermsOfServiceScreen'
 
@@ -152,6 +153,14 @@ export function StepWelcome() {
             Please read &amp; accept the terms of service to continue.
           </p>
         )}
+
+        <p
+          className="mt-8 text-[10px] tracking-wide"
+          style={{ color: 'var(--text-faint)' }}
+          title="Use this to confirm the live deployment matches the latest release"
+        >
+          Build {APP_BUILD}
+        </p>
 
       </div>
     </div>
