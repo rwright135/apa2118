@@ -170,13 +170,7 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 
   return (
     <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="px-5 pt-4 pb-2" style={{ background: 'var(--bg-elevated)' }}>
-        <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-          What if the offer never comes? Best & worst case
-        </div>
-      </div>
-
-      <div className="px-4 pt-3 pb-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-4 pt-4 pb-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--bg-elevated)' }}>
 
           <RiskCard
             dotColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
