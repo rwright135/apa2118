@@ -1,4 +1,4 @@
-import type { Seat, UserInputs } from './types'
+import type { LineType, Seat, UserInputs } from './types'
 import { getYearsUntilRetirement } from './engine'
 
 export const MONTHS = [
@@ -23,6 +23,12 @@ export function formatSeatName(seat?: Seat): string {
 
 export function formatLongevity(longevity?: number): string {
   return longevity ? `Year ${longevity}` : '—'
+}
+
+export function getLineTypeIcon(lineType?: LineType): string {
+  if (lineType === 'FLYING') return '🛫'
+  if (lineType === 'RESERVE') return '🧑‍✈️'
+  return ''
 }
 
 export function formatAnniversaryMonth(month?: number): string {
