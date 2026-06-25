@@ -131,8 +131,8 @@ export function BaselineInputCards({ inputs }: Props) {
                 label={label}
                 valueContent={(
                   <div className="text-sm font-semibold leading-snug">
-                    <span style={{ color: getExtraHoursColor(hours) }}>+{hours}</span>
-                    <span style={{ color: 'var(--text-base)' }}> hrs above MMG</span>
+                    <span style={{ color: getExtraHoursColor(hours) }}>+{hours} hrs</span>
+                    <span style={{ color: 'var(--text-base)' }}> above MMG</span>
                   </div>
                 )}
               />
