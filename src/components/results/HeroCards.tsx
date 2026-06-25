@@ -218,23 +218,18 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Your current balance of {fmt(retentionCurrentBalance)} grows through {jcba} months of CBA accrual to{' '}
-              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong>, paid out {cRetPayoutMonths} months from now.
+              Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
+              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
               At {Math.round(pC * 100)}% payout probability, that lump sum is worth{' '}
               <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetPV)}</strong> in today&apos;s dollars.
               {cPVGap > 0
                 ? <>
-                    {' '}Even counting that retention bonus, you&apos;d still be{' '}
-                    <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> Vote Yes.
-                    You&apos;d wait {cRetPayoutMonths} months for an uncertain payout that only partially makes you whole
-                    {cWagesShortfall > cRetPV && (
-                      <> — covering just {Math.round((cRetPV / cWagesShortfall) * 100)}% of the {fmt(cWagesShortfall)} in wages & profit sharing you gave up</>
-                    )}.
-                    {' '}Is the potential {fmt(bPVGap >= 0 ? bPVGap : 0)} upside worth that risk?
+                    {' '}So while the retention bonus will make you partially whole, you&apos;d still be roughly{' '}
+                    <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> vs. Voting Yes.
+                    {' '}So, no matter how high you rate the probability of a second offer, is the potential upside worth the risk?
                   </>
                 : <>
-                    {' '}Even in the worst case, Vote No comes out ahead once the retention bonus is counted.
-                    The CBA earnings gap is more than offset by what you&apos;d gain in retention accrual.
+                    {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap — Vote No comes out ahead once accrual is counted.
                   </>}
             </p>
           </div>
