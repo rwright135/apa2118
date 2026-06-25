@@ -4,11 +4,11 @@
    Teamsters Local 2118 — Navy & Gold
    ────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Dark mode (default) */
-  --bg-base:       #0c1427;
-  --bg-surface:    #152040;
-  --bg-elevated:   #1e2f52;
-  --bg-subtle:     rgba(255, 255, 255, 0.04);
+  /* Dark mode */
+  --bg-base:       #000000;
+  --bg-surface:    #000000;
+  --bg-elevated:   #141414;
+  --bg-subtle:     rgba(255, 255, 255, 0.06);
 
   --border-subtle: rgba(201, 168, 76, 0.10);
   --border:        rgba(201, 168, 76, 0.22);
@@ -26,7 +26,7 @@
   /* Primary CTA button */
   --btn-bg:        #c9a84c;
   --btn-bg-hover:  #e8c97a;
-  --btn-text:      #0c1427;
+  --btn-text:      #000000;
 
   /* Accent for links, icons, highlights */
   --accent:        #c9a84c;
@@ -49,10 +49,10 @@
 
 /* ── Light mode overrides ────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --bg-base:       #f1f5f9;
+  --bg-base:       #ffffff;
   --bg-surface:    #ffffff;
-  --bg-elevated:   #f8fafc;
-  --bg-subtle:     rgba(26, 43, 74, 0.04);
+  --bg-elevated:   #f5f5f5;
+  --bg-subtle:     rgba(0, 0, 0, 0.04);
 
   --border-subtle: rgba(26, 43, 74, 0.08);
   --border:        rgba(26, 43, 74, 0.15);
@@ -121,6 +121,22 @@ input[type="date"] {
 html.theme-transitioning #root {
   animation: theme-breathe 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
+}
+
+/* ── Edge-to-edge native feel on mobile browsers ─────────────────────────── */
+html,
+body {
+  background-color: var(--bg-base);
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100%;
+  background-color: var(--bg-base);
 }
 
 /* ── Scrollbar (subtle gold tint in dark, subtle in light) ──────────────── */
