@@ -1,4 +1,5 @@
 import type { Seat, UserInputs } from './types'
+import { getYearsUntilRetirement } from './engine'
 
 export const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -8,10 +9,6 @@ export const MONTHS = [
 export interface InputDisplayItem {
   label: string
   value: string
-}
-
-export function formatDate(d?: Date): string {
-  return d ? d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'
 }
 
 export function formatCurrency(v?: number): string {
@@ -55,8 +52,8 @@ export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayI
       value: `+${inputs.extraHoursAboveMMG ?? 0} hrs above MMG`,
     },
     {
-      label: 'Date of Birth',
-      value: formatDate(inputs.dateOfBirth),
+      label: 'Years Until Retirement',
+      value: inputs.dateOfBirth ? `${getYearsUntilRetirement(inputs.dateOfBirth)} years` : '—',
     },
   ]
 }
