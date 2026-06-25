@@ -73,11 +73,9 @@ function BottomLineHelp() {
   )
 }
 
-// ── Risk/reward accordion ──────────────────────────────────────────────────────
+// ── Risk/reward breakdown ──────────────────────────────────────────────────────
 
-function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
-  const [open, setOpen] = useState(false)
-
+function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
@@ -120,27 +118,15 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
     ? cRetPayoutRow.retentionCashFlow * cRetPayoutRow.discountFactor
     : 0
 
-  const voteNoLeads = result.voteNoExpected.preJcbaTotal > scenarioA.preJcbaTotal
-
   return (
     <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-      {/* Trigger */}
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center px-5 py-3 text-xs font-medium transition-colors"
-        style={{ color: 'var(--text-muted)', background: 'transparent' }}
-      >
-        <span className="flex items-center gap-1.5">
-          <span style={{ fontSize: '11px' }}>{open ? '▲' : '▼'}</span>
-          {voteNoLeads
-            ? 'What if the offer never comes? Best & worst case'
-            : 'Why does Vote No trail? Scenario-by-scenario breakdown'}
-        </span>
-      </button>
+      <div className="px-5 pt-4 pb-2" style={{ background: 'var(--bg-elevated)' }}>
+        <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+          What if the offer never comes? Best & worst case
+        </div>
+      </div>
 
-      {open && (
-        <div className="px-5 pt-5 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-5 pt-3 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
 
           {/* Card 1: Best case — Outcome B */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
@@ -235,7 +221,6 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
           </div>
 
         </div>
-      )}
     </div>
   )
 }
@@ -294,7 +279,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
       </div>
 
       {/* Risk/reward accordion */}
-      <RiskRewardAccordion result={result} />
+      <RiskRewardBreakdown result={result} />
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
