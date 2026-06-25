@@ -106,7 +106,7 @@ export function StepRetention() {
             What will your estimated Rentention Bonus amount be on June 30th? Please include your estimated &ldquo;True Up&rdquo; as part of the total.
           </label>
           <NumberInput
-            value={balance}
+            value={hasBalance ? balance : undefined}
             onChange={(v) => setInput('retentionCurrentBalance', Math.max(0, v))}
             prefix="$"
             placeholder="0"
@@ -163,7 +163,7 @@ export function StepRetention() {
         </div>
 
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={!hasBalance}>Continue</NavButton>
     </WizardLayout>
   )
 }

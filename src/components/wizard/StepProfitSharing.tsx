@@ -51,7 +51,7 @@ export function StepProfitSharing() {
     >
       <div className="mb-8 space-y-4">
         <NumberInput
-          value={ps}
+          value={hasValue ? ps : undefined}
           onChange={(v) => setInput('profitSharingLastYear', Math.max(0, v))}
           prefix="$"
           placeholder="0"

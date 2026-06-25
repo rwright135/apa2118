@@ -1,7 +1,7 @@
 import { useRef, type ChangeEvent } from 'react'
 
 interface Props {
-  value: number
+  value: number | undefined
   onChange: (v: number) => void
   prefix?: string
   suffix?: string
@@ -28,12 +28,18 @@ function clamp(n: number, min?: number, max?: number): number {
   return result
 }
 
+function formatDisplayValue(value: number | undefined): string {
+  if (value === undefined) return ''
+  return formatNumber(value)
+}
+
 export function NumberInput({ value, onChange, prefix, suffix, min, max, placeholder }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target
     const cursorFromEnd = input.value.length - (input.selectionStart ?? input.value.length)
+    const isEmpty = input.value.replace(/\D/g, '') === ''
 
     const num = clamp(parseDigits(input.value), min, max)
     onChange(num)
@@ -41,7 +47,7 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
     requestAnimationFrame(() => {
       const el = inputRef.current
       if (!el) return
-      const formatted = num ? formatNumber(num) : ''
+      const formatted = isEmpty ? '' : formatNumber(num)
       const newPos = Math.max(0, formatted.length - cursorFromEnd)
       el.setSelectionRange(newPos, newPos)
     })
@@ -69,7 +75,7 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
         ref={inputRef}
         type="text"
         inputMode="numeric"
-        value={value ? formatNumber(value) : ''}
+        value={formatDisplayValue(value)}
         placeholder={placeholder ?? '0'}
         onChange={handleChange}
         className="min-w-0 w-full flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
