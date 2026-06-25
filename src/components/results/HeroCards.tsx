@@ -82,6 +82,161 @@ function BottomLineHelp() {
   )
 }
 
+// ── Risk/reward accordion ──────────────────────────────────────────────────────
+
+function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
+  const [open, setOpen] = useState(false)
+
+  const scenarioA   = result.scenarios.find(s => s.scenarioId === 'A')!
+  const voteNo      = result.voteNoExpected
+  const jcba        = result.voteNoScenario.jcbaDurationMonths
+  const { probability: p, arrivalMonths } = result.voteNoScenario
+  const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC } = result.inputs
+
+  const aVal  = scenarioA.preJcbaTotal
+  const noVal = voteNo.preJcbaTotal
+  const pvGap = noVal - aVal                   // positive = Vote No leads
+
+  // Nominal wages + profit-sharing gap (pre-JCBA window)
+  const yesRegComp = scenarioA.totalGrossPay + scenarioA.totalProfitSharing
+  const noRegComp  = voteNo.totalGrossPay    + voteNo.totalProfitSharing
+  const regCompGap = yesRegComp - noRegComp  // positive = Vote No earns less in regular comp
+
+  // Retention PV (sum across all rows, including post-JCBA payout months)
+  const yesRetPV = scenarioA.rows.reduce((s, r) => s + r.retentionCashFlow * r.discountFactor, 0)
+  const noRetPV  = voteNo.rows.reduce((s, r) => s + r.retentionCashFlow * r.discountFactor, 0)
+  const retPVGap = noRetPV - yesRetPV          // positive = Vote No gets more retention PV
+
+  // Nominal retention gap
+  const retNomGap = voteNo.totalRetention - scenarioA.totalRetention
+
+  // Blended payout probability (weighted by offer-arrival probability)
+  const blendedPayoutProb = p * pB + (1 - p) * pC
+
+  // Share of PV gap attributable to retention
+  const retSharePct = pvGap !== 0 ? Math.round((retPVGap / pvGap) * 100) : 0
+
+  const voteNoLeads = pvGap > 0
+
+  return (
+    <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-5 py-3 text-xs font-medium transition-colors"
+        style={{ color: 'var(--text-muted)', background: 'transparent' }}
+      >
+        <span className="flex items-center gap-1.5">
+          <span style={{ fontSize: '11px' }}>{open ? '▲' : '▼'}</span>
+          {voteNoLeads
+            ? "What\u2019s behind this advantage? Risk/reward breakdown"
+            : "What\u2019s behind these numbers? Risk/reward breakdown"}
+        </span>
+        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+          style={{ background: 'var(--bg-elevated)', color: 'var(--text-faint)', border: '1px solid var(--border-subtle)' }}>
+          {voteNoLeads ? `Vote No +${fmt(pvGap)}` : `Vote Yes +${fmt(-pvGap)}`}
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 space-y-4" style={{ background: 'var(--bg-elevated)' }}>
+
+          {/* Row 1: Upside */}
+          <div className="rounded-xl px-4 py-3 space-y-0.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
+              {voteNoLeads ? 'The potential upside' : 'The Vote Yes advantage'}
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                {voteNoLeads
+                  ? 'If you vote No, you could pocket an extra'
+                  : 'Voting Yes puts you ahead by'}
+              </span>
+              <span className="text-base font-black tabular-nums" style={{ color: voteNoLeads ? 'var(--positive)' : VOTE_YES_CSS }}>
+                {voteNoLeads ? '+' : '+'}{fmt(Math.abs(pvGap))}
+              </span>
+            </div>
+            <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+              Present-value difference over the entire JCBA decision window ({jcba} months)
+            </p>
+          </div>
+
+          {/* Row 2: Wage sacrifice */}
+          <div className="rounded-xl px-4 py-3 space-y-0.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
+              Regular earnings during this window
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Wages + profit sharing (nominal)
+              </span>
+              <div className="text-right">
+                <span className="text-base font-black tabular-nums" style={{ color: regCompGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
+                  {regCompGap > 0 ? '−' : '+'}{fmt(Math.abs(regCompGap))}
+                </span>
+                <span className="text-xs ml-1.5" style={{ color: 'var(--text-faint)' }}>vs Vote Yes</span>
+              </div>
+            </div>
+            <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+              {regCompGap > 0
+                ? `Staying on the CBA means lower pay rates — Vote No earns ${fmt(regCompGap)} less in wages & profit sharing before the JCBA closes.`
+                : `With a second offer premium of +${(result.voteNoScenario.percentAboveTA * 100).toFixed(0)}% arriving in ${arrivalMonths} months, Vote No actually earns more in base compensation.`}
+            </p>
+          </div>
+
+          {/* Row 3: Retention bonus */}
+          <div className="rounded-xl px-4 py-3 space-y-2.5" style={{ background: 'var(--bg-surface)', border: `1px solid var(--border-subtle)` }}>
+            <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              What offsets that gap — the retention bonus
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Retention bonus edge (nominal)</span>
+              <span className="text-base font-black tabular-nums" style={{ color: retNomGap > 0 ? VOTE_NO_COLOR : 'var(--text-base)' }}>
+                {retNomGap >= 0 ? '+' : '−'}{fmt(Math.abs(retNomGap))}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Present value of that bonus
+              </span>
+              <div className="text-right">
+                <span className="text-base font-bold tabular-nums" style={{ color: retPVGap > 0 ? VOTE_NO_COLOR : 'var(--text-base)' }}>
+                  {retPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(retPVGap))}
+                </span>
+                <span className="text-xs ml-1.5" style={{ color: 'var(--text-faint)' }}>today</span>
+              </div>
+            </div>
+
+            <div className="pt-1 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs px-2 py-1 rounded-lg font-semibold"
+                  style={{ background: 'var(--vote-no-dim)', color: VOTE_NO_COLOR, border: `1px solid var(--vote-no)` }}>
+                  {Math.round(blendedPayoutProb * 100)}% weighted payout probability
+                </span>
+                {Math.abs(retSharePct) >= 80 && (
+                  <span className="text-xs px-2 py-1 rounded-lg font-semibold"
+                    style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                    ~{Math.abs(retSharePct)}% of the edge is retention
+                  </span>
+                )}
+              </div>
+              <p className="text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+                {retNomGap > 0 && retPVGap > 0
+                  ? `Vote No accrues ${fmt(retNomGap)} more in retention than Vote Yes (which only locks in your current balance). Discounted to today, that's worth ${fmt(retPVGap)} — but only at a ${Math.round(blendedPayoutProb * 100)}% blended probability of payout.`
+                  : `Vote Yes locks in your current retention balance immediately. Vote No's retention picture is smaller or less certain.`}
+              </p>
+            </div>
+          </div>
+
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Single scenario: verdict card ─────────────────────────────────────────────
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
@@ -134,6 +289,9 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
           </div>
         ))}
       </div>
+
+      {/* Risk/reward accordion */}
+      <RiskRewardAccordion result={result} />
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
