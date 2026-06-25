@@ -159,7 +159,7 @@ function ScenarioCard({
               })}
             </div>
             <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-              If no 2nd offer arrives, you stay on CBA rates until this date.
+              If there&apos;s no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes.
             </p>
           </div>
 
@@ -241,15 +241,6 @@ export function StepVoteNo() {
           </button>
         )}
 
-        <div
-          className="rounded-xl p-4 text-sm leading-relaxed"
-          style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)' }}
-        >
-          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Important: </span>
-          <span style={{ color: 'var(--text-muted)' }}>
-            If there's no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes.
-          </span>
-        </div>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
