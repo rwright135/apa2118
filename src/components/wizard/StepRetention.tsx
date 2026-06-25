@@ -90,7 +90,7 @@ export function StepRetention() {
   const balance = inputs.retentionCurrentBalance
   const probB   = inputs.retentionPayoutProbabilityB ?? 0.95
   const probC   = inputs.retentionPayoutProbabilityC ?? 0.75
-  const hasBalance = balance !== undefined && balance > 0
+  const hasBalance = balance !== undefined
 
   return (
     <WizardLayout
