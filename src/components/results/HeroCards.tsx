@@ -1,5 +1,8 @@
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
 
+const VOTE_YES_COLOR = 'var(--gold)'
+const VOTE_NO_COLOR = 'var(--vote-no)'
+
 interface Props { results: ComparisonResult[] }
 
 function fmt(n: number) {
@@ -30,10 +33,10 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
         <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
           Bottom line
         </div>
-        <div className="text-3xl font-black leading-tight" style={{ color: aWins ? 'var(--gold)' : 'var(--negative)' }}>
+        <div className="text-3xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
           {aWins ? 'Vote Yes' : 'Vote No'} leads
         </div>
-        <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? 'var(--gold)' : 'var(--negative)', opacity: 0.85 }}>
+        <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
           by {fmt(Math.abs(diff))}
         </div>
         <div className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
@@ -44,8 +47,8 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
       {/* Comparison rows */}
       <div className="px-5 pb-5 space-y-3 border-t" style={{ borderColor: 'var(--border-subtle)', paddingTop: '16px' }}>
         {[
-          { label: 'Vote Yes', sub: 'Accept the TA', val: aVal, color: 'var(--gold)' },
-          { label: 'Vote No',  sub: 'Probability-weighted expected value', val: noVal, color: 'var(--text-muted)' },
+          { label: 'Vote Yes', sub: 'Accept the TA', val: aVal, color: VOTE_YES_COLOR },
+          { label: 'Vote No',  sub: 'Probability-weighted expected value', val: noVal, color: VOTE_NO_COLOR },
         ].map(({ label, sub, val, color }) => (
           <div key={label}>
             <div className="flex items-baseline justify-between mb-1.5">
@@ -107,7 +110,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
               const diff      = aVal - noVal
               const aWins     = diff > 0
               const vns       = result.voteNoScenario
-              const diffColor = aWins ? 'var(--positive)' : 'var(--negative)'
+              const diffColor = aWins ? 'var(--positive)' : VOTE_NO_COLOR
 
               return (
                 <tr
