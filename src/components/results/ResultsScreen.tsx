@@ -1,5 +1,6 @@
 // useState no longer needed here — moved to ShareSheet
 import { useStore } from '../../state/store'
+import { BaselineInputCards } from './BaselineInputCards'
 import { HeroCards } from './HeroCards'
 import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { ComparisonBarChart } from './ComparisonBarChart'
@@ -59,6 +60,7 @@ export function ResultsScreen() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <BaselineInputCards inputs={results[0].inputs} />
         <HeroCards results={results} />
 
         <div

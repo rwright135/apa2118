@@ -147,7 +147,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
       {/* Footer */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA decision window only · present value in today's dollars · {Math.round(results[0].inputs.investmentRate * 100)}% discount rate
+          Pre-JCBA decision window only · present value in today's dollars
         </span>
       </div>
     </div>
@@ -163,7 +163,6 @@ export function HeroCards({ results }: Props) {
         <SingleScenarioVerdict result={results[0]} />
         <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
           After the JCBA concludes, all paths converge to the same rates — those years cancel out.
-          {' '}· {Math.round(results[0].inputs.investmentRate * 100)}% discount rate
         </p>
       </div>
     )

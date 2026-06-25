@@ -1,9 +1,8 @@
 import { useStore } from '../../state/store'
 import type { WizardStep } from '../../state/store'
+import { formatPct, getFinancialInputItems, getProfileInputItems } from '../../lib/inputDisplay'
 import { NavButton } from '../shared/NavButton'
 import { ThemeToggle } from '../shared/ThemeToggle'
-
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 interface ReviewItem { label: string; value: string }
 interface ReviewSection { title: string; editStep: WizardStep; items: ReviewItem[] }
@@ -11,35 +10,16 @@ interface ReviewSection { title: string; editStep: WizardStep; items: ReviewItem
 export function ReviewScreen() {
   const { inputs, goToStep, compute, isComputing } = useStore()
 
-  const formatDate = (d?: Date) =>
-    d ? d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'
-  const formatCurrency = (v?: number) => v ? `$${v.toLocaleString()}` : '$0'
-  const formatPct = (v?: number) => v !== undefined ? `${(v * 100).toFixed(1)}%` : '—'
-
   const sections: ReviewSection[] = [
     {
       title: 'Your Profile',
       editStep: 'seat',
-      items: [
-        { label: 'Seat', value: inputs.seat === 'FO' ? 'First Officer (3 stripes)' : inputs.seat === 'CA' ? 'Captain (4 stripes)' : '—' },
-        { label: 'Longevity (Jul 2026)', value: inputs.longevityAsOfJul2026 ? `Year ${inputs.longevityAsOfJul2026}` : '—' },
-        { label: 'Anniversary Month', value: inputs.anniversaryMonth !== undefined ? MONTHS[inputs.anniversaryMonth] : '—' },
-        { label: 'Line Type', value: inputs.lineType === 'FLYING' ? 'Flying Line Holder' : inputs.lineType === 'RESERVE' ? 'Reserve Line Holder' : '—' },
-        { label: 'Extra Hours/Month', value: `+${inputs.extraHoursAboveMMG ?? 0} hrs above MMG` },
-        { label: 'Date of Birth', value: formatDate(inputs.dateOfBirth) },
-      ],
+      items: getProfileInputItems(inputs),
     },
     {
       title: 'Financial Inputs',
       editStep: 'profitSharing',
-      items: [
-        { label: 'Annual Profit Sharing', value: formatCurrency(inputs.profitSharingLastYear) },
-        { label: 'Retention Bonus Balance', value: formatCurrency(inputs.retentionCurrentBalance) },
-        { label: 'Outcome A Payout Date', value: 'Oct 1, 2026 (fixed)' },
-        { label: 'Outcome B Bonus Certainty', value: formatPct(inputs.retentionPayoutProbabilityB) },
-        { label: 'Outcome C Bonus Certainty', value: formatPct(inputs.retentionPayoutProbabilityC) },
-        { label: 'Investment Return Rate', value: formatPct(inputs.investmentRate) },
-      ],
+      items: getFinancialInputItems(inputs),
     },
     {
       title: `Vote-No Assumptions (${(inputs.voteNoScenarios ?? []).length} scenario${(inputs.voteNoScenarios ?? []).length !== 1 ? 's' : ''})`,
