@@ -4,6 +4,53 @@ import { NavButton } from '../shared/NavButton'
 import { NumberInput } from '../shared/NumberInput'
 import { SliderInput } from '../shared/SliderInput'
 
+const RETENTION_SCENARIOS = [
+  {
+    key: 'B' as const,
+    color: '#a855f7',
+    title: 'Scenario B — Vote No + 2nd Offer',
+    label: 'If we vote no and get a second offer — how likely is the bonus paid in full?',
+    helper: 'Covers the scenario where management returns with a bridge offer before JCBA.',
+    inputKey: 'retentionPayoutProbabilityB' as const,
+  },
+  {
+    key: 'C' as const,
+    color: 'var(--negative)',
+    title: 'Scenario C — Vote No, No Offer',
+    label: 'If we vote no and wait all the way to JCBA — how likely is the bonus paid in full?',
+    helper: 'Covers the scenario where no second offer comes and the bonus accrues until JCBA concludes.',
+    inputKey: 'retentionPayoutProbabilityC' as const,
+  },
+]
+
+function RetentionScenarioBox({
+  color,
+  title,
+  children,
+}: {
+  color: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}
+    >
+      <div
+        className="flex items-center gap-2 px-4 py-3"
+        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+      >
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        <span className="font-bold text-sm" style={{ color }}>{title}</span>
+      </div>
+      <div className="px-4 py-5">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export function StepRetention() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
   const balance = inputs.retentionCurrentBalance ?? 0
@@ -34,39 +81,28 @@ export function StepRetention() {
 
         </div>
 
-        {/* Probability B — Vote No + 2nd offer */}
-        <div>
-          <SliderInput
-            value={Math.round(probB * 100)}
-            min={50}
-            max={100}
-            step={5}
-            onChange={(v) => setInput('retentionPayoutProbabilityB', v / 100)}
-            formatValue={(v) => `${v}%`}
-            label="If we vote no and get a second offer — how likely is the bonus paid in full?"
-            showMinMax
-          />
-          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-            Covers the scenario where management returns with a bridge offer before JCBA.
-          </p>
-        </div>
+        {/* Probability sliders */}
+        {RETENTION_SCENARIOS.map((scenario) => {
+          const prob = scenario.inputKey === 'retentionPayoutProbabilityB' ? probB : probC
 
-        {/* Probability C — Vote No, wait for JCBA */}
-        <div>
-          <SliderInput
-            value={Math.round(probC * 100)}
-            min={50}
-            max={100}
-            step={5}
-            onChange={(v) => setInput('retentionPayoutProbabilityC', v / 100)}
-            formatValue={(v) => `${v}%`}
-            label="If we vote no and wait all the way to JCBA — how likely is the bonus paid in full?"
-            showMinMax
-          />
-          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-            Covers the scenario where no second offer comes and the bonus accrues until JCBA concludes.
-          </p>
-        </div>
+          return (
+            <RetentionScenarioBox key={scenario.key} color={scenario.color} title={scenario.title}>
+              <SliderInput
+                value={Math.round(prob * 100)}
+                min={50}
+                max={100}
+                step={5}
+                onChange={(v) => setInput(scenario.inputKey, v / 100)}
+                formatValue={(v) => `${v}%`}
+                label={scenario.label}
+                showMinMax
+              />
+              <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+                {scenario.helper}
+              </p>
+            </RetentionScenarioBox>
+          )
+        })}
 
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
