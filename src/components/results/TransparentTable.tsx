@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
 
-interface Props { results: ComparisonResult }
+interface Props { results: ComparisonResult[] }
 
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
@@ -9,8 +9,10 @@ function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'presentValue' | 'cumulativePV'
-
 type TabId = 'YES' | 'NO' | 'B' | 'C'
+
+const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
+const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
   YES: { label: 'Vote Yes',         active: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)',     color: 'var(--gold)'     }, inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' } },
@@ -23,24 +25,21 @@ const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.C
 
 interface RetentionDetailRow {
   month: string
-  accrual: number        // monthly delta (0 for payout month or Vote Yes)
-  runningBalance: number // cumulative balance
-  probability: number    // payout probability
-  cashFlow: number       // actual payout (0 unless payout month)
-  pvCashFlow: number     // present value of the cash flow
+  accrual: number
+  runningBalance: number
+  probability: number
+  cashFlow: number
+  pvCashFlow: number
   isPayout: boolean
 }
 
 function buildRetentionDetail(rows: MonthlyRow[], startingBalance: number, probability: number): RetentionDetailRow[] {
   const result: RetentionDetailRow[] = []
   let running = startingBalance
-
   for (const row of rows) {
     const hasMeaningfulActivity = row.retentionAccrualNote > 0.01 || row.retentionCashFlow > 0.01
     if (!hasMeaningfulActivity) continue
-
     running += row.retentionAccrualNote
-
     result.push({
       month:          `${MONTHS_SHORT[row.month]} ${row.year}`,
       accrual:        row.retentionAccrualNote,
@@ -61,17 +60,12 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
   isVoteYes: boolean
 }) {
   const [retExpanded, setRetExpanded] = useState(false)
-
   const detail = buildRetentionDetail(rows, startingBalance, probability)
   if (!detail.length) return null
-
-  // For Vote Yes, show just the payout row — no accrual
   const previewRows = isVoteYes ? detail : detail.slice(0, retExpanded ? detail.length : 4)
   const hasMore     = !isVoteYes && detail.length > 4
-
   return (
     <div className="mt-3 rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-      {/* Sub-header */}
       <div
         className="flex items-center justify-between px-3 py-2 cursor-pointer select-none"
         style={{ background: 'var(--bg-elevated)' }}
@@ -91,8 +85,6 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
           </span>
         )}
       </div>
-
-      {/* Column headers */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -127,9 +119,7 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
                     {fmt(r.runningBalance)}
                   </td>
                 )}
-                <td className="px-3 py-2 text-right whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>
-                  {fmtPct(r.probability)}
-                </td>
+                <td className="px-3 py-2 text-right whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>{fmtPct(r.probability)}</td>
                 <td className="px-3 py-2 text-right whitespace-nowrap font-semibold" style={{ color: r.cashFlow > 0 ? 'var(--positive)' : 'var(--text-faint)' }}>
                   {r.cashFlow > 0 ? fmt(r.cashFlow) : '—'}
                 </td>
@@ -141,7 +131,6 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
           </tbody>
         </table>
       </div>
-
       {hasMore && !retExpanded && (
         <div className="px-3 py-2 text-center" style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <button className="text-xs" style={{ color: 'var(--accent)' }} onClick={() => setRetExpanded(true)}>
@@ -153,32 +142,31 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
   )
 }
 
-// ── Main table ────────────────────────────────────────────────────────────────
+// ── Inner table for one ComparisonResult ──────────────────────────────────────
 
-export function TransparentTable({ results }: Props) {
-  const [expanded, setExpanded]         = useState(false)
-  const [activeTab, setActiveTab]       = useState<TabId>('YES')
+function ResultTable({ result }: { result: ComparisonResult }) {
+  const [expanded, setExpanded]           = useState(false)
+  const [activeTab, setActiveTab]         = useState<TabId>('YES')
   const [showRetention, setShowRetention] = useState(false)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
 
-  const allSummaries = [...results.scenarios, results.voteNoExpected]
+  const allSummaries = [...result.scenarios, result.voteNoExpected]
   const summary = allSummaries.find(s => s.scenarioId === scenarioId)
   if (!summary) return null
 
-  const jcbaMonth   = results.inputs.jcbaDurationMonths
+  const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
 
-  // Truncate at JCBA: post-JCBA rows are identical across all scenarios and add nothing to the comparison
   const preJcbaRows  = rows.slice(0, jcbaMonth)
   const displayRows  = expanded ? preJcbaRows : preJcbaRows.slice(0, steadyStateIndex + 1)
   const hasMore      = preJcbaRows.length > steadyStateIndex + 1
-  const isVoteYes   = activeTab === 'YES'
+  const isVoteYes    = activeTab === 'YES'
 
   const prob = isVoteYes ? 1
-    : activeTab === 'B' ? results.inputs.retentionPayoutProbabilityB
-    : results.inputs.retentionPayoutProbabilityC
+    : activeTab === 'B' ? result.inputs.retentionPayoutProbabilityB
+    : result.inputs.retentionPayoutProbabilityC
 
   const columns: { key: ColumnKey; label: string; gold?: boolean }[] = [
     { key: 'grossPay',          label: 'Gross Pay' },
@@ -190,13 +178,10 @@ export function TransparentTable({ results }: Props) {
   ]
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      {/* Header */}
+    <div>
+      {/* Inner tabs */}
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-            Month-by-Month Detail
-          </h2>
           <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{rows.length} months total</span>
         </div>
         <div className="flex gap-1.5 flex-wrap">
@@ -220,7 +205,7 @@ export function TransparentTable({ results }: Props) {
         </div>
       </div>
 
-      {/* Main cash-flow table */}
+      {/* Main table */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -238,9 +223,8 @@ export function TransparentTable({ results }: Props) {
           </thead>
           <tbody>
             {displayRows.map((row: MonthlyRow, i: number) => {
-              const isFirstOfYear    = row.month === 0 || i === 0
+              const isFirstOfYear      = row.month === 0 || i === 0
               const isSteadyStateStart = i === steadyStateIndex
-
               return (
                 <>
                   {isSteadyStateStart && (
@@ -289,7 +273,7 @@ export function TransparentTable({ results }: Props) {
         <div className="px-4 py-3 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
           <button onClick={() => setExpanded(!expanded)} className="text-sm font-medium" style={{ color: 'var(--accent)' }}>
             {expanded
-              ? `Collapse (show only pre-steady-state months)`
+              ? 'Collapse (show only pre-steady-state months)'
               : `Show all ${preJcbaRows.length - steadyStateIndex - 1} remaining pre-JCBA months`}
           </button>
         </div>
@@ -298,7 +282,6 @@ export function TransparentTable({ results }: Props) {
         Table stops at JCBA month {jcbaMonth} — all scenarios converge to identical rates after this point
       </div>
 
-      {/* Retention bonus expansion */}
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
         <button
           onClick={() => setShowRetention(v => !v)}
@@ -308,16 +291,64 @@ export function TransparentTable({ results }: Props) {
           <span>{showRetention ? '▲' : '▼'}</span>
           {showRetention ? 'Hide retention bonus detail' : '💰 Show retention bonus accrual & payout detail'}
         </button>
-
         {showRetention && (
           <RetentionDetail
             rows={rows}
-            startingBalance={results.inputs.retentionCurrentBalance}
+            startingBalance={result.inputs.retentionCurrentBalance}
             probability={prob}
             isVoteYes={isVoteYes}
           />
         )}
       </div>
+    </div>
+  )
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+export function TransparentTable({ results }: Props) {
+  const [activeScenario, setActiveScenario] = useState(0)
+  const multiScenario = results.length > 1
+  const activeResult  = results[activeScenario] ?? results[0]
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+        <h2 className="font-semibold text-sm uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
+          Month-by-Month Detail
+        </h2>
+
+        {/* Top-level scenario tabs — only shown when multiple scenarios */}
+        {multiScenario && (
+          <div className="flex gap-1.5 flex-wrap mb-0">
+            {results.map((result, i) => {
+              const vns   = result.voteNoScenario
+              const color = SCENARIO_COLORS[i]
+              const isActive = i === activeScenario
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveScenario(i)}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left"
+                  style={
+                    isActive
+                      ? { background: `${color}18`, border: `1.5px solid ${color}`, color }
+                      : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
+                  }
+                >
+                  <div>{SCENARIO_LABELS[i]}</div>
+                  <div className="text-xs font-normal mt-0.5" style={{ color: isActive ? color : 'var(--text-faint)', opacity: 0.85 }}>
+                    {Math.round(vns.probability * 100)}% · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <ResultTable result={activeResult} />
     </div>
   )
 }

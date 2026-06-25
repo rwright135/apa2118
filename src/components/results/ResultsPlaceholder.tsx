@@ -17,7 +17,7 @@ export function ResultsPlaceholder() {
         </div>
 
         <div className="space-y-4">
-          {results.scenarios.map(s => (
+          {results[0]?.scenarios.map(s => (
             <div key={s.scenarioId} className="bg-[#1a2235] rounded-2xl p-4 border border-white/5">
               <div className="font-semibold text-white mb-1">{s.label}</div>
               <div className="text-2xl font-bold text-blue-400">

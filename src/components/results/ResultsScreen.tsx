@@ -11,7 +11,7 @@ import { ThemeToggle } from '../shared/ThemeToggle'
 export function ResultsScreen() {
   const { results, goToStep, inputs } = useStore()
 
-  if (!results) return null
+  if (!results || results.length === 0) return null
 
   return (
     <div

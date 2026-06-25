@@ -14,7 +14,6 @@ export type WizardStep =
   | 'profitSharing'
   | 'investmentRate'
   | 'voteNo'
-  | 'jcba'
   | 'retention'
   | 'advanced'
   | 'review'
@@ -31,12 +30,18 @@ export const WIZARD_STEPS: WizardStep[] = [
   'profitSharing',
   'investmentRate',
   'voteNo',
-  'jcba',
   'retention',
   'advanced',
   'review',
   'results',
 ]
+
+export const DEFAULT_VOTE_NO_SCENARIO = {
+  probability: 0.50,
+  arrivalMonths: 6,
+  percentAboveTA: 0.10,
+  jcbaDurationMonths: 30,
+}
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
   longevityAsOfJul2026: 1,
@@ -48,12 +53,7 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   retentionCurrentBalance: 0,
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.90,
-  voteNoOffer: {
-    probability: 0.50,
-    arrivalMonths: 6,
-    percentAboveTA: 0.10,
-  },
-  jcbaDurationMonths: 24,
+  voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],
   advancedPostJCBA: {
     enabled: false,
     scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
@@ -65,7 +65,7 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
 interface AppState {
   currentStep: WizardStep
   inputs: Partial<UserInputs>
-  results: ComparisonResult | null
+  results: ComparisonResult[] | null
   isComputing: boolean
 
   setStep: (step: WizardStep) => void
@@ -121,6 +121,21 @@ export const useStore = create<AppState>((set, get) => ({
         const d = new Date(sanitized.dateOfBirth as unknown as string)
         sanitized.dateOfBirth = isNaN(d.getTime()) ? undefined : d
       }
+      // Migrate legacy localStorage: if old voteNoOffer + jcbaDurationMonths exist, convert
+      if (!sanitized.voteNoScenarios) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const legacy = sanitized as any
+        if (legacy.voteNoOffer) {
+          sanitized.voteNoScenarios = [{
+            probability: legacy.voteNoOffer.probability ?? DEFAULT_VOTE_NO_SCENARIO.probability,
+            arrivalMonths: legacy.voteNoOffer.arrivalMonths ?? DEFAULT_VOTE_NO_SCENARIO.arrivalMonths,
+            percentAboveTA: legacy.voteNoOffer.percentAboveTA ?? DEFAULT_VOTE_NO_SCENARIO.percentAboveTA,
+            jcbaDurationMonths: legacy.jcbaDurationMonths ?? DEFAULT_VOTE_NO_SCENARIO.jcbaDurationMonths,
+          }]
+          delete legacy.voteNoOffer
+          delete legacy.jcbaDurationMonths
+        }
+      }
       const newInputs = { ...state.inputs, ...sanitized }
       saveToLocalStorage(newInputs)
       return { inputs: newInputs }
@@ -143,8 +158,10 @@ export const useStore = create<AppState>((set, get) => ({
     set({ isComputing: true })
     setTimeout(() => {
       try {
-        const result = buildAllScenarios(inputs as UserInputs)
-        set({ results: result, isComputing: false, currentStep: 'results' })
+        const fullInputs = inputs as UserInputs
+        const scenarios = fullInputs.voteNoScenarios ?? [{ ...DEFAULT_VOTE_NO_SCENARIO }]
+        const multiResults = scenarios.map(vns => buildAllScenarios(fullInputs, vns))
+        set({ results: multiResults, isComputing: false, currentStep: 'results' })
       } catch (e) {
         console.error('Computation error', e)
         set({ isComputing: false })

@@ -1,6 +1,6 @@
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 
-interface Props { results: ComparisonResult }
+interface Props { results: ComparisonResult[] }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
@@ -8,88 +8,126 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-// Pre-JCBA total = PV of all cash flows + 401k in the decision window only.
-// Post-JCBA is identical for all paths, so it adds nothing to the comparison.
 function pvTotal(s: ScenarioSummary) {
   return s.preJcbaTotal
 }
 
-function Card({ summary, isYes }: { summary: ScenarioSummary; isYes: boolean }) {
-  const value = pvTotal(summary)
+const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
+const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
+
+function ScenarioColumn({
+  result,
+  index,
+}: {
+  result: ComparisonResult
+  index: number
+}) {
+  const scenarioA  = result.scenarios.find(s => s.scenarioId === 'A')!
+  const voteNo     = result.voteNoExpected
+  const vns        = result.voteNoScenario
+  const color      = SCENARIO_COLORS[index]
+  const label      = SCENARIO_LABELS[index]
+
+  const aVal  = pvTotal(scenarioA)
+  const noVal = pvTotal(voteNo)
+  const diff  = aVal - noVal
+  const aWins = diff > 0
 
   return (
-    <div
-      className="rounded-2xl p-5 flex-1"
-      style={
-        isYes
-          ? { background: 'var(--chip-bg)', border: '2px solid var(--gold)' }
-          : { background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }
-      }
-    >
+    <div className="flex flex-col gap-3 min-w-[280px] flex-1">
+      {/* Scenario header */}
       <div
-        className="text-xs font-bold uppercase tracking-widest mb-1"
-        style={{ color: isYes ? 'var(--gold)' : 'var(--text-faint)' }}
+        className="rounded-xl px-3 py-2 text-center"
+        style={{ background: 'var(--bg-elevated)', border: `1.5px solid ${color}` }}
       >
-        {isYes ? 'Vote Yes' : 'Vote No'}
+        <div className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color }}>
+          {label}
+        </div>
+        <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          {Math.round(vns.probability * 100)}% offer · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
+        </div>
       </div>
-      <div className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-        {isYes ? 'Accept the TA' : 'Probability-weighted expected value'}
+
+      {/* Vote Yes card */}
+      <div
+        className="rounded-2xl p-4 flex-1"
+        style={{ background: 'var(--chip-bg)', border: '2px solid var(--gold)' }}
+      >
+        <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--gold)' }}>
+          Vote Yes
+        </div>
+        <div className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          Accept the TA
+        </div>
+        <div className="text-2xl font-black" style={{ color: 'var(--gold)' }}>
+          {fmt(aVal)}
+        </div>
+        <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+          Pre-JCBA window (today's dollars)
+        </div>
       </div>
-      <div className="text-3xl font-black" style={{ color: isYes ? 'var(--gold)' : 'var(--text-base)' }}>
-        {fmt(value)}
+
+      {/* Vote No card */}
+      <div
+        className="rounded-2xl p-4 flex-1"
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+      >
+        <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color }}>
+          Vote No
+        </div>
+        <div className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          Probability-weighted expected value
+        </div>
+        <div className="text-2xl font-black" style={{ color: 'var(--text-base)' }}>
+          {fmt(noVal)}
+        </div>
+        <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+          Pre-JCBA window (today's dollars)
+        </div>
       </div>
-      <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-        Value of the pre-JCBA window (today's dollars)
+
+      {/* Difference callout */}
+      <div
+        className="rounded-xl p-3 text-center"
+        style={
+          aWins
+            ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }
+            : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }
+        }
+      >
+        <div className="text-base font-black" style={{ color: aWins ? 'var(--positive)' : 'var(--negative)' }}>
+          {aWins ? '+' : ''}{fmt(diff)}
+        </div>
+        <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          {aWins ? 'Vote Yes leads' : 'Vote No expected value leads'}
+        </div>
       </div>
     </div>
   )
 }
 
 export function HeroCards({ results }: Props) {
-  const scenarioA = results.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo    = results.voteNoExpected
-  const p         = results.inputs.voteNoOffer.probability
-  const r         = results.inputs.investmentRate
-
-  const diff      = pvTotal(scenarioA) - pvTotal(voteNo)
-  const aIsBetter = diff > 0
+  const r = results[0].inputs.investmentRate
 
   return (
-    <div className="space-y-3">
-      {/* Two primary cards */}
-      <div className="flex gap-3">
-        <Card summary={scenarioA} isYes />
-        <Card summary={voteNo}    isYes={false} />
-      </div>
-
-      {/* Difference callout */}
-      <div
-        className="rounded-xl p-4 text-center"
-        style={
-          aIsBetter
-            ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }
-            : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }
-        }
-      >
-        <div className="text-xl font-black" style={{ color: aIsBetter ? 'var(--positive)' : 'var(--negative)' }}>
-          {aIsBetter ? '+' : ''}{fmt(diff)}
-        </div>
-        <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {aIsBetter ? 'Vote Yes is worth more in today\'s dollars' : 'Expected Vote No value is higher in today\'s dollars'}{' '}
-          <span style={{ color: 'var(--text-faint)' }}>
-            · {Math.round(r * 100)}% rate · {Math.round(p * 100)}% offer / {Math.round((1 - p) * 100)}% no offer
-          </span>
+    <div className="space-y-4">
+      {/* Scrollable columns */}
+      <div className="overflow-x-auto">
+        <div className="flex gap-4 pb-2" style={{ minWidth: results.length === 1 ? '100%' : `${results.length * 296}px` }}>
+          {results.map((result, i) => (
+            <ScenarioColumn key={i} result={result} index={i} />
+          ))}
         </div>
       </div>
 
-      {/* Pre-JCBA window explainer */}
+      {/* Shared context callout */}
       <div
         className="rounded-xl px-4 py-3 text-xs leading-relaxed"
         style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
       >
         <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Only the pre-JCBA window counts. </span>
         After the JCBA concludes, all paths converge to the same rates — so those years cancel out.
-        Getting a 70% raise now is worth more than the same raise in {results.inputs.jcbaDurationMonths} months. This number shows exactly how much more, in today's dollars.
+        {' '}<span style={{ color: 'var(--text-faint)' }}>· {Math.round(r * 100)}% discount rate</span>
       </div>
     </div>
   )

@@ -13,7 +13,6 @@ import { StepProfitSharing } from './components/wizard/StepProfitSharing'
 import { StepRetention } from './components/wizard/StepRetention'
 import { StepInvestmentRate } from './components/wizard/StepInvestmentRate'
 import { StepVoteNo } from './components/wizard/StepVoteNo'
-import { StepJCBA } from './components/wizard/StepJCBA'
 import { StepAdvanced } from './components/wizard/StepAdvanced'
 import { ReviewScreen } from './components/review/ReviewScreen'
 import { ResultsScreen } from './components/results/ResultsScreen'
@@ -49,7 +48,6 @@ function App() {
     case 'retention':    return <StepRetention />
     case 'investmentRate':return <StepInvestmentRate />
     case 'voteNo':       return <StepVoteNo />
-    case 'jcba':         return <StepJCBA />
     case 'advanced':     return <StepAdvanced />
     case 'review':       return <ReviewScreen />
     case 'results':      return <ResultsScreen />

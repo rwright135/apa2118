@@ -3,6 +3,8 @@ import { getLongevityAt, getTATier, discountFactor, getMonthlyRetentionAccrual, 
 import { CURRENT_CBA, getRate } from '../data/payScales'
 import type { UserInputs } from './types'
 
+const DEFAULT_VNS = { probability: 0.25, arrivalMonths: 18, percentAboveTA: 0.03, jcbaDurationMonths: 24 }
+
 const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   seat: 'FO',
   longevityAsOfJul2026: 4,
@@ -15,8 +17,7 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   retentionCurrentBalance: 50000,
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.90,
-  voteNoOffer: { probability: 0.25, arrivalMonths: 18, percentAboveTA: 0.03 },
-  jcbaDurationMonths: 24,
+  voteNoScenarios: [{ ...DEFAULT_VNS }],
   advancedPostJCBA: {
     enabled: false,
     scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
@@ -96,7 +97,7 @@ describe('getMonthlyRetentionAccrual', () => {
 describe('buildMonthlyStream - Scenario A', () => {
   it('returns rows from July 2026 to retirement', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     expect(rows.length).toBeGreaterThan(200)
     expect(rows[0].month).toBe(6) // July = month index 6
     expect(rows[0].year).toBe(2026)
@@ -104,14 +105,14 @@ describe('buildMonthlyStream - Scenario A', () => {
 
   it('uses TA DOS_EOY2026 rate in first month', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     // FO L4 DOS_EOY2026 = 161.37
     expect(rows[0].hourlyRate).toBeCloseTo(161.37, 2)
   })
 
   it('switches to TA Jan2027 rate in January 2027', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     const jan2027 = rows.find(r => r.year === 2027 && r.month === 0)
     expect(jan2027).toBeDefined()
     expect(jan2027!.hourlyRate).toBeGreaterThan(161.37)
@@ -119,7 +120,7 @@ describe('buildMonthlyStream - Scenario A', () => {
 
   it('uses 10% 401k in Jul-Dec 2026 and 15% from Jan 2027', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     const dec2026 = rows.find(r => r.year === 2026 && r.month === 11)
     const jan2027 = rows.find(r => r.year === 2027 && r.month === 0)
     expect(dec2026!.k401Rate).toBe(0.10)
@@ -128,7 +129,7 @@ describe('buildMonthlyStream - Scenario A', () => {
 
   it('pays retention bonus on the payout date', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     const oct2026 = rows.find(r => r.year === 2026 && r.month === 9)
     expect(oct2026!.retentionCashFlow).toBe(50000)
   })
@@ -136,41 +137,43 @@ describe('buildMonthlyStream - Scenario A', () => {
 
 describe('buildMonthlyStream - Scenario C', () => {
   it('uses CBA rates before JCBA', () => {
-    const inputs = makeInputs({ jcbaDurationMonths: 24 })
-    const rows = buildMonthlyStream(inputs, 'C')
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
     // First row: FO L4 CBA = 116.99
     expect(rows[0].hourlyRate).toBeCloseTo(116.99, 2)
   })
 
   it('switches to TA Jan2028 rates after JCBA', () => {
-    const inputs = makeInputs({ jcbaDurationMonths: 24 })
-    const rows = buildMonthlyStream(inputs, 'C')
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
     const postJCBA = rows[24]
     expect(postJCBA.hourlyRate).toBeGreaterThan(116.99)
   })
 
   it('maintains 10% 401k throughout pre-JCBA', () => {
-    const inputs = makeInputs({ jcbaDurationMonths: 24 })
-    const rows = buildMonthlyStream(inputs, 'C')
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
     expect(rows[0].k401Rate).toBe(0.10)
     expect(rows[23].k401Rate).toBe(0.10)
   })
 })
 
 describe('post-JCBA convergence', () => {
+  const customVns = { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10, jcbaDurationMonths: 24 }
+
   it('all three scenarios use identical rates after JCBA concludes', () => {
-    const inputs = makeInputs({ jcbaDurationMonths: 24, voteNoOffer: { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10 } })
-    const rowsA = buildMonthlyStream(inputs, 'A')
-    const rowsB = buildMonthlyStream(inputs, 'B')
-    const rowsC = buildMonthlyStream(inputs, 'C')
+    const inputs = makeInputs({ voteNoScenarios: [customVns] })
+    const rowsA = buildMonthlyStream(inputs, 'A', customVns)
+    const rowsB = buildMonthlyStream(inputs, 'B', customVns)
+    const rowsC = buildMonthlyStream(inputs, 'C', customVns)
     // At month 30 (6 months past JCBA), all should have the same rate
     expect(rowsA[30].hourlyRate).toBeCloseTo(rowsB[30].hourlyRate, 2)
     expect(rowsA[30].hourlyRate).toBeCloseTo(rowsC[30].hourlyRate, 2)
   })
 
   it('Scenario B uplift only applies between offer arrival and JCBA', () => {
-    const inputs = makeInputs({ jcbaDurationMonths: 24, voteNoOffer: { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10 } })
-    const rows = buildMonthlyStream(inputs, 'B')
+    const inputs = makeInputs({ voteNoScenarios: [customVns] })
+    const rows = buildMonthlyStream(inputs, 'B', customVns)
     // Month 18 (between offer at 12 and JCBA at 24): should have uplift
     const rateAtMonth18 = rows[18].hourlyRate
     // Month 30 (post JCBA): should be back to plain TA rate, no uplift
@@ -182,7 +185,7 @@ describe('post-JCBA convergence', () => {
 describe('detectSteadyState', () => {
   it('detects steady state when pay stops changing', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     const ss = detectSteadyState(rows)
     expect(ss).toBeGreaterThan(0)
     expect(ss).toBeLessThan(rows.length)
@@ -192,7 +195,7 @@ describe('detectSteadyState', () => {
 describe('profit sharing', () => {
   it('pays profit sharing in June and November only', () => {
     const inputs = makeInputs()
-    const rows = buildMonthlyStream(inputs, 'A')
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
     const juneRows = rows.filter(r => r.month === 5)
     const nonPSRows = rows.filter(r => r.month !== 5 && r.month !== 10)
     expect(juneRows.every(r => r.profitSharingCash > 0)).toBe(true)

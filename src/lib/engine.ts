@@ -2,7 +2,7 @@ import {
   getRate,
 } from '../data/payScales'
 import { CONTRACT_PARAMS } from '../data/contractParams'
-import type { UserInputs, MonthlyRow, ScenarioSummary, ScenarioId } from './types'
+import type { UserInputs, MonthlyRow, ScenarioSummary, ScenarioId, VoteNoScenario } from './types'
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
 
@@ -143,7 +143,8 @@ export function getMonthlyRetentionAccrual(rate: number): number {
 
 export function buildMonthlyStream(
   inputs: UserInputs,
-  scenarioId: ScenarioId
+  scenarioId: ScenarioId,
+  vns: VoteNoScenario
 ): MonthlyRow[] {
   const startDate = CONTRACT_PARAMS.TA_EFFECTIVE_DATE // July 1, 2026
   const retirementDate = getRetirementDate(inputs.dateOfBirth)
@@ -151,8 +152,8 @@ export function buildMonthlyStream(
   const rate = inputs.investmentRate
 
   const offerArrivalMonth =
-    scenarioId === 'B' ? inputs.voteNoOffer.arrivalMonths : Infinity
-  const jcbaMonth = inputs.jcbaDurationMonths
+    scenarioId === 'B' ? vns.arrivalMonths : Infinity
+  const jcbaMonth = vns.jcbaDurationMonths
 
   // ── Retention payout month index (months from startDate) ─────────────────
   // A: Oct 1, 2026 = month 3 from Jul 1, 2026 (fixed — 60 days after ratification)
@@ -165,7 +166,7 @@ export function buildMonthlyStream(
       ? monthsDiff(
           startDate,
           addDays(
-            addMonths(startDate, inputs.voteNoOffer.arrivalMonths),
+            addMonths(startDate, vns.arrivalMonths),
             CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
           )
         )
@@ -216,7 +217,7 @@ export function buildMonthlyStream(
         isTA = true
         const tier = getTATier(date)
         const taRate = getRate(inputs.seat, longevity, tier)
-        hourlyRate = taRate * (1 + inputs.voteNoOffer.percentAboveTA)
+        hourlyRate = taRate * (1 + vns.percentAboveTA)
         k401Rate = get401kRate('A', date)
       }
     } else {
@@ -318,13 +319,14 @@ export function buildScenarioSummary(
   scenarioId: ScenarioId,
   label: string,
   description: string,
-  inputs: UserInputs
+  inputs: UserInputs,
+  jcbaDurationMonths: number
 ): ScenarioSummary {
   const retirementDate = getRetirementDate(inputs.dateOfBirth)
   const startDate = CONTRACT_PARAMS.TA_EFFECTIVE_DATE
   const totalMonths = monthsDiff(startDate, retirementDate)
 
-  const jcbaMonth = inputs.jcbaDurationMonths
+  const jcbaMonth = jcbaDurationMonths
 
   const presentValueTotal = rows.reduce((sum, r) => sum + r.presentValue, 0)
   const retirementBalancePV = rows.reduce((sum, r) => sum + r.presentValue401k, 0)

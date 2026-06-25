@@ -42,14 +42,17 @@ export function ReviewScreen() {
       ],
     },
     {
-      title: 'Vote-No Assumptions',
+      title: `Vote-No Assumptions (${(inputs.voteNoScenarios ?? []).length} scenario${(inputs.voteNoScenarios ?? []).length !== 1 ? 's' : ''})`,
       editStep: 'voteNo',
-      items: [
-        { label: '2nd Offer Probability', value: formatPct(inputs.voteNoOffer?.probability) },
-        { label: '2nd Offer Arrival', value: inputs.voteNoOffer ? `${inputs.voteNoOffer.arrivalMonths} months` : '—' },
-        { label: '2nd Offer Premium', value: inputs.voteNoOffer ? `+${(inputs.voteNoOffer.percentAboveTA * 100).toFixed(1)}% above TA` : '—' },
-        { label: 'JCBA Timeline', value: inputs.jcbaDurationMonths ? `${inputs.jcbaDurationMonths} mo (${(inputs.jcbaDurationMonths / 12).toFixed(1)} yrs)` : '—' },
-      ],
+      items: (inputs.voteNoScenarios ?? []).flatMap((vns, i) => {
+        const prefix = (inputs.voteNoScenarios ?? []).length > 1 ? `S${i + 1}: ` : ''
+        return [
+          { label: `${prefix}2nd Offer Probability`, value: formatPct(vns.probability) },
+          { label: `${prefix}2nd Offer Arrival`, value: `${vns.arrivalMonths} months` },
+          { label: `${prefix}2nd Offer Premium`, value: `+${(vns.percentAboveTA * 100).toFixed(1)}% above TA` },
+          { label: `${prefix}JCBA Timeline`, value: `${vns.jcbaDurationMonths} mo (${(vns.jcbaDurationMonths / 12).toFixed(1)} yrs)` },
+        ]
+      }),
     },
   ]
 

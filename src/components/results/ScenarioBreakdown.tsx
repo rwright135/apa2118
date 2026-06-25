@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 
-interface Props { results: ComparisonResult }
+interface Props { results: ComparisonResult[] }
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
   return `$${Math.round(n)}`
 }
+
+const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
+const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
 
 function BreakdownCard({
   s,
@@ -34,9 +37,9 @@ function BreakdownCard({
   ]
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+    <div className="rounded-2xl overflow-hidden flex-1 min-w-[260px]" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="font-bold text-base" style={{ color: accentColor }}>{label}</div>
+        <div className="font-bold text-sm" style={{ color: accentColor }}>{label}</div>
         <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{sublabel}</div>
       </div>
       <div>
@@ -82,38 +85,45 @@ function WeightingRow({ label, weight, color, pv }: { label: string; weight: num
   )
 }
 
-export function ScenarioBreakdown({ results }: Props) {
+function SingleScenarioBreakdown({ result, index, showLabel }: { result: ComparisonResult; index: number; showLabel: boolean }) {
   const [showWeighting, setShowWeighting] = useState(false)
 
-  const scenarioA = results.scenarios.find(s => s.scenarioId === 'A')!
-  const scenarioB = results.scenarios.find(s => s.scenarioId === 'B')!
-  const scenarioC = results.scenarios.find(s => s.scenarioId === 'C')!
-  const voteNo    = results.voteNoExpected
-  const p         = results.inputs.voteNoOffer.probability
-
-  const val = (s: ScenarioSummary) => s.preJcbaTotal
+  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
+  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+  const voteNo    = result.voteNoExpected
+  const vns       = result.voteNoScenario
+  const p         = vns.probability
+  const color     = SCENARIO_COLORS[index]
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-        Scenario Breakdown
-      </h2>
+      {showLabel && (
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+          <span className="font-bold text-sm" style={{ color }}>{SCENARIO_LABELS[index]}</span>
+          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+            {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
+          </span>
+        </div>
+      )}
 
-      {/* Two primary cards */}
-      <BreakdownCard
-        s={scenarioA}
-        accentColor="var(--gold)"
-        label="Vote Yes — Accept the TA"
-        sublabel="Guaranteed: TA rates effective July 1, 2026"
-      />
-      <BreakdownCard
-        s={voteNo}
-        accentColor="var(--navy)"
-        label="Vote No — Expected Value"
-        sublabel={`Probability-weighted: ${Math.round(p * 100)}% chance of 2nd offer, ${Math.round((1 - p) * 100)}% no offer`}
-      />
+      <div className="flex gap-4 overflow-x-auto pb-1">
+        <BreakdownCard
+          s={scenarioA}
+          accentColor="var(--gold)"
+          label="Vote Yes — Accept the TA"
+          sublabel="Guaranteed: TA rates effective July 1, 2026"
+        />
+        <BreakdownCard
+          s={voteNo}
+          accentColor={color}
+          label="Vote No — Expected Value"
+          sublabel={`${Math.round(p * 100)}% 2nd offer · ${Math.round((1 - p) * 100)}% no offer · JCBA ${vns.jcbaDurationMonths}mo`}
+        />
+      </div>
 
-      {/* Vote No weighting detail — collapsible */}
+      {/* Weighting detail */}
       <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
         <button
           onClick={() => setShowWeighting(v => !v)}
@@ -123,7 +133,6 @@ export function ScenarioBreakdown({ results }: Props) {
           <span>How Vote No is calculated</span>
           <span style={{ color: 'var(--accent)' }}>{showWeighting ? '↑ Hide' : '↓ Show'}</span>
         </button>
-
         {showWeighting && (
           <div className="px-4 py-2" style={{ background: 'var(--bg-surface)' }}>
             <div className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
@@ -133,21 +142,39 @@ export function ScenarioBreakdown({ results }: Props) {
               label="Scenario B — 2nd bridge offer arrives"
               weight={p}
               color="#a855f7"
-              pv={fmt(val(scenarioB))}
+              pv={fmt(scenarioB.preJcbaTotal)}
             />
             <WeightingRow
               label="Scenario C — No offer, stay on CBA until JCBA"
               weight={1 - p}
               color="#ef4444"
-              pv={fmt(val(scenarioC))}
+              pv={fmt(scenarioC.preJcbaTotal)}
             />
             <div className="flex justify-between items-center pt-2 mt-1" style={{ borderTop: '1px solid var(--border)' }}>
               <span className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>Weighted Vote No</span>
-              <span className="text-sm font-bold" style={{ color: 'var(--navy)' }}>{fmt(val(voteNo))}</span>
+              <span className="text-sm font-bold" style={{ color }}>{fmt(voteNo.preJcbaTotal)}</span>
             </div>
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+export function ScenarioBreakdown({ results }: Props) {
+  return (
+    <div className="space-y-6">
+      <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        Scenario Breakdown
+      </h2>
+      {results.map((result, i) => (
+        <SingleScenarioBreakdown
+          key={i}
+          result={result}
+          index={i}
+          showLabel={results.length > 1}
+        />
+      ))}
     </div>
   )
 }

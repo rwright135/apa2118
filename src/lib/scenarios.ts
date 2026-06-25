@@ -1,14 +1,17 @@
 import { buildMonthlyStream, buildScenarioSummary } from './engine'
-import type { UserInputs, ScenarioSummary, ComparisonResult, MonthlyRow, ScenarioId } from './types'
+import type { UserInputs, ScenarioSummary, ComparisonResult, MonthlyRow, ScenarioId, VoteNoScenario } from './types'
 
-export function buildAllScenarios(inputs: UserInputs): ComparisonResult {
-  const rowsA = buildMonthlyStream(inputs, 'A')
-  const rowsB = buildMonthlyStream(inputs, 'B')
-  const rowsC = buildMonthlyStream(inputs, 'C')
+export function buildAllScenarios(inputs: UserInputs, scenarioOverride?: VoteNoScenario): ComparisonResult {
+  const vns = scenarioOverride ?? inputs.voteNoScenarios[0]
+  const jcba = vns.jcbaDurationMonths
 
-  const summaryA = buildScenarioSummary(rowsA, 'A', 'Vote Yes', 'Accept the Tentative Agreement', inputs)
-  const summaryB = buildScenarioSummary(rowsB, 'B', 'Vote No — 2nd Offer', 'Vote No and a bridge offer arrives', inputs)
-  const summaryC = buildScenarioSummary(rowsC, 'C', 'Vote No — No Offer', 'Vote No and no bridge offer before JCBA', inputs)
+  const rowsA = buildMonthlyStream(inputs, 'A', vns)
+  const rowsB = buildMonthlyStream(inputs, 'B', vns)
+  const rowsC = buildMonthlyStream(inputs, 'C', vns)
+
+  const summaryA = buildScenarioSummary(rowsA, 'A', 'Vote Yes', 'Accept the Tentative Agreement', inputs, jcba)
+  const summaryB = buildScenarioSummary(rowsB, 'B', 'Vote No — 2nd Offer', 'Vote No and a bridge offer arrives', inputs, jcba)
+  const summaryC = buildScenarioSummary(rowsC, 'C', 'Vote No — No Offer', 'Vote No and no bridge offer before JCBA', inputs, jcba)
 
   const applyAdvanced = (summary: ScenarioSummary, key: 'scenarioA' | 'scenarioB' | 'scenarioC'): ScenarioSummary => {
     if (!inputs.advancedPostJCBA.enabled) return summary
@@ -17,9 +20,8 @@ export function buildAllScenarios(inputs: UserInputs): ComparisonResult {
     const multiplier = config.direction === 'HIGHER'
       ? 1 + config.magnitude * config.probability
       : 1 - config.magnitude * config.probability
-    const jcbaMonth = inputs.jcbaDurationMonths
     const adjustedRows = summary.rows.map(row => {
-      if (row.monthIndex < jcbaMonth) return row
+      if (row.monthIndex < jcba) return row
       return {
         ...row,
         grossPay: row.grossPay * multiplier,
@@ -28,14 +30,14 @@ export function buildAllScenarios(inputs: UserInputs): ComparisonResult {
         presentValue401k: row.presentValue401k * multiplier,
       }
     })
-    return buildScenarioSummary(adjustedRows, summary.scenarioId, summary.label, summary.description, inputs)
+    return buildScenarioSummary(adjustedRows, summary.scenarioId, summary.label, summary.description, inputs, jcba)
   }
 
   const finalA = applyAdvanced(summaryA, 'scenarioA')
   const finalB = applyAdvanced(summaryB, 'scenarioB')
   const finalC = applyAdvanced(summaryC, 'scenarioC')
 
-  const p = inputs.voteNoOffer.probability
+  const p = vns.probability
   const blendedRows: MonthlyRow[] = rowsB.map((rowB, i) => {
     const rowC = rowsC[i]
     return {
@@ -57,7 +59,8 @@ export function buildAllScenarios(inputs: UserInputs): ComparisonResult {
     'VOTE_NO_EXPECTED',
     'Vote No (Expected)',
     `Probability-weighted: ${Math.round(p * 100)}% chance of 2nd offer`,
-    inputs
+    inputs,
+    jcba
   )
 
   return {
@@ -65,6 +68,7 @@ export function buildAllScenarios(inputs: UserInputs): ComparisonResult {
     voteNoExpected,
     baselineScenarioId: 'A',
     inputs,
+    voteNoScenario: vns,
     computedAt: new Date(),
   }
 }

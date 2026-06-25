@@ -6,10 +6,12 @@ export type LineType = 'FLYING' | 'RESERVE'
 
 export type ScenarioId = 'A' | 'B' | 'C' | 'VOTE_NO_EXPECTED'
 
-export interface VoteNoOffer {
-  probability: number      // 0.05–0.50 in 0.025 steps
-  arrivalMonths: number    // months from Jul 1 2026
-  percentAboveTA: number   // % above TA Jan2028 rates (e.g. 0.05 = 5% above)
+/** All Vote No assumptions for a single comparison scenario. */
+export interface VoteNoScenario {
+  probability: number         // 0–1: probability of a 2nd bridge offer
+  arrivalMonths: number       // months from Jul 1 2026 until 2nd offer arrives
+  percentAboveTA: number      // how much better the 2nd offer is vs the TA (e.g. 0.10 = 10% above)
+  jcbaDurationMonths: number  // months until JCBA concluded (18–60, default 30)
 }
 
 export interface AdvancedPostJCBA {
@@ -36,15 +38,14 @@ export interface UserInputs {
   // Retention bonus
   retentionCurrentBalance: number        // current accrued balance $
   // Payout dates are computed automatically per scenario (no user input):
-  //   A: Oct 1, 2026 (fixed — ~60 days after ratification)
+  //   A: Oct 1, 2026 (fixed — 60 days after ratification)
   //   B: startDate + offerArrivalMonths + 60 days after ratification
   //   C: startDate + jcbaDurationMonths
   retentionPayoutProbabilityB: number    // 0–1, probability paid if vote no + 2nd offer (Scenario B)
   retentionPayoutProbabilityC: number    // 0–1, probability paid if vote no + wait for JCBA (Scenario C)
 
-  // Vote-No assumptions
-  voteNoOffer: VoteNoOffer
-  jcbaDurationMonths: number            // months until JCBA concluded (12–84, default 24)
+  // Vote-No assumption sets (1–3). Each has its own JCBA duration, offer probability, arrival, and premium.
+  voteNoScenarios: VoteNoScenario[]
 
   // Advanced
   advancedPostJCBA: AdvancedPostJCBA
@@ -110,9 +111,10 @@ export interface ScenarioSummary {
 }
 
 export interface ComparisonResult {
-  scenarios: ScenarioSummary[]
-  voteNoExpected: ScenarioSummary
+  scenarios: ScenarioSummary[]      // [A, B, C]
+  voteNoExpected: ScenarioSummary   // probability-weighted blend of B and C
   baselineScenarioId: ScenarioId   // 'A' is usually the baseline
   inputs: UserInputs
+  voteNoScenario: VoteNoScenario    // the specific scenario assumptions used for this result
   computedAt: Date
 }
