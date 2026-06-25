@@ -87,36 +87,43 @@ function BottomLineHelp() {
 function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
   const [open, setOpen] = useState(false)
 
-  const scenarioA   = result.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo      = result.voteNoExpected
-  const jcba        = result.voteNoScenario.jcbaDurationMonths
-  const { probability: p, arrivalMonths } = result.voteNoScenario
-  const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC } = result.inputs
+  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
+  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+  const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
+  const { retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
-  const aVal  = scenarioA.preJcbaTotal
-  const noVal = voteNo.preJcbaTotal
-  const pvGap = noVal - aVal                   // positive = Vote No leads
+  // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
+  // Raw, non-probability-weighted — what you'd actually get if the offer comes
+  const bPVGap = scenarioB.preJcbaTotal - scenarioA.preJcbaTotal   // + = Vote No wins
 
-  // Nominal wages + profit-sharing gap (pre-JCBA window)
-  const yesRegComp = scenarioA.totalGrossPay + scenarioA.totalProfitSharing
-  const noRegComp  = voteNo.totalGrossPay    + voteNo.totalProfitSharing
-  const regCompGap = yesRegComp - noRegComp  // positive = Vote No earns less in regular comp
+  // ── Worst case: Outcome C (no offer, stay on CBA) ────────────────────────────
+  // Nominal wages + PS you give up compared to accepting the TA today
+  const cWagesShortfall =
+    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
+    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)   // + = Vote No earns less
 
-  // Retention PV (sum across all rows, including post-JCBA payout months)
-  const yesRetPV = scenarioA.rows.reduce((s, r) => s + r.retentionCashFlow * r.discountFactor, 0)
-  const noRetPV  = voteNo.rows.reduce((s, r) => s + r.retentionCashFlow * r.discountFactor, 0)
-  const retPVGap = noRetPV - yesRetPV          // positive = Vote No gets more retention PV
+  // Full PV gap worst case (includes retention in both; + = Vote Yes leads even after retention)
+  const cPVGap = scenarioA.preJcbaTotal - scenarioC.preJcbaTotal
 
-  // Nominal retention gap
-  const retNomGap = voteNo.totalRetention - scenarioA.totalRetention
+  // ── Retention bonus growth & recovery (Scenario C) ───────────────────────────
+  // Find the payout row to get exact timing and discount factor
+  const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
+  const cRetPayoutMonths = cRetPayoutRow?.monthIndex ?? (jcba + 2)
 
-  // Blended payout probability (weighted by offer-arrival probability)
-  const blendedPayoutProb = p * pB + (1 - p) * pC
+  // Nominal accrued balance at payout — sum of starting balance + monthly accruals
+  let cRetAccrued = retentionCurrentBalance
+  for (const row of scenarioC.rows) {
+    if (row.monthIndex >= cRetPayoutMonths) break
+    cRetAccrued += row.retentionAccrualNote
+  }
 
-  // Share of PV gap attributable to retention
-  const retSharePct = pvGap !== 0 ? Math.round((retPVGap / pvGap) * 100) : 0
+  // PV of the probability-weighted payout (retentionCashFlow already × pC in engine)
+  const cRetPV = cRetPayoutRow
+    ? cRetPayoutRow.retentionCashFlow * cRetPayoutRow.discountFactor
+    : 0
 
-  const voteNoLeads = pvGap > 0
+  const voteNoLeads = result.voteNoExpected.preJcbaTotal > scenarioA.preJcbaTotal
 
   return (
     <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -130,105 +137,138 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
         <span className="flex items-center gap-1.5">
           <span style={{ fontSize: '11px' }}>{open ? '▲' : '▼'}</span>
           {voteNoLeads
-            ? "What\u2019s behind this advantage? Risk/reward breakdown"
-            : "What\u2019s behind these numbers? Risk/reward breakdown"}
+            ? 'What if the offer never comes? Best & worst case'
+            : 'Why does Vote No trail? Scenario-by-scenario breakdown'}
         </span>
-        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+        <span className="text-xs px-2 py-0.5 rounded-full"
           style={{ background: 'var(--bg-elevated)', color: 'var(--text-faint)', border: '1px solid var(--border-subtle)' }}>
-          {voteNoLeads ? `Vote No +${fmt(pvGap)}` : `Vote Yes +${fmt(-pvGap)}`}
+          Raw scenarios · no probability weighting
         </span>
       </button>
 
       {open && (
-        <div className="px-5 pb-5 space-y-4" style={{ background: 'var(--bg-elevated)' }}>
+        <div className="px-5 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
 
-          {/* Row 1: Upside */}
-          <div className="rounded-xl px-4 py-3 space-y-0.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
-              {voteNoLeads ? 'The potential upside' : 'The Vote Yes advantage'}
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {voteNoLeads
-                  ? 'If you vote No, you could pocket an extra'
-                  : 'Voting Yes puts you ahead by'}
-              </span>
-              <span className="text-base font-black tabular-nums" style={{ color: voteNoLeads ? 'var(--positive)' : VOTE_YES_CSS }}>
-                {voteNoLeads ? '+' : '+'}{fmt(Math.abs(pvGap))}
+          {/* Card 1: Best case — Outcome B */}
+          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }} />
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                If the offer arrives — Outcome B
               </span>
             </div>
-            <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-              Present-value difference over the entire JCBA decision window ({jcba} months)
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Net vs. Vote Yes (present value)</span>
+              <span className="text-base font-black tabular-nums"
+                style={{ color: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
+                {bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Assumes offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at +{(percentAboveTA * 100).toFixed(0)}% above TA, then JCBA closes at {jcba} months.
+              Not probability-weighted — this is the raw best-case outcome.
             </p>
           </div>
 
-          {/* Row 2: Wage sacrifice */}
-          <div className="rounded-xl px-4 py-3 space-y-0.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
-              Regular earnings during this window
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Wages + profit sharing (nominal)
+          {/* Card 2: Worst case — Outcome C earnings shortfall */}
+          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }} />
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                If no offer arrives — Outcome C · {jcba}-month window
               </span>
+            </div>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Wages & profit sharing given up</span>
               <div className="text-right">
-                <span className="text-base font-black tabular-nums" style={{ color: regCompGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
-                  {regCompGap > 0 ? '−' : '+'}{fmt(Math.abs(regCompGap))}
+                <span className="text-base font-black tabular-nums"
+                  style={{ color: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }}>
+                  {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
                 </span>
-                <span className="text-xs ml-1.5" style={{ color: 'var(--text-faint)' }}>vs Vote Yes</span>
+                <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}> nominal</span>
               </div>
             </div>
-            <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-              {regCompGap > 0
-                ? `Staying on the CBA means lower pay rates — Vote No earns ${fmt(regCompGap)} less in wages & profit sharing before the JCBA closes.`
-                : `With a second offer premium of +${(result.voteNoScenario.percentAboveTA * 100).toFixed(0)}% arriving in ${arrivalMonths} months, Vote No actually earns more in base compensation.`}
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              {cWagesShortfall > 0
+                ? `Over ${jcba} months on the current CBA you\u2019d earn ${fmt(cWagesShortfall)} less in wages & profit sharing than if you\u2019d accepted the TA today. The retention bonus is what partially makes you whole \u2014 see below.`
+                : `Even without a second offer, CBA pay rates in this scenario keep Vote No\u2019s earnings competitive.`}
             </p>
           </div>
 
-          {/* Row 3: Retention bonus */}
-          <div className="rounded-xl px-4 py-3 space-y-2.5" style={{ background: 'var(--bg-surface)', border: `1px solid var(--border-subtle)` }}>
-            <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-              What offsets that gap — the retention bonus
-            </div>
-
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Retention bonus edge (nominal)</span>
-              <span className="text-base font-black tabular-nums" style={{ color: retNomGap > 0 ? VOTE_NO_COLOR : 'var(--text-base)' }}>
-                {retNomGap >= 0 ? '+' : '−'}{fmt(Math.abs(retNomGap))}
+          {/* Card 3: Retention bonus — the partial recovery */}
+          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: VOTE_NO_COLOR }} />
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                What partially makes you whole \u2014 the retention bonus
               </span>
             </div>
 
-            <div className="flex items-baseline justify-between">
+            {/* Balance growth row */}
+            <div className="flex items-baseline justify-between mb-1.5">
               <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Present value of that bonus
+                Balance grows to (nominal)
               </span>
               <div className="text-right">
-                <span className="text-base font-bold tabular-nums" style={{ color: retPVGap > 0 ? VOTE_NO_COLOR : 'var(--text-base)' }}>
-                  {retPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(retPVGap))}
+                <span className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
+                  {fmt(cRetAccrued)}
                 </span>
-                <span className="text-xs ml-1.5" style={{ color: 'var(--text-faint)' }}>today</span>
               </div>
             </div>
 
-            <div className="pt-1 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs px-2 py-1 rounded-lg font-semibold"
-                  style={{ background: 'var(--vote-no-dim)', color: VOTE_NO_COLOR, border: `1px solid var(--vote-no)` }}>
-                  {Math.round(blendedPayoutProb * 100)}% weighted payout probability
+            {/* Timing */}
+            <div className="flex items-baseline justify-between mb-2.5">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Paid out ~{cRetPayoutMonths} months from now at {Math.round(pC * 100)}% probability
+              </span>
+              <div className="text-right">
+                <span className="text-base font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
+                  {fmt(cRetPV)}
                 </span>
-                {Math.abs(retSharePct) >= 80 && (
-                  <span className="text-xs px-2 py-1 rounded-lg font-semibold"
-                    style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.3)' }}>
-                    ~{Math.abs(retSharePct)}% of the edge is retention
-                  </span>
-                )}
+                <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}> PV today</span>
               </div>
-              <p className="text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-                {retNomGap > 0 && retPVGap > 0
-                  ? `Vote No accrues ${fmt(retNomGap)} more in retention than Vote Yes (which only locks in your current balance). Discounted to today, that's worth ${fmt(retPVGap)} — but only at a ${Math.round(blendedPayoutProb * 100)}% blended probability of payout.`
-                  : `Vote Yes locks in your current retention balance immediately. Vote No's retention picture is smaller or less certain.`}
-              </p>
             </div>
+
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
+              Your current balance of {fmt(retentionCurrentBalance)} grows through {jcba} months of CBA accrual to {fmt(cRetAccrued)}.
+              Paid out {cRetPayoutMonths} months from now — discounted to today at {Math.round(pC * 100)}% payout probability, that lump sum is
+              worth {fmt(cRetPV)}.
+              {cWagesShortfall > cRetPV && (
+                <> That only covers {Math.round((cRetPV / cWagesShortfall) * 100)}% of the {fmt(cWagesShortfall)} in earnings you gave up.</>
+              )}
+            </p>
+          </div>
+
+          {/* Punchline: net worst case after retention */}
+          <div
+            className="rounded-xl px-4 py-3"
+            style={{
+              background:  cPVGap > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)',
+              border: `1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`,
+            }}
+          >
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
+                Net — worst case (after retention bonus)
+              </span>
+              <span className="text-base font-black tabular-nums"
+                style={{ color: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
+                {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} vs Vote Yes
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              {cPVGap > 0
+                ? <>
+                    Even counting the retention bonus, you\u2019d still be <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> Vote
+                    Yes in the worst case. You\u2019d wait <strong>{cRetPayoutMonths} months</strong> for an
+                    uncertain lump sum that only partially makes you whole.
+                    Is the potential {fmt(bPVGap >= 0 ? bPVGap : 0)} upside worth that risk?
+                  </>
+                : <>
+                    Even in the worst case, Vote No comes out ahead once the retention bonus is counted.
+                    The CBA earnings gap is more than offset by what you\u2019d gain in retention accrual.
+                  </>}
+            </p>
           </div>
 
         </div>
