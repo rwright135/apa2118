@@ -1,4 +1,4 @@
-import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
+import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
 
 interface Props { results: ComparisonResult[] }
 
@@ -8,127 +8,173 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function pvTotal(s: ScenarioSummary) {
-  return s.preJcbaTotal
+function fmtAssumptions(vns: VoteNoScenario) {
+  return `${Math.round(vns.probability * 100)}% offer probability · ${vns.arrivalMonths}mo arrival · +${(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA ${vns.jcbaDurationMonths}mo`
 }
 
-const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
-const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
+// ── Single scenario: verdict card ─────────────────────────────────────────────
 
-function ScenarioColumn({
-  result,
-  index,
-}: {
-  result: ComparisonResult
-  index: number
-}) {
-  const scenarioA  = result.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo     = result.voteNoExpected
-  const vns        = result.voteNoScenario
-  const color      = SCENARIO_COLORS[index]
-  const label      = SCENARIO_LABELS[index]
-
-  const aVal  = pvTotal(scenarioA)
-  const noVal = pvTotal(voteNo)
-  const diff  = aVal - noVal
-  const aWins = diff > 0
+function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
+  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+  const voteNo    = result.voteNoExpected
+  const aVal      = scenarioA.preJcbaTotal
+  const noVal     = voteNo.preJcbaTotal
+  const diff      = aVal - noVal
+  const aWins     = diff > 0
+  const maxVal    = Math.max(aVal, noVal)
 
   return (
-    <div className="flex flex-col gap-3 min-w-[280px] flex-1">
-      {/* Scenario header */}
-      <div
-        className="rounded-xl px-3 py-2 text-center"
-        style={{ background: 'var(--bg-elevated)', border: `1.5px solid ${color}` }}
-      >
-        <div className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color }}>
-          {label}
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      {/* Verdict */}
+      <div className="px-5 pt-5 pb-4">
+        <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
+          Bottom line
         </div>
-        <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          {Math.round(vns.probability * 100)}% offer · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
+        <div className="text-3xl font-black leading-tight" style={{ color: aWins ? 'var(--gold)' : 'var(--negative)' }}>
+          {aWins ? 'Vote Yes' : 'Vote No'} leads
         </div>
-      </div>
-
-      {/* Vote Yes card */}
-      <div
-        className="rounded-2xl p-4 flex-1"
-        style={{ background: 'var(--chip-bg)', border: '2px solid var(--gold)' }}
-      >
-        <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--gold)' }}>
-          Vote Yes
+        <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? 'var(--gold)' : 'var(--negative)', opacity: 0.85 }}>
+          by {fmt(Math.abs(diff))}
         </div>
-        <div className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-          Accept the TA
-        </div>
-        <div className="text-2xl font-black" style={{ color: 'var(--gold)' }}>
-          {fmt(aVal)}
-        </div>
-        <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA window (today's dollars)
+        <div className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+          Pre-JCBA decision window · present value in today's dollars
         </div>
       </div>
 
-      {/* Vote No card */}
-      <div
-        className="rounded-2xl p-4 flex-1"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-      >
-        <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color }}>
-          Vote No
-        </div>
-        <div className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-          Probability-weighted expected value
-        </div>
-        <div className="text-2xl font-black" style={{ color: 'var(--text-base)' }}>
-          {fmt(noVal)}
-        </div>
-        <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA window (today's dollars)
-        </div>
+      {/* Comparison rows */}
+      <div className="px-5 pb-5 space-y-3 border-t" style={{ borderColor: 'var(--border-subtle)', paddingTop: '16px' }}>
+        {[
+          { label: 'Vote Yes', sub: 'Accept the TA', val: aVal, color: 'var(--gold)' },
+          { label: 'Vote No',  sub: 'Probability-weighted expected value', val: noVal, color: 'var(--text-muted)' },
+        ].map(({ label, sub, val, color }) => (
+          <div key={label}>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-semibold" style={{ color }}>{label}</span>
+                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{sub}</span>
+              </div>
+              <span className="text-base font-bold tabular-nums" style={{ color }}>{fmt(val)}</span>
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${(val / maxVal) * 100}%`, background: color, opacity: label === 'Vote No' ? 0.4 : 1 }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Difference callout */}
-      <div
-        className="rounded-xl p-3 text-center"
-        style={
-          aWins
-            ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }
-            : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }
-        }
-      >
-        <div className="text-base font-black" style={{ color: aWins ? 'var(--positive)' : 'var(--negative)' }}>
-          {aWins ? '+' : ''}{fmt(diff)}
-        </div>
-        <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {aWins ? 'Vote Yes leads' : 'Vote No expected value leads'}
-        </div>
+      {/* Assumptions */}
+      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          Assumptions: {fmtAssumptions(result.voteNoScenario)}
+        </span>
       </div>
     </div>
   )
 }
 
+// ── Multiple scenarios: comparison table ──────────────────────────────────────
+
+function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                Assumptions
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
+                Vote Yes
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                Vote No
+              </th>
+              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                Difference
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((result, i) => {
+              const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+              const voteNo    = result.voteNoExpected
+              const aVal      = scenarioA.preJcbaTotal
+              const noVal     = voteNo.preJcbaTotal
+              const diff      = aVal - noVal
+              const aWins     = diff > 0
+              const vns       = result.voteNoScenario
+              const diffColor = aWins ? 'var(--positive)' : 'var(--negative)'
+
+              return (
+                <tr
+                  key={i}
+                  className="border-b last:border-b-0"
+                  style={{ borderColor: 'var(--border-subtle)' }}
+                >
+                  <td className="px-5 py-4">
+                    <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-muted)' }}>
+                      Scenario {i + 1}
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                      {fmtAssumptions(vns)}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <span className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>{fmt(aVal)}</span>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <span className="text-base font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>{fmt(noVal)}</span>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <div className="text-base font-black tabular-nums" style={{ color: diffColor }}>
+                      {aWins ? '+' : '−'}{fmt(Math.abs(diff))}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: diffColor, opacity: 0.75 }}>
+                      {aWins ? 'Vote Yes' : 'Vote No'} leads
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer */}
+      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          Pre-JCBA decision window only · present value in today's dollars · {Math.round(results[0].inputs.investmentRate * 100)}% discount rate
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+
 export function HeroCards({ results }: Props) {
-  const r = results[0].inputs.investmentRate
+  if (results.length === 1) {
+    return (
+      <div className="space-y-2">
+        <SingleScenarioVerdict result={results[0]} />
+        <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
+          After the JCBA concludes, all paths converge to the same rates — those years cancel out.
+          {' '}· {Math.round(results[0].inputs.investmentRate * 100)}% discount rate
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Scrollable columns */}
-      <div className="overflow-x-auto">
-        <div className="flex gap-4 pb-2" style={{ minWidth: results.length === 1 ? '100%' : `${results.length * 296}px` }}>
-          {results.map((result, i) => (
-            <ScenarioColumn key={i} result={result} index={i} />
-          ))}
-        </div>
-      </div>
-
-      {/* Shared context callout */}
-      <div
-        className="rounded-xl px-4 py-3 text-xs leading-relaxed"
-        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
-      >
-        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Only the pre-JCBA window counts. </span>
-        After the JCBA concludes, all paths converge to the same rates — so those years cancel out.
-        {' '}<span style={{ color: 'var(--text-faint)' }}>· {Math.round(r * 100)}% discount rate</span>
-      </div>
+    <div className="space-y-2">
+      <MultiScenarioTable results={results} />
+      <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
+        After the JCBA concludes, all paths converge to the same rates — those years cancel out.
+      </p>
     </div>
   )
 }
