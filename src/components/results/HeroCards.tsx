@@ -75,6 +75,56 @@ function BottomLineHelp() {
 
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
 
+interface RiskCardProps {
+  dotColor: string
+  title: string
+  value: React.ReactNode
+  valueColor: string
+  body: React.ReactNode
+  accentBg?: string
+  accentBorder?: string
+}
+
+function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
+  const [open, setOpen] = useState(false)
+  const bg = accentBg ?? 'var(--bg-surface)'
+  const border = accentBorder ?? '1px solid var(--border-subtle)'
+  return (
+    <div className="rounded-xl overflow-hidden flex-1 min-w-0" style={{ background: bg, border }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left"
+        style={{ background: 'transparent' }}
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+          <span className="text-xs font-semibold uppercase tracking-wide leading-tight" style={{ color: 'var(--text-faint)' }}>
+            {title}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-base font-black tabular-nums" style={{ color: valueColor }}>{value}</span>
+          <svg
+            width="12" height="12" viewBox="0 0 12 12" fill="none"
+            stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
+            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
+          >
+            <path d="M2 4l4 4 4-4"/>
+          </svg>
+        </div>
+      </button>
+      {open && (
+        <div className="px-4 pb-3 pt-0">
+          <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
@@ -126,49 +176,31 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
         </div>
       </div>
 
-      <div className="px-5 pt-3 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-4 pt-3 pb-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--bg-elevated)' }}>
 
-          {/* Card 1: Best case — Outcome B */}
-          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }} />
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                  If the second offer arrives
-                </span>
-              </div>
-              <span className="text-base font-black tabular-nums shrink-0"
-                style={{ color: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
-                {bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}
-              </span>
-            </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
-              <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bPVGap))}</strong> in today&apos;s dollars between now and JCBA closing in {jcba} months vs. Voting Yes.
-              {bRetPayoutRow && (
-                <>
-                  {' '}This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.
-                </>
-              )}
-            </p>
-          </div>
+          <RiskCard
+            dotColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            title="If the second offer arrives"
+            value={<>{bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}</>}
+            valueColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            body={
+              <>
+                If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bPVGap))}</strong> in today&apos;s dollars between now and JCBA closing in {jcba} months vs. Voting Yes.
+                {bRetPayoutRow && (
+                  <> This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.</>
+                )}
+              </>
+            }
+          />
 
-          {/* Card 2: Worst case — Outcome C earnings shortfall */}
-          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)' }} />
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                  If no offer arrives
-                </span>
-              </div>
-              <span className="text-base font-black tabular-nums shrink-0"
-                style={{ color: cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)' }}>
-                {cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}
-              </span>
-            </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              {cWagesShortfall > 0
+          <RiskCard
+            dotColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
+            title="If no offer arrives"
+            value={<>{cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}</>}
+            valueColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
+            body={
+              cWagesShortfall > 0
                 ? <>
                     If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in {jcba} months, you&apos;d be missing out on{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
@@ -179,46 +211,35 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
                     If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
                     You&apos;d still delay your lump sum Retention Bonus payment of{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> until JCBA closes in {jcba} months.
-                  </>}
-            </p>
-          </div>
-
-          {/* Net worst case — retention recovery factored in */}
-          <div
-            className="rounded-xl px-4 py-3"
-            style={{
-              background:  cPVGap > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)',
-              border: `1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`,
-            }}
-          >
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }} />
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                  Worth the Risk?
-                </span>
-              </div>
-              <span className="text-base font-black tabular-nums shrink-0"
-                style={{ color: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
-                {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} if No Offer
-              </span>
-            </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
-              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
-              At {Math.round(pC * 100)}% payout probability, that lump sum is worth{' '}
-              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetPV)}</strong> in today&apos;s dollars.
-              {cPVGap > 0
-                ? <>
-                    {' '}So while the retention bonus will make you partially whole, you&apos;d still be roughly{' '}
-                    <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> vs. Voting Yes.
-                    {' '}So, no matter how high you rate the probability of a second offer, is the potential upside worth the risk?
                   </>
-                : <>
-                    {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap — Vote No comes out ahead once accrual is counted.
-                  </>}
-            </p>
-          </div>
+            }
+          />
+
+          <RiskCard
+            dotColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
+            title="Worth the Risk?"
+            value={<>{cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} if No Offer</>}
+            valueColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
+            accentBg={cPVGap > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
+            accentBorder={`1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
+            body={
+              <>
+                Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
+                At {Math.round(pC * 100)}% payout probability, that lump sum is worth{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetPV)}</strong> in today&apos;s dollars.
+                {cPVGap > 0
+                  ? <>
+                      {' '}So while the retention bonus will make you partially whole, you&apos;d still be roughly{' '}
+                      <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> vs. Voting Yes.
+                      {' '}So, no matter how high you rate the probability of a second offer, is the potential upside worth the risk?
+                    </>
+                  : <>
+                      {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap — Vote No comes out ahead once accrual is counted.
+                    </>}
+              </>
+            }
+          />
 
         </div>
     </div>
