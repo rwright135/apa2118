@@ -11,8 +11,21 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function fmtAssumptions(vns: VoteNoScenario) {
+function fmtAssumptionsCompact(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% offer probability · ${vns.arrivalMonths}mo arrival · +${(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA ${vns.jcbaDurationMonths}mo`
+}
+
+function fmtAssumptionsSentence(
+  vns: VoteNoScenario,
+  retentionPayoutProbabilityB: number,
+  retentionPayoutProbabilityC: number,
+) {
+  const offerPct = Math.round(vns.probability * 100)
+  const premiumPct = (vns.percentAboveTA * 100).toFixed(0)
+  const probB = Math.round(retentionPayoutProbabilityB * 100)
+  const probC = Math.round(retentionPayoutProbabilityC * 100)
+
+  return `${offerPct}% second offer probability arriving in ${vns.arrivalMonths} months at ${premiumPct}% higher above TA with JCBA closing in ${vns.jcbaDurationMonths} months. RB probability weighted at ${probB}% and ${probC}% respectively.`
 }
 
 // ── Single scenario: verdict card ─────────────────────────────────────────────
@@ -70,8 +83,12 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Assumptions: {fmtAssumptions(result.voteNoScenario)}
+        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+          Assumptions: {fmtAssumptionsSentence(
+            result.voteNoScenario,
+            result.inputs.retentionPayoutProbabilityB,
+            result.inputs.retentionPayoutProbabilityC,
+          )}
         </span>
       </div>
     </div>
@@ -123,7 +140,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
                       Scenario {i + 1}
                     </div>
                     <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                      {fmtAssumptions(vns)}
+                      {fmtAssumptionsCompact(vns)}
                     </div>
                   </td>
                   <td className="px-4 py-4 text-right">
