@@ -31,9 +31,7 @@ export function StepRetention() {
             min={0}
             step={1000}
           />
-          <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-            Formula: hourly rate × 85 hrs × 35%
-          </p>
+
         </div>
 
         {/* Probability B — Vote No + 2nd offer */}
