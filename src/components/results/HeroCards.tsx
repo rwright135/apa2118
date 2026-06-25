@@ -197,37 +197,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
             </p>
           </div>
 
-          {/* Card 3: Retention bonus — the partial recovery */}
-          <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: VOTE_NO_COLOR }} />
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                  What partially makes you whole \u2014 the retention bonus
-                </span>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
-                  {fmt(cRetAccrued)}
-                </div>
-                <div className="text-sm font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
-                  {fmt(cRetPV)}
-                  <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-faint)' }}>PV today</span>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
-              Your current balance of {fmt(retentionCurrentBalance)} grows through {jcba} months of CBA accrual to {fmt(cRetAccrued)}.
-              Paid out {cRetPayoutMonths} months from now — discounted to today at {Math.round(pC * 100)}% payout probability, that lump sum is
-              worth {fmt(cRetPV)}.
-              {cWagesShortfall > cRetPV && (
-                <> That only covers {Math.round((cRetPV / cWagesShortfall) * 100)}% of the {fmt(cWagesShortfall)} in earnings you gave up.</>
-              )}
-            </p>
-          </div>
-
-          {/* Punchline: net worst case after retention */}
+          {/* Net worst case — retention recovery factored in */}
           <div
             className="rounded-xl px-4 py-3"
             style={{
@@ -248,16 +218,23 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Your current balance of {fmt(retentionCurrentBalance)} grows through {jcba} months of CBA accrual to{' '}
+              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong>, paid out {cRetPayoutMonths} months from now.
+              At {Math.round(pC * 100)}% payout probability, that lump sum is worth{' '}
+              <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetPV)}</strong> in today&apos;s dollars.
               {cPVGap > 0
                 ? <>
-                    Even counting the retention bonus, you\u2019d still be <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> Vote
-                    Yes in the worst case. You\u2019d wait <strong>{cRetPayoutMonths} months</strong> for an
-                    uncertain lump sum that only partially makes you whole.
-                    Is the potential {fmt(bPVGap >= 0 ? bPVGap : 0)} upside worth that risk?
+                    {' '}Even counting that retention bonus, you&apos;d still be{' '}
+                    <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> Vote Yes.
+                    You&apos;d wait {cRetPayoutMonths} months for an uncertain payout that only partially makes you whole
+                    {cWagesShortfall > cRetPV && (
+                      <> — covering just {Math.round((cRetPV / cWagesShortfall) * 100)}% of the {fmt(cWagesShortfall)} in wages & profit sharing you gave up</>
+                    )}.
+                    {' '}Is the potential {fmt(bPVGap >= 0 ? bPVGap : 0)} upside worth that risk?
                   </>
                 : <>
-                    Even in the worst case, Vote No comes out ahead once the retention bonus is counted.
-                    The CBA earnings gap is more than offset by what you\u2019d gain in retention accrual.
+                    {' '}Even in the worst case, Vote No comes out ahead once the retention bonus is counted.
+                    The CBA earnings gap is more than offset by what you&apos;d gain in retention accrual.
                   </>}
             </p>
           </div>
