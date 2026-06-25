@@ -214,7 +214,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </div>
               <span className="text-base font-black tabular-nums shrink-0"
                 style={{ color: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
-                {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} vs Vote Yes
+                {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} {cPVGap > 0 ? 'Net Loss if No Offer' : 'Net Gain if No Offer'}
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
