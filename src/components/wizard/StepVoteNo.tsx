@@ -74,6 +74,12 @@ function ScenarioCard({
         <div className="px-4 py-5 space-y-8">
           {/* Probability */}
           <div>
+            <div className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
+              Probability of a second bridge offer
+            </div>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
+              How confident are you management comes back with another offer before JCBA?
+            </p>
             <SliderInput
               value={Math.round(scenario.probability * 100)}
               min={0}
@@ -81,12 +87,8 @@ function ScenarioCard({
               step={5}
               onChange={(v) => onChange({ probability: v / 100 })}
               formatValue={(v) => `${v}%`}
-              label="Probability of a second bridge offer"
               showMinMax
             />
-            <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-              How confident are you management comes back with another offer before JCBA?
-            </p>
           </div>
 
           {/* Arrival months */}
@@ -107,9 +109,12 @@ function ScenarioCard({
 
           {/* % above TA */}
           <div>
-            <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
               How much better would that offer be vs. the TA?
             </label>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
+              A positive number means the new offer beats the current TA rates.
+            </p>
             <SliderInput
               value={Math.round(scenario.percentAboveTA * 1000) / 10}
               min={5}
@@ -119,16 +124,16 @@ function ScenarioCard({
               formatValue={(v) => `+${v.toFixed(1)}%`}
               showMinMax
             />
-            <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-              A positive number means the new offer beats the current TA rates.
-            </p>
           </div>
 
           {/* JCBA duration */}
           <div>
-            <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
               How long until the JCBA is concluded?
             </label>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
+              If there&apos;s no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes.
+            </p>
             <SliderInput
               value={scenario.jcbaDurationMonths}
               min={18}
@@ -158,9 +163,6 @@ function ScenarioCard({
                 )
               })}
             </div>
-            <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-              If no 2nd offer arrives, you stay on CBA rates until this date.
-            </p>
           </div>
 
           {/* Retention payout table */}
