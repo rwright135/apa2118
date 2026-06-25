@@ -79,6 +79,14 @@ export function StepWelcome() {
           ))}
         </div>
 
+        <p
+          className="mb-4 leading-relaxed mx-auto"
+          style={{ color: 'var(--text-faint)', maxWidth: '22rem', fontSize: '0.65rem' }}
+        >
+          This tool does not collect any personally identifiable information. Your answers
+          remain on your device only. Nothing is sent to or stored on a server.
+        </p>
+
         {/* CTA — fixed comfortable width, not artificially narrow */}
         <button
           onClick={nextStep}
@@ -95,14 +103,6 @@ export function StepWelcome() {
         >
           Get Started
         </button>
-
-        <p
-          className="text-xs mt-4 leading-relaxed mx-auto"
-          style={{ color: 'var(--text-faint)', maxWidth: '22rem' }}
-        >
-          This tool does not collect any personally identifiable information. Your answers
-          remain on your device only. Nothing is sent to or stored on a server.
-        </p>
 
       </div>
     </div>
