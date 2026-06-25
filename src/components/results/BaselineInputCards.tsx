@@ -31,15 +31,11 @@ function InputCard({ label, value }: { label: string; value: string }) {
 
 function CombinedInputCard({ items }: { items: { label: string; value: string }[] }) {
   return (
-    <div className="rounded-xl px-3 py-2.5 space-y-2.5">
+    <div className="rounded-xl px-3 py-2.5 space-y-1.5">
       {items.map(({ label, value }) => (
-        <div key={label}>
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            {label}
-          </div>
-          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
-            {value}
-          </div>
+        <div key={label} className="text-sm leading-snug">
+          <span style={{ color: 'var(--text-faint)' }}>{label}: </span>
+          <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{value}</span>
         </div>
       ))}
     </div>
