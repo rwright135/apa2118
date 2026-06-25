@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Prevent layout shift when vertical scrollbar appears/disappears */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* ── Brand palette ─────────────────────────────────────────────────────────
    Teamsters Local 2118 — Navy & Gold
    ────────────────────────────────────────────────────────────────────────── */
