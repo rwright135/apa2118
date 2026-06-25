@@ -25,16 +25,12 @@ export function formatSeatName(seat?: Seat): string {
   return '—'
 }
 
+export function formatLongevity(longevity?: number): string {
+  return longevity ? `Year ${longevity}` : '—'
+}
+
 export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
   return [
-    {
-      label: 'Seat',
-      value: formatSeatName(inputs.seat),
-    },
-    {
-      label: 'Longevity (Jul 2026)',
-      value: inputs.longevityAsOfJul2026 ? `Year ${inputs.longevityAsOfJul2026}` : '—',
-    },
     {
       label: 'Anniversary Month',
       value: inputs.anniversaryMonth !== undefined ? MONTHS[inputs.anniversaryMonth] : '—',

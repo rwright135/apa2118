@@ -1,5 +1,10 @@
 import type { UserInputs } from '../../lib/types'
-import { getFinancialInputItems, getProfileInputItems } from '../../lib/inputDisplay'
+import {
+  formatLongevity,
+  formatSeatName,
+  getFinancialInputItems,
+  getProfileInputItems,
+} from '../../lib/inputDisplay'
 import { EpauletCA, EpauletFO } from '../shared/EpauletIcon'
 
 interface Props {
@@ -31,6 +36,33 @@ function InputCard({ label, value, icon }: InputCardItem) {
   )
 }
 
+function SeatProfileCard({
+  longevity,
+  seatName,
+  icon,
+}: {
+  longevity: string
+  seatName: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <div
+      className="rounded-xl px-3 py-2.5"
+      style={{ background: 'var(--bg-elevated)' }}
+    >
+      <div className="text-xs mb-1.5" style={{ color: 'var(--text-faint)' }}>
+        {longevity}
+      </div>
+      <div className="flex items-center gap-2">
+        {icon}
+        <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+          {seatName}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function InputCardGroup({ title, items }: { title: string; items: InputCardItem[] }) {
   return (
     <div>
@@ -56,15 +88,13 @@ export function BaselineInputCards({ inputs }: Props) {
     stripeColor: 'var(--gold)',
   }
 
-  const profileItems: InputCardItem[] = getProfileInputItems(inputs).map((item) => {
-    if (item.label !== 'Seat') return item
-    const icon = inputs.seat === 'FO'
-      ? <EpauletFO {...epauletProps} />
-      : inputs.seat === 'CA'
-        ? <EpauletCA {...epauletProps} />
-        : undefined
-    return { ...item, icon }
-  })
+  const seatIcon = inputs.seat === 'FO'
+    ? <EpauletFO {...epauletProps} />
+    : inputs.seat === 'CA'
+      ? <EpauletCA {...epauletProps} />
+      : undefined
+
+  const profileItems = getProfileInputItems(inputs)
   const financialItems = getFinancialInputItems(inputs)
 
   return (
@@ -75,7 +105,27 @@ export function BaselineInputCards({ inputs }: Props) {
       <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
         Your Baseline Inputs
       </h2>
-      <InputCardGroup title="Your Profile" items={profileItems} />
+
+      <div>
+        <h3
+          className="text-xs font-semibold uppercase tracking-wide mb-2"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Your Profile
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <SeatProfileCard
+            longevity={formatLongevity(inputs.longevityAsOfJul2026)}
+            seatName={formatSeatName(inputs.seat)}
+            icon={seatIcon}
+          />
+          <div aria-hidden="true" />
+          {profileItems.map(({ label, value }) => (
+            <InputCard key={label} label={label} value={value} />
+          ))}
+        </div>
+      </div>
+
       <InputCardGroup title="Financial Assumptions" items={financialItems} />
     </div>
   )
