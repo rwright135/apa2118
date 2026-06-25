@@ -96,6 +96,10 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
     (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
     (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)   // + = Vote No earns less
 
+  // Vote Yes pays current retention balance at ratification; Scenario C delays it
+  const cRetentionForegone = scenarioA.totalRetention
+  const cHeadlineLoss = cWagesShortfall + cRetentionForegone
+
   // Full PV gap worst case (includes retention in both; + = Vote Yes leads even after retention)
   const cPVGap = scenarioA.preJcbaTotal - scenarioC.preJcbaTotal
 
@@ -167,14 +171,14 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
             <div className="flex items-center justify-between gap-3 mb-2.5">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }} />
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)' }} />
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
                   If no offer arrives
                 </span>
               </div>
               <span className="text-base font-black tabular-nums shrink-0"
-                style={{ color: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }}>
-                {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
+                style={{ color: cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)' }}>
+                {cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
