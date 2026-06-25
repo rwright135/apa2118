@@ -31,12 +31,13 @@ const CA_TIERS: Tier[] = [
 
 export function StepProfitSharing() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const ps = inputs.profitSharingLastYear ?? 0
+  const ps = inputs.profitSharingLastYear
+  const psAmount = ps ?? 0
   const l  = (inputs.longevityAsOfJul2026 ?? 1) - 1
 
   const cbaRate = inputs.seat === 'FO' ? FO_CBA[l] : inputs.seat === 'CA' ? CA_CBA[l] : null
   const tiers   = inputs.seat === 'FO' ? FO_TIERS  : inputs.seat === 'CA' ? CA_TIERS  : null
-  const hasValue = ps > 0
+  const hasValue = psAmount > 0
 
   return (
     <WizardLayout
@@ -51,7 +52,7 @@ export function StepProfitSharing() {
     >
       <div className="mb-8 space-y-4">
         <NumberInput
-          value={hasValue ? ps : undefined}
+          value={ps}
           onChange={(v) => setInput('profitSharingLastYear', Math.max(0, v))}
           prefix="$"
           placeholder="0"
@@ -87,7 +88,7 @@ export function StepProfitSharing() {
                 className="font-semibold"
                 style={{ color: hasValue ? 'var(--text-base)' : 'var(--text-faint)' }}
               >
-                {hasValue ? `$${ps.toLocaleString()}` : 'TBD'}
+                {hasValue ? `$${psAmount.toLocaleString()}` : 'TBD'}
               </span>
             </div>
 
@@ -96,7 +97,7 @@ export function StepProfitSharing() {
               const isLast = i === tiers.length - 1
               const multiplier = hasValue ? tier.rates[l] / cbaRate : null
               const psPct      = multiplier !== null ? Math.round((multiplier - 1) * 100) : null
-              const psAmt      = multiplier !== null ? Math.round(ps * multiplier) : null
+              const psAmt      = multiplier !== null ? Math.round(psAmount * multiplier) : null
 
               return (
                 <div

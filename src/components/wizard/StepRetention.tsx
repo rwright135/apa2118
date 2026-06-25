@@ -87,10 +87,10 @@ function WhyThisMattersCard() {
 
 export function StepRetention() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const balance = inputs.retentionCurrentBalance ?? 0
+  const balance = inputs.retentionCurrentBalance
   const probB   = inputs.retentionPayoutProbabilityB ?? 0.95
   const probC   = inputs.retentionPayoutProbabilityC ?? 0.75
-  const hasBalance = balance > 0
+  const hasBalance = balance !== undefined && balance > 0
 
   return (
     <WizardLayout
@@ -106,7 +106,7 @@ export function StepRetention() {
             What will your estimated Rentention Bonus amount be on June 30th? Please include your estimated &ldquo;True Up&rdquo; as part of the total.
           </label>
           <NumberInput
-            value={hasBalance ? balance : undefined}
+            value={balance}
             onChange={(v) => setInput('retentionCurrentBalance', Math.max(0, v))}
             prefix="$"
             placeholder="0"

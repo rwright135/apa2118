@@ -48,8 +48,6 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   anniversaryMonth: 0,
   lineType: 'FLYING',
   investmentRate: 0.08,
-  profitSharingLastYear: 0,
-  retentionCurrentBalance: 0,
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],

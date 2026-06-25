@@ -130,7 +130,7 @@ export function getProfitSharingForYear(
     scenarioRate = getRate(inputs.seat, longevityAtDate, tier)
   }
 
-  return inputs.profitSharingLastYear * (scenarioRate / baseRate)
+  return (inputs.profitSharingLastYear ?? 0) * (scenarioRate / baseRate)
 }
 
 // ─── Retention bonus ──────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export function buildMonthlyStream(
   let cumulativePV = 0
   let cumulativePV401k = 0
 
-  let retentionAccruedBalance = inputs.retentionCurrentBalance
+  let retentionAccruedBalance = inputs.retentionCurrentBalance ?? 0
 
   for (let m = 0; m < totalMonths; m++) {
     const date = addMonths(startDate, m)
@@ -243,7 +243,7 @@ export function buildMonthlyStream(
 
     if (scenarioId === 'A') {
       if (m === retentionPayoutMonth) {
-        retentionCashFlow = inputs.retentionCurrentBalance
+        retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
     } else {
       const currentRate = getRate(inputs.seat, longevity, 'CBA')
