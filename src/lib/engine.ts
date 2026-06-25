@@ -28,6 +28,14 @@ export function getRetirementDate(dob: Date): Date {
   return ret
 }
 
+export function getYearsUntilRetirement(
+  dob: Date,
+  fromDate: Date = CONTRACT_PARAMS.TA_EFFECTIVE_DATE,
+): number {
+  const months = monthsDiff(fromDate, getRetirementDate(dob))
+  return Math.max(0, Math.round(months / 12))
+}
+
 // ─── Longevity ────────────────────────────────────────────────────────────────
 
 /**

@@ -1,0 +1,161 @@
+import type { UserInputs } from '../../lib/types'
+import {
+  formatAnniversaryMonth,
+  formatLongevity,
+  formatSeatName,
+  formatYearsUntilRetirementValue,
+  getBaselineFinancialInputItems,
+  getExtraHoursColor,
+  getLineTypeIcon,
+  getProfileInputItems,
+} from '../../lib/inputDisplay'
+import { EpauletCA, EpauletFO } from '../shared/EpauletIcon'
+
+interface Props {
+  inputs: UserInputs
+}
+
+function InputCard({
+  label,
+  value,
+  icon,
+  valueContent,
+}: {
+  label: string
+  value?: string
+  icon?: React.ReactNode
+  valueContent?: React.ReactNode
+}) {
+  return (
+    <div
+      className="rounded-xl px-3 py-2.5"
+      style={{ background: 'var(--bg-elevated)' }}
+    >
+      <div className="text-xs mb-1" style={{ color: 'var(--text-faint)' }}>
+        {label}
+      </div>
+      <div className="flex items-center gap-2">
+        {icon}
+        {valueContent ?? (
+          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+            {value}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CombinedInputCard({ items }: { items: { label: string; value: string }[] }) {
+  return (
+    <div className="rounded-xl px-3 py-2.5 space-y-1.5">
+      {items.map(({ label, value }) => (
+        <div key={label} className="text-sm leading-snug">
+          <span style={{ color: 'var(--text-faint)' }}>{label}: </span>
+          <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SeatProfileCard({
+  longevity,
+  seatName,
+  icon,
+}: {
+  longevity: string
+  seatName: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <div className="rounded-xl px-3 py-2.5">
+      <div className="flex items-start gap-2">
+        {icon}
+        <div className="min-w-0">
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            {longevity}
+          </div>
+          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+            {seatName}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function BaselineInputCards({ inputs }: Props) {
+  const epauletProps = {
+    size: 28,
+    boardColor: 'var(--bg-base)',
+    stripeColor: 'var(--gold)',
+  }
+
+  const seatIcon = inputs.seat === 'FO'
+    ? <EpauletFO {...epauletProps} />
+    : inputs.seat === 'CA'
+      ? <EpauletCA {...epauletProps} />
+      : undefined
+
+  const profileItems = getProfileInputItems(inputs)
+  const financialItems = getBaselineFinancialInputItems(inputs)
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <SeatProfileCard
+          longevity={formatLongevity(inputs.longevityAsOfJul2026)}
+          seatName={formatSeatName(inputs.seat)}
+          icon={seatIcon}
+        />
+        <CombinedInputCard
+          items={[
+            { label: 'Anniversary', value: formatAnniversaryMonth(inputs.anniversaryMonth) },
+            { label: 'Years until Retirement', value: formatYearsUntilRetirementValue(inputs.dateOfBirth) },
+          ]}
+        />
+        {profileItems.map(({ label, value }) => {
+          if (label === 'Extra Hours/Month') {
+            const hours = inputs.extraHoursAboveMMG ?? 0
+            return (
+              <InputCard
+                key={label}
+                label={label}
+                valueContent={(
+                  <div className="text-sm font-semibold leading-snug">
+                    <span style={{ color: getExtraHoursColor(hours) }}>+{hours} hrs</span>
+                    <span style={{ color: 'var(--text-base)' }}> above MMG</span>
+                  </div>
+                )}
+              />
+            )
+          }
+
+          return (
+            <InputCard
+              key={label}
+              label={label}
+              value={value}
+              icon={label === 'Line Type' ? (
+                <span className="text-xl shrink-0 leading-none" aria-hidden="true">
+                  {getLineTypeIcon(inputs.lineType)}
+                </span>
+              ) : undefined}
+            />
+          )
+        })}
+        {financialItems.map(({ label, value }) => (
+          <InputCard
+            key={label}
+            label={label}
+            value={value}
+            icon={label === 'Retention Bonus Balance' ? (
+              <span className="text-xl shrink-0 leading-none" aria-hidden="true">💰</span>
+            ) : label === 'Annual Profit Sharing' ? (
+              <span className="text-xl shrink-0 leading-none" aria-hidden="true">💵</span>
+            ) : undefined}
+          />
+        ))}
+    </div>
+  )
+}

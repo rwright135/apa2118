@@ -1,5 +1,6 @@
 // useState no longer needed here — moved to ShareSheet
 import { useStore } from '../../state/store'
+import { BaselineInputCards } from './BaselineInputCards'
 import { HeroCards } from './HeroCards'
 import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { ComparisonBarChart } from './ComparisonBarChart'
@@ -19,8 +20,9 @@ export function ResultsScreen() {
       className="min-h-screen"
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
-      {/* Sticky header */}
+      {/* Sticky header — id used by ShareSheet to hide during image capture */}
       <div
+        id="results-toolbar"
         className="sticky top-0 z-10 backdrop-blur border-b px-4 py-3"
         style={{
           background: 'color-mix(in srgb, var(--bg-base) 94%, transparent)',
@@ -29,7 +31,7 @@ export function ResultsScreen() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
-            onClick={() => goToStep('review')}
+            onClick={() => goToStep('advanced')}
             className="flex items-center gap-1.5 text-sm transition-colors"
             style={{ color: 'var(--text-muted)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-base)')}
@@ -59,6 +61,7 @@ export function ResultsScreen() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <BaselineInputCards inputs={results[0].inputs} />
         <HeroCards results={results} />
 
         <div

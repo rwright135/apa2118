@@ -2,7 +2,6 @@ import { CONTRACT_PARAMS } from '../../data/contractParams'
 import {
   RETENTION_OUTCOME_COLORS,
   RETENTION_OUTCOME_DESCRIPTIONS,
-  RETENTION_OUTCOME_SHORT,
   type RetentionOutcomeId,
 } from '../../lib/retentionOutcomes'
 
@@ -44,40 +43,33 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
     label: string
     color: string
     date: string
-    note: string
     probability: number
   }> = [
     {
       outcome: 'A',
-      label: RETENTION_OUTCOME_SHORT.A,
+      label: RETENTION_OUTCOME_DESCRIPTIONS.A,
       color: RETENTION_OUTCOME_COLORS.A,
       date: fmtDate(PAYOUT_DATE_A),
-      note: RETENTION_OUTCOME_DESCRIPTIONS.A,
       probability: 1,
     },
     {
       outcome: 'B',
-      label: RETENTION_OUTCOME_SHORT.B,
+      label: RETENTION_OUTCOME_DESCRIPTIONS.B,
       color: RETENTION_OUTCOME_COLORS.B,
       date: fmtDate(payoutDateB),
-      note: RETENTION_OUTCOME_DESCRIPTIONS.B,
       probability: offerProbability,
     },
     {
       outcome: 'C',
-      label: RETENTION_OUTCOME_SHORT.C,
+      label: RETENTION_OUTCOME_DESCRIPTIONS.C,
       color: RETENTION_OUTCOME_COLORS.C,
       date: fmtDate(payoutDateC),
-      note: RETENTION_OUTCOME_DESCRIPTIONS.C,
       probability: noOfferProbability,
     },
   ]
 
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
-        Computed payout dates per outcome
-      </div>
       <div
         className="rounded-xl overflow-hidden"
         style={{ border: '1px solid var(--border)' }}
@@ -93,7 +85,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2">
                   <span
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ background: row.color }}
@@ -101,9 +93,6 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
                   <span className="text-xs font-semibold" style={{ color: row.color }}>
                     {row.label}
                   </span>
-                </div>
-                <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                  {row.note}
                 </div>
               </div>
               <div className="text-right shrink-0">
@@ -115,17 +104,17 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
                   style={{ color: row.outcome === 'A' ? 'var(--positive)' : 'var(--text-faint)' }}
                 >
                   {row.outcome === 'A'
-                    ? '100% bonus certainty'
-                    : `${Math.round(row.probability * 100)}% vote-no path weight`}
+                    ? '100% Full RB Payout Probability'
+                    : `${Math.round(row.probability * 100)}% Scenario Probability`}
                 </div>
                 {row.outcome === 'B' && probB !== undefined && (
                   <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                    {Math.round(probB * 100)}% bonus certainty
+                    {Math.round(probB * 100)}% Full RB Payout Probability
                   </div>
                 )}
                 {row.outcome === 'C' && probC !== undefined && (
                   <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                    {Math.round(probC * 100)}% bonus certainty
+                    {Math.round(probC * 100)}% Full RB Payout Probability
                   </div>
                 )}
               </div>
@@ -133,9 +122,6 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
           </div>
         ))}
       </div>
-      <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-        Outcome path weights update as you adjust your assumptions above. The bonus accrues until its payout date under Outcomes B and C.
-      </p>
     </div>
   )
 }

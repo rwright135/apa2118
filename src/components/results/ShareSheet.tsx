@@ -31,13 +31,30 @@ function getResultsEl() {
   return document.getElementById('results-container')
 }
 
-/** Capture the results container as a PNG data URL. */
+/** Capture the results container as a PNG data URL.
+ *  The sticky toolbar (Edit Inputs / Share / theme toggle) is hidden during
+ *  capture so the exported image looks like a clean document rather than an
+ *  app screenshot.
+ */
 async function captureImage(): Promise<string> {
   const el = getResultsEl()
   if (!el) throw new Error('Results container not found')
-  const { toPng } = await import('html-to-image')
-  const bgColor = getComputedStyle(el).backgroundColor || '#ffffff'
-  return toPng(el, { cacheBust: true, pixelRatio: 2, backgroundColor: bgColor, skipFonts: false })
+
+  // Hide the toolbar for a clean, chrome-free capture
+  const toolbar = document.getElementById('results-toolbar')
+  const prevDisplay = toolbar ? toolbar.style.display : null
+  if (toolbar) toolbar.style.display = 'none'
+
+  try {
+    // Allow the browser to repaint before measuring
+    await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+    const { toPng } = await import('html-to-image')
+    const bgColor = getComputedStyle(el).backgroundColor || '#ffffff'
+    return await toPng(el, { cacheBust: true, pixelRatio: 2, backgroundColor: bgColor, skipFonts: false })
+  } finally {
+    // Always restore the toolbar, even if capture throws
+    if (toolbar && prevDisplay !== null) toolbar.style.display = prevDisplay
+  }
 }
 
 async function exportPDF() {
@@ -151,6 +168,7 @@ export function ShareSheet({ inputs }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+
   const handleCopy = async () => {
     setBusy('copy'); setError(null)
     try {
@@ -169,7 +187,6 @@ export function ShareSheet({ inputs }: Props) {
     setOpen(false)
     setBusy('pdf'); setError(null)
     try {
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
       await exportPDF()
     } catch (e) {
       setError(`PDF failed: ${(e as Error).message}`)
@@ -181,7 +198,6 @@ export function ShareSheet({ inputs }: Props) {
     setOpen(false)
     setBusy('image'); setError(null)
     try {
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
       await downloadImage()
     } catch (e) {
       setError(`Image failed: ${(e as Error).message}`)
