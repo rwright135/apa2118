@@ -13,20 +13,62 @@ function getResultsEl() {
 async function exportPDF() {
   const el = getResultsEl()
   if (!el) throw new Error('Results container not found')
-  const mod = await import('html2pdf.js')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const html2pdf = (mod.default || mod) as any
-  await html2pdf()
-    .set({
-      margin: [8, 8, 8, 8],
-      filename: `APA2118-Contract-Comparison-${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.92 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    })
-    .from(el)
-    .save()
+
+  // html-to-image handles CSS custom properties correctly (uses computed styles),
+  // unlike html2canvas which cannot resolve var(--…) tokens.
+  const { toPng } = await import('html-to-image')
+  const { jsPDF } = await import('jspdf')
+
+  // Read the actual background colour so the PDF matches the current theme.
+  const bgColor = getComputedStyle(el).backgroundColor || '#ffffff'
+
+  const dataUrl = await toPng(el, {
+    cacheBust: true,
+    pixelRatio: 2,        // 2× for sharp text on retina / HiDPI
+    backgroundColor: bgColor,
+    skipFonts: false,
+  })
+
+  // Load the captured image so we can slice it into A4 pages.
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image()
+    i.onload = () => resolve(i)
+    i.onerror = reject
+    i.src = dataUrl
+  })
+
+  const MARGIN_MM  = 8
+  const pdf        = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  const pageWmm    = pdf.internal.pageSize.getWidth()   // 210 mm
+  const pageHmm    = pdf.internal.pageSize.getHeight()  // 297 mm
+  const contentWmm = pageWmm - MARGIN_MM * 2
+  const contentHmm = pageHmm - MARGIN_MM * 2
+
+  // Scale factor: how many px in the captured image correspond to 1 mm on the PDF.
+  const pxPerMm    = img.naturalWidth / contentWmm
+  const sliceHpx   = Math.floor(contentHmm * pxPerMm)
+  const totalPages = Math.ceil(img.naturalHeight / sliceHpx)
+
+  // Slice the full capture into page-sized strips using an offscreen canvas.
+  const canvas     = document.createElement('canvas')
+  canvas.width     = img.naturalWidth
+  const ctx        = canvas.getContext('2d')!
+
+  for (let page = 0; page < totalPages; page++) {
+    const srcY     = page * sliceHpx
+    const srcH     = Math.min(sliceHpx, img.naturalHeight - srcY)
+    const destHmm  = srcH / pxPerMm   // actual height of this strip in mm (last page may be shorter)
+
+    canvas.height  = srcH
+    ctx.clearRect(0, 0, canvas.width, srcH)
+    ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH)
+
+    const slice = canvas.toDataURL('image/jpeg', 0.92)
+    if (page > 0) pdf.addPage()
+    pdf.addImage(slice, 'JPEG', MARGIN_MM, MARGIN_MM, contentWmm, destHmm)
+  }
+
+  pdf.save(`APA2118-Contract-Comparison-${new Date().toISOString().split('T')[0]}.pdf`)
 }
 
 async function exportImage(): Promise<void> {
@@ -125,12 +167,16 @@ export function ShareSheet({ inputs }: Props) {
   }
 
   const handlePDF = async () => {
+    // Close the sheet first so it is not visible in the capture.
+    setOpen(false)
     setPdf(true); setError(null)
     try {
+      // Wait two frames for the dropdown to fully unmount before capturing.
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
       await exportPDF()
-      setOpen(false)
     } catch (e) {
       setError(`PDF failed: ${(e as Error).message}`)
+      setOpen(true)   // re-open so the user can see the error
     } finally { setPdf(false) }
   }
 
@@ -184,13 +230,20 @@ export function ShareSheet({ inputs }: Props) {
       {/* Trigger button */}
       <button
         onClick={() => { setOpen(v => !v); setError(null) }}
-        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
+        disabled={pdfLoading || imgLoading}
+        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium disabled:opacity-60"
         style={{ color: 'var(--accent)', background: 'var(--chip-bg)', border: '1px solid var(--chip-border)' }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
-        </svg>
-        Share
+        {pdfLoading || imgLoading ? (
+          <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
+          </svg>
+        )}
+        {pdfLoading ? 'Generating PDF…' : imgLoading ? 'Saving image…' : 'Share'}
       </button>
 
       {/* Sheet panel */}
