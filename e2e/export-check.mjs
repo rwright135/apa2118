@@ -1,7 +1,7 @@
 /**
- * Browser smoke test for ShareSheet PDF/image export paths.
+ * Browser smoke test for ShareSheet export paths.
  * Run: node e2e/export-check.mjs
- * Requires dev server (npm run dev).
+ * Requires dev server running (npm run dev).
  */
 import { chromium } from 'playwright'
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
@@ -38,17 +38,6 @@ async function seedPage(page) {
       },
     }
     localStorage.setItem('apa2118_inputs', JSON.stringify(inputs))
-
-    window.__shareCalls = []
-    navigator.share = async (data) => {
-      window.__shareCalls.push({
-        title: data.title,
-        fileCount: data.files?.length ?? 0,
-        fileType: data.files?.[0]?.type ?? null,
-        fileSize: data.files?.[0]?.size ?? 0,
-      })
-    }
-    navigator.canShare = (data) => Boolean(data.files?.length)
   })
 }
 
@@ -62,7 +51,6 @@ async function goToResults(page) {
       await calculate.click()
       break
     }
-
     const continueBtn = page.getByRole('button', { name: /^Continue/i }).first()
     if (await continueBtn.isVisible({ timeout: 500 }).catch(() => false)) {
       if (await continueBtn.isEnabled()) await continueBtn.click()
@@ -89,12 +77,6 @@ async function main() {
 
   const shareTrigger = () => page.getByRole('button', { name: 'Share', exact: true })
   const results = {}
-
-  // ── Native share (Messages, WhatsApp, Mail, etc.) ─────────────────────────
-  await shareTrigger().click()
-  await page.getByText('Share as image').click()
-  await page.waitForFunction(() => window.__shareCalls?.length === 1, null, { timeout: 30000 })
-  results.nativeShare = await page.evaluate(() => window.__shareCalls[0])
 
   // ── PDF download ──────────────────────────────────────────────────────────
   await shareTrigger().click()
@@ -129,9 +111,13 @@ async function main() {
   await page.getByText('Copy link').click()
   await page.waitForTimeout(500)
   const copiedLink = await page.evaluate(() => navigator.clipboard.readText())
+  const param = new URL(copiedLink).searchParams.get('d') ?? ''
+  const rawJson = Buffer.from(param, 'base64').toString('utf8')
   results.link = {
     copied: copiedLink.includes('d='),
     length: copiedLink.length,
+    isCompactFormat: rawJson.startsWith('{'),        // not percent-encoded
+    containsAdvanced: rawJson.includes('advancedPostJCBA'),
   }
 
   await writeFile(path.join(OUT_DIR, 'report.json'), JSON.stringify(results, null, 2))
@@ -140,13 +126,18 @@ async function main() {
   await browser.close()
 
   const failed =
-    results.nativeShare.fileCount !== 1 ||
-    results.nativeShare.fileType !== 'image/png' ||
     !results.pdf.validHeader ||
     !results.png.validPngHeader ||
-    !results.link.copied
+    !results.link.copied ||
+    !results.link.isCompactFormat ||
+    results.link.containsAdvanced  // disabled advancedPostJCBA should be omitted
 
-  if (failed) process.exit(1)
+  if (failed) {
+    console.error('One or more checks failed')
+    process.exit(1)
+  }
+
+  console.log('All export checks passed.')
 }
 
 main().catch(err => {

@@ -70,6 +70,10 @@ describe('ShareSheet export flows', () => {
     pdfSave.mockClear()
     pdfAddImage.mockClear()
     pdfAddPage.mockClear()
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    })
   })
 
   afterEach(() => {
@@ -77,65 +81,37 @@ describe('ShareSheet export flows', () => {
     vi.restoreAllMocks()
   })
 
-  async function openShareSheet() {
+  async function openSheet() {
     render(<ShareSheet inputs={{ seat: 'FO', longevityAsOfJul2026: 4 }} />)
     fireEvent.click(screen.getByRole('button', { name: 'Share' }))
-    await screen.findByText('Share Results')
+    await screen.findByText('Export Results')
   }
 
-  it('shows native share copy when file sharing is supported', async () => {
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: vi.fn(),
-      canShare: vi.fn().mockReturnValue(true),
-      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
-    })
-
-    await openShareSheet()
-    expect(screen.getByText('Share as image')).toBeInTheDocument()
-    expect(screen.getByText(/Messages, WhatsApp, email/)).toBeInTheDocument()
+  it('renders Export Results header with three actions', async () => {
+    await openSheet()
+    expect(screen.getByText('Copy link')).toBeInTheDocument()
+    expect(screen.getByText('Download as PDF')).toBeInTheDocument()
+    expect(screen.getByText('Download as image')).toBeInTheDocument()
   })
 
-  it('shows download fallback copy when native file sharing is unavailable', async () => {
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
-    })
-
-    await openShareSheet()
-    expect(screen.getByText('Download image to share')).toBeInTheDocument()
-    expect(screen.getByText(/attach it as a picture message/)).toBeInTheDocument()
-  })
-
-  it('copies encoded link to clipboard', async () => {
+  it('copies compact encoded link to clipboard', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText },
-    })
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
 
-    await openShareSheet()
+    await openSheet()
     fireEvent.click(screen.getByText('Copy link'))
 
-    await waitFor(() => {
-      expect(writeText).toHaveBeenCalledOnce()
-    })
-    expect(writeText.mock.calls[0][0]).toContain('d=')
+    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+    const url = writeText.mock.calls[0][0] as string
+    expect(url).toContain('d=')
+    // Compact format: the 'd' param is btoa(json), not btoa(encodeURIComponent(json))
+    const param = new URL(url).searchParams.get('d')!
+    const decoded = atob(param)
+    expect(decoded).toMatch(/^\{/)   // starts with '{' — raw JSON, not percent-encoded
     expect(await screen.findByText('Link copied!')).toBeInTheDocument()
   })
 
-  it('downloads PNG when Download as image is clicked', async () => {
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText: vi.fn() },
-    })
-
+  it('downloads PNG when "Download as image" is clicked', async () => {
     const click = vi.fn()
     const originalCreateElement = document.createElement.bind(document)
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
@@ -144,92 +120,26 @@ describe('ShareSheet export flows', () => {
       return el
     })
 
-    await openShareSheet()
+    await openSheet()
     fireEvent.click(screen.getByText('Download as image'))
 
-    await waitFor(() => {
-      expect(click).toHaveBeenCalled()
-    })
+    await waitFor(() => expect(click).toHaveBeenCalled())
   })
 
   it('generates a multi-page PDF from captured image slices', async () => {
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText: vi.fn() },
-    })
-
-    await openShareSheet()
+    await openSheet()
     fireEvent.click(screen.getByText('Download as PDF'))
 
-    await waitFor(() => {
-      expect(pdfSave).toHaveBeenCalledOnce()
-    })
-
+    await waitFor(() => expect(pdfSave).toHaveBeenCalledOnce())
     expect(pdfSave.mock.calls[0][0]).toMatch(/^APA2118-Contract-Comparison-\d{4}-\d{2}-\d{2}\.pdf$/)
     expect(pdfAddImage).toHaveBeenCalled()
     expect(pdfAddPage.mock.calls.length).toBeGreaterThan(0)
   })
 
-  it('invokes native share with PNG file on supported platforms', async () => {
-    const share = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share,
-      canShare: vi.fn().mockReturnValue(true),
-      clipboard: { writeText: vi.fn() },
-    })
-
-    await openShareSheet()
-    fireEvent.click(screen.getByText('Share as image'))
-
-    await waitFor(() => {
-      expect(share).toHaveBeenCalledOnce()
-    })
-
-    const payload = share.mock.calls[0][0]
-    expect(payload.title).toBe('APA2118 Contract Comparison')
-    expect(payload.files).toHaveLength(1)
-    expect(payload.files[0]).toBeInstanceOf(File)
-    expect(payload.files[0].type).toBe('image/png')
-  })
-
-  it('falls back to PNG download when native share is unavailable', async () => {
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText: vi.fn() },
-    })
-
-    const click = vi.fn()
-    const originalCreateElement = document.createElement.bind(document)
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-      const el = originalCreateElement(tag)
-      if (tag === 'a') el.click = click
-      return el
-    })
-
-    await openShareSheet()
-    fireEvent.click(screen.getByText('Download image to share'))
-
-    await waitFor(() => {
-      expect(click).toHaveBeenCalled()
-    })
-  })
-
   it('surfaces an error when results container is missing', async () => {
     container.remove()
 
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      share: undefined,
-      canShare: undefined,
-      clipboard: { writeText: vi.fn() },
-    })
-
-    await openShareSheet()
+    await openSheet()
     fireEvent.click(screen.getByText('Download as PDF'))
 
     expect(await screen.findByText(/PDF failed: Results container not found/)).toBeInTheDocument()
