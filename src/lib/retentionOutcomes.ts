@@ -22,5 +22,5 @@ export const RETENTION_OUTCOME_SHORT: Record<RetentionOutcomeId, string> = {
 export const RETENTION_OUTCOME_DESCRIPTIONS: Record<RetentionOutcomeId, string> = {
   A: 'Vote Yes & Accept TA',
   B: 'Vote No + 2nd Offer',
-  C: 'Vote No, No Offer, JCBA',
+  C: 'Vote No, No Offer',
 }
