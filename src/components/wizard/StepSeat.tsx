@@ -25,18 +25,18 @@ function SeatCard({ selected, onClick, icon, title, description }: SeatCardProps
       <div className="flex items-center gap-4">
         <div
           className="shrink-0"
-          style={{ color: selected ? 'var(--gold)' : 'var(--text-faint)' }}
+          style={{ color: selected ? 'var(--gold)' : 'var(--text-muted)' }}
         >
           {icon}
         </div>
         <div className="flex-1 min-w-0">
           <div
             className="font-semibold text-base"
-            style={{ color: selected ? 'var(--text-base)' : 'var(--text-muted)' }}
+            style={{ color: 'var(--text-base)' }}
           >
             {title}
           </div>
-          <div className="text-sm mt-0.5" style={{ color: 'var(--text-faint)' }}>
+          <div className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
             {description}
           </div>
         </div>
@@ -70,7 +70,7 @@ export function StepSeat() {
             <EpauletFO
               size={44}
               boardColor={seat === 'FO' ? 'var(--bg-elevated)' : 'var(--bg-elevated)'}
-              stripeColor={seat === 'FO' ? 'var(--gold)' : 'var(--text-faint)'}
+              stripeColor={seat === 'FO' ? 'var(--gold)' : 'var(--text-muted)'}
             />
           }
           title="First Officer"
@@ -83,7 +83,7 @@ export function StepSeat() {
             <EpauletCA
               size={44}
               boardColor={seat === 'CA' ? 'var(--bg-elevated)' : 'var(--bg-elevated)'}
-              stripeColor={seat === 'CA' ? 'var(--gold)' : 'var(--text-faint)'}
+              stripeColor={seat === 'CA' ? 'var(--gold)' : 'var(--text-muted)'}
             />
           }
           title="Captain"
