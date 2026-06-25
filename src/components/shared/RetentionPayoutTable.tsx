@@ -1,6 +1,7 @@
 import { CONTRACT_PARAMS } from '../../data/contractParams'
 import {
   RETENTION_OUTCOME_COLORS,
+  RETENTION_OUTCOME_DESCRIPTIONS,
   RETENTION_OUTCOME_SHORT,
   type RetentionOutcomeId,
 } from '../../lib/retentionOutcomes'
@@ -51,7 +52,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: RETENTION_OUTCOME_SHORT.A,
       color: RETENTION_OUTCOME_COLORS.A,
       date: fmtDate(PAYOUT_DATE_A),
-      note: 'Fixed — 60 days after ratification',
+      note: RETENTION_OUTCOME_DESCRIPTIONS.A,
       probability: 1,
     },
     {
@@ -59,7 +60,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: RETENTION_OUTCOME_SHORT.B,
       color: RETENTION_OUTCOME_COLORS.B,
       date: fmtDate(payoutDateB),
-      note: `Offer arrival + ${payoutDays} days (${arrivalMonths} mo from now)`,
+      note: RETENTION_OUTCOME_DESCRIPTIONS.B,
       probability: offerProbability,
     },
     {
@@ -67,7 +68,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: RETENTION_OUTCOME_SHORT.C,
       color: RETENTION_OUTCOME_COLORS.C,
       date: fmtDate(payoutDateC),
-      note: `JCBA conclusion (${jcbaMonths} mo from now)`,
+      note: RETENTION_OUTCOME_DESCRIPTIONS.C,
       probability: noOfferProbability,
     },
   ]
