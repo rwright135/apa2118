@@ -144,8 +144,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
                 If the second offer arrives
               </span>
             </div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Net vs. Vote Yes (present value)</span>
+            <div className="flex justify-end mb-1.5">
               <span className="text-base font-black tabular-nums"
                 style={{ color: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                 {bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}
@@ -165,15 +164,12 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
                 If no offer arrives — Outcome C · {jcba}-month window
               </span>
             </div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Wages & profit sharing given up</span>
-              <div className="text-right">
-                <span className="text-base font-black tabular-nums"
-                  style={{ color: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }}>
-                  {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
-                </span>
-                <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}> nominal</span>
-              </div>
+            <div className="flex justify-end mb-1.5">
+              <span className="text-base font-black tabular-nums"
+                style={{ color: cWagesShortfall > 0 ? 'var(--warning)' : 'var(--positive)' }}>
+                {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
+              </span>
+              <span className="text-xs ml-1 self-end" style={{ color: 'var(--text-faint)' }}>nominal</span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
               {cWagesShortfall > 0
@@ -191,29 +187,17 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
 
-            {/* Balance growth row */}
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Balance grows to (nominal)
+            <div className="flex justify-end mb-1.5">
+              <span className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
+                {fmt(cRetAccrued)}
               </span>
-              <div className="text-right">
-                <span className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
-                  {fmt(cRetAccrued)}
-                </span>
-              </div>
             </div>
 
-            {/* Timing */}
-            <div className="flex items-baseline justify-between mb-2.5">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Paid out ~{cRetPayoutMonths} months from now at {Math.round(pC * 100)}% probability
+            <div className="flex justify-end mb-2.5">
+              <span className="text-base font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
+                {fmt(cRetPV)}
               </span>
-              <div className="text-right">
-                <span className="text-base font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
-                  {fmt(cRetPV)}
-                </span>
-                <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}> PV today</span>
-              </div>
+              <span className="text-xs ml-1 self-end" style={{ color: 'var(--text-faint)' }}>PV today</span>
             </div>
 
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
@@ -234,10 +218,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               border: `1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`,
             }}
           >
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
-                Net — worst case (after retention bonus)
-              </span>
+            <div className="flex justify-end mb-1.5">
               <span className="text-base font-black tabular-nums"
                 style={{ color: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
                 {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} vs Vote Yes
