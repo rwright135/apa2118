@@ -6,6 +6,13 @@ import { SliderInput } from '../shared/SliderInput'
 
 const RETENTION_SCENARIOS = [
   {
+    key: 'A' as const,
+    color: 'var(--gold)',
+    title: 'Scenario A — Vote Yes',
+    label: 'If we vote yes on the tentative agreement, the retention bonus is paid in full.',
+    fixed: true,
+  },
+  {
     key: 'B' as const,
     color: '#a855f7',
     title: 'Scenario B — Vote No + 2nd Offer',
@@ -19,7 +26,18 @@ const RETENTION_SCENARIOS = [
     label: 'If we vote no, do not receive a second offer, and our next contract is ratified at the conclusion of JCBA, how likely will the bonus be paid in full?',
     inputKey: 'retentionPayoutProbabilityC' as const,
   },
-]
+] as const
+
+type SliderRetentionScenario = Extract<
+  (typeof RETENTION_SCENARIOS)[number],
+  { inputKey: string }
+>
+
+function isSliderScenario(
+  scenario: (typeof RETENTION_SCENARIOS)[number],
+): scenario is SliderRetentionScenario {
+  return 'inputKey' in scenario
+}
 
 function RetentionScenarioBox({
   color,
@@ -80,13 +98,24 @@ export function StepRetention() {
         </div>
 
         {/* Probability sliders */}
-        {RETENTION_SCENARIOS.map((scenario) => {
-          const prob = scenario.inputKey === 'retentionPayoutProbabilityB' ? probB : probC
-
-          return (
-            <RetentionScenarioBox key={scenario.key} color={scenario.color} title={scenario.title}>
+        {RETENTION_SCENARIOS.map((scenario) => (
+          <RetentionScenarioBox key={scenario.key} color={scenario.color} title={scenario.title}>
+            {'fixed' in scenario && scenario.fixed ? (
+              <div className="space-y-3">
+                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  {scenario.label}
+                </div>
+                <div className="text-center">
+                  <span className="text-4xl font-bold" style={{ color: 'var(--gold)' }}>
+                    100%
+                  </span>
+                </div>
+              </div>
+            ) : isSliderScenario(scenario) ? (
               <SliderInput
-                value={Math.round(prob * 100)}
+                value={Math.round(
+                  (scenario.inputKey === 'retentionPayoutProbabilityB' ? probB : probC) * 100,
+                )}
                 min={50}
                 max={100}
                 step={5}
@@ -95,9 +124,9 @@ export function StepRetention() {
                 label={scenario.label}
                 showMinMax
               />
-            </RetentionScenarioBox>
-          )
-        })}
+            ) : null}
+          </RetentionScenarioBox>
+        ))}
 
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
