@@ -12,7 +12,7 @@ import {
 const RETENTION_OUTCOMES = [
   {
     key: 'A' as const,
-    label: 'If we vote yes on the tentative agreement, the retention bonus is paid in full.',
+    label: 'If we vote yes on this tentative bridge agreement, the retention bonus is paid in full.',
     fixed: true,
   },
   {
