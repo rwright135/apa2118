@@ -136,16 +136,16 @@ function SingleScenarioBreakdown({ result, index, showLabel }: { result: Compari
         {showWeighting && (
           <div className="px-4 py-2" style={{ background: 'var(--bg-surface)' }}>
             <div className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Vote No = (Scenario B × {Math.round(p * 100)}%) + (Scenario C × {Math.round((1 - p) * 100)}%)
+              Vote No = (Outcome B × {Math.round(p * 100)}%) + (Outcome C × {Math.round((1 - p) * 100)}%)
             </div>
             <WeightingRow
-              label="Scenario B — 2nd bridge offer arrives"
+              label="Outcome B — 2nd bridge offer arrives"
               weight={p}
               color="#a855f7"
               pv={fmt(scenarioB.preJcbaTotal)}
             />
             <WeightingRow
-              label="Scenario C — No offer, stay on CBA until JCBA"
+              label="Outcome C — No offer, stay on CBA until JCBA"
               weight={1 - p}
               color="#ef4444"
               pv={fmt(scenarioC.preJcbaTotal)}

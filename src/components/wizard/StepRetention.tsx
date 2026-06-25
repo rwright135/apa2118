@@ -3,51 +3,50 @@ import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { NumberInput } from '../shared/NumberInput'
 import { SliderInput } from '../shared/SliderInput'
+import {
+  RETENTION_OUTCOME_COLORS,
+  RETENTION_OUTCOME_TITLES,
+  type RetentionOutcomeId,
+} from '../../lib/retentionOutcomes'
 
-const RETENTION_SCENARIOS = [
+const RETENTION_OUTCOMES = [
   {
     key: 'A' as const,
-    color: 'var(--gold)',
-    title: 'Scenario A — Vote Yes',
     label: 'If we vote yes on the tentative agreement, the retention bonus is paid in full.',
     fixed: true,
   },
   {
     key: 'B' as const,
-    color: '#a855f7',
-    title: 'Scenario B — Vote No + 2nd Offer',
     label: 'If we vote no and receive a second bridge offer prior to ratification of a JCBA, how likely will the bonus to be paid in full?',
     inputKey: 'retentionPayoutProbabilityB' as const,
   },
   {
     key: 'C' as const,
-    color: 'var(--negative)',
-    title: 'Scenario C — Vote No, No Offer',
     label: 'If we vote no, do not receive a second offer, and our next contract is ratified at the conclusion of JCBA, how likely will the bonus be paid in full?',
     inputKey: 'retentionPayoutProbabilityC' as const,
   },
 ] as const
 
-type SliderRetentionScenario = Extract<
-  (typeof RETENTION_SCENARIOS)[number],
+type SliderRetentionOutcome = Extract<
+  (typeof RETENTION_OUTCOMES)[number],
   { inputKey: string }
 >
 
-function isSliderScenario(
-  scenario: (typeof RETENTION_SCENARIOS)[number],
-): scenario is SliderRetentionScenario {
-  return 'inputKey' in scenario
+function isSliderOutcome(
+  outcome: (typeof RETENTION_OUTCOMES)[number],
+): outcome is SliderRetentionOutcome {
+  return 'inputKey' in outcome
 }
 
-function RetentionScenarioBox({
-  color,
-  title,
+function RetentionOutcomeBox({
+  outcomeId,
   children,
 }: {
-  color: string
-  title: string
+  outcomeId: RetentionOutcomeId
   children: React.ReactNode
 }) {
+  const color = RETENTION_OUTCOME_COLORS[outcomeId]
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -58,11 +57,35 @@ function RetentionScenarioBox({
         style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
       >
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-        <span className="font-bold text-sm" style={{ color }}>{title}</span>
+        <span className="font-bold text-sm" style={{ color }}>
+          {RETENTION_OUTCOME_TITLES[outcomeId]}
+        </span>
       </div>
       <div className="px-4 py-5">
         {children}
       </div>
+    </div>
+  )
+}
+
+function WhyThisMattersCard() {
+  return (
+    <div
+      className="rounded-2xl px-4 py-4"
+      style={{
+        background: 'var(--chip-bg)',
+        border: '1px solid var(--chip-border)',
+      }}
+    >
+      <div className="font-semibold text-sm mb-2" style={{ color: 'var(--gold)' }}>
+        Why this matters
+      </div>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        If we vote no, the retention bonus does not pay out on a fixed date — it accrues until a
+        second bridge offer or JCBA ratification resolves the contract. Your balance above is only
+        part of the picture. Assign a probability to each outcome below for how likely the full
+        bonus is actually paid.
+      </p>
     </div>
   )
 }
@@ -94,39 +117,50 @@ export function StepRetention() {
             min={0}
             step={1000}
           />
-
         </div>
 
-        {/* Probability sliders */}
-        {RETENTION_SCENARIOS.map((scenario) => (
-          <RetentionScenarioBox key={scenario.key} color={scenario.color} title={scenario.title}>
-            {'fixed' in scenario && scenario.fixed ? (
-              <div className="space-y-3">
-                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  {scenario.label}
-                </div>
-                <div className="text-center">
-                  <span className="text-4xl font-bold" style={{ color: 'var(--gold)' }}>
-                    100%
-                  </span>
-                </div>
-              </div>
-            ) : isSliderScenario(scenario) ? (
-              <SliderInput
-                value={Math.round(
-                  (scenario.inputKey === 'retentionPayoutProbabilityB' ? probB : probC) * 100,
-                )}
-                min={50}
-                max={100}
-                step={5}
-                onChange={(v) => setInput(scenario.inputKey, v / 100)}
-                formatValue={(v) => `${v}%`}
-                label={scenario.label}
-                showMinMax
-              />
-            ) : null}
-          </RetentionScenarioBox>
-        ))}
+        {/* Outcome probabilities */}
+        <div
+          className="space-y-4 pt-2"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <WhyThisMattersCard />
+
+          {RETENTION_OUTCOMES.map((outcome) => {
+            const color = RETENTION_OUTCOME_COLORS[outcome.key]
+
+            return (
+              <RetentionOutcomeBox key={outcome.key} outcomeId={outcome.key}>
+                {'fixed' in outcome && outcome.fixed ? (
+                  <div className="space-y-3">
+                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {outcome.label}
+                    </div>
+                    <div className="text-center">
+                      <span className="text-4xl font-bold" style={{ color }}>
+                        100%
+                      </span>
+                    </div>
+                  </div>
+                ) : isSliderOutcome(outcome) ? (
+                  <SliderInput
+                    value={Math.round(
+                      (outcome.inputKey === 'retentionPayoutProbabilityB' ? probB : probC) * 100,
+                    )}
+                    min={50}
+                    max={100}
+                    step={5}
+                    onChange={(v) => setInput(outcome.inputKey, v / 100)}
+                    formatValue={(v) => `${v}%`}
+                    label={outcome.label}
+                    showMinMax
+                    accentColor={color}
+                  />
+                ) : null}
+              </RetentionOutcomeBox>
+            )
+          })}
+        </div>
 
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
