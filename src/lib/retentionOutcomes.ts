@@ -21,6 +21,6 @@ export const RETENTION_OUTCOME_SHORT: Record<RetentionOutcomeId, string> = {
 /** Describes the contract path for each outcome — not retention payout timing */
 export const RETENTION_OUTCOME_DESCRIPTIONS: Record<RetentionOutcomeId, string> = {
   A: 'Accept the TA or vote yes on the current tentative agreement',
-  B: 'Vote no and receive a second bridge offer',
+  B: 'Vote No, Recieve 2nd Offer',
   C: 'Vote No, No Offer, JCBA',
 }
