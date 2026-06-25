@@ -20,7 +20,7 @@ export function StepLineType() {
           onClick={() => setInput('lineType', 'FLYING' as LineType)}
           icon="🛫"
           title="Flying Line Holder"
-          description="MMG: 70 hrs/month (both CBA and TA)"
+          description="MMG: 70 hrs/month (both CBA & TA)"
         />
         <SelectCard
           selected={lineType === 'RESERVE'}
