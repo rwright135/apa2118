@@ -37,10 +37,7 @@ function SeatProfileCard({
   icon?: React.ReactNode
 }) {
   return (
-    <div
-      className="rounded-xl px-3 py-2.5"
-      style={{ background: 'var(--bg-elevated)' }}
-    >
+    <div className="rounded-xl px-3 py-2.5">
       <div className="flex items-start gap-2">
         {icon}
         <div className="min-w-0">
