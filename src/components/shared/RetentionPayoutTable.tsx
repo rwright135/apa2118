@@ -75,9 +75,6 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
 
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
-        Computed payout dates per outcome
-      </div>
       <div
         className="rounded-xl overflow-hidden"
         style={{ border: '1px solid var(--border)' }}
