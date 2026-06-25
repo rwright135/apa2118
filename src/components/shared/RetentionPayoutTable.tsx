@@ -130,9 +130,6 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
           </div>
         ))}
       </div>
-      <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-        Scenario probabilities update as you adjust your assumptions above. The bonus accrues until its payout date under Scenarios B and C.
-      </p>
     </div>
   )
 }
