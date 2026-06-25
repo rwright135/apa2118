@@ -116,9 +116,13 @@ export function StepRetention() {
 
         {/* Outcome probabilities */}
         <div
-          className="space-y-4 pt-2"
+          className="space-y-4 pt-6"
           style={{ borderTop: '1px solid var(--border-subtle)' }}
         >
+          <h2 className="text-2xl font-bold leading-tight" style={{ color: 'var(--text-base)' }}>
+            Payout Probabilities
+          </h2>
+
           <WhyThisMattersCard />
 
           {RETENTION_OUTCOMES.map((outcome) => {
