@@ -138,14 +138,14 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
 
           {/* Card 1: Best case — Outcome B */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }} />
-              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                If the second offer arrives
-              </span>
-            </div>
-            <div className="flex justify-end mb-1.5">
-              <span className="text-base font-black tabular-nums"
+            <div className="flex items-center justify-between gap-3 mb-2.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                  If the second offer arrives
+                </span>
+              </div>
+              <span className="text-base font-black tabular-nums shrink-0"
                 style={{ color: bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                 {bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}
               </span>
@@ -157,18 +157,18 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
 
           {/* Card 2: Worst case — Outcome C earnings shortfall */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }} />
-              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                If no offer arrives — Outcome C · {jcba}-month window
-              </span>
-            </div>
-            <div className="flex justify-end mb-1.5">
-              <span className="text-base font-black tabular-nums"
+            <div className="flex items-center justify-between gap-3 mb-2.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                  If no offer arrives — Outcome C · {jcba}-month window
+                </span>
+              </div>
+              <span className="text-base font-black tabular-nums shrink-0"
                 style={{ color: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                 {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
+                <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-faint)' }}>nominal</span>
               </span>
-              <span className="text-xs ml-1 self-end" style={{ color: 'var(--text-faint)' }}>nominal</span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
               {cWagesShortfall > 0
@@ -179,24 +179,22 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
 
           {/* Card 3: Retention bonus — the partial recovery */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: VOTE_NO_COLOR }} />
-              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                What partially makes you whole \u2014 the retention bonus
-              </span>
-            </div>
-
-            <div className="flex justify-end mb-1.5">
-              <span className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
-                {fmt(cRetAccrued)}
-              </span>
-            </div>
-
-            <div className="flex justify-end mb-2.5">
-              <span className="text-base font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
-                {fmt(cRetPV)}
-              </span>
-              <span className="text-xs ml-1 self-end" style={{ color: 'var(--text-faint)' }}>PV today</span>
+            <div className="flex items-center justify-between gap-3 mb-2.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: VOTE_NO_COLOR }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                  What partially makes you whole \u2014 the retention bonus
+                </span>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-base font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
+                  {fmt(cRetAccrued)}
+                </div>
+                <div className="text-sm font-bold tabular-nums" style={{ color: VOTE_NO_COLOR }}>
+                  {fmt(cRetPV)}
+                  <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-faint)' }}>PV today</span>
+                </div>
+              </div>
             </div>
 
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
@@ -217,8 +215,14 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               border: `1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`,
             }}
           >
-            <div className="flex justify-end mb-1.5">
-              <span className="text-base font-black tabular-nums"
+            <div className="flex items-center justify-between gap-3 mb-2.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                  Net — worst case (after retention)
+                </span>
+              </div>
+              <span className="text-base font-black tabular-nums shrink-0"
                 style={{ color: cPVGap > 0 ? 'var(--warning)' : 'var(--positive)' }}>
                 {cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} vs Vote Yes
               </span>
