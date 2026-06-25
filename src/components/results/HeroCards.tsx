@@ -134,7 +134,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
       </button>
 
       {open && (
-        <div className="px-5 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
+        <div className="px-5 pt-5 pb-5 space-y-3" style={{ background: 'var(--bg-elevated)' }}>
 
           {/* Card 1: Best case — Outcome B */}
           <div className="rounded-xl px-4 py-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
