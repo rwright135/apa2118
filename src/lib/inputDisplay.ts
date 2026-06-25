@@ -1,4 +1,4 @@
-import type { UserInputs } from './types'
+import type { Seat, UserInputs } from './types'
 
 export const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -22,15 +22,17 @@ export function formatPct(v?: number): string {
   return v !== undefined ? `${(v * 100).toFixed(1)}%` : '—'
 }
 
+export function formatSeatName(seat?: Seat): string {
+  if (seat === 'FO') return 'First Officer'
+  if (seat === 'CA') return 'Captain'
+  return '—'
+}
+
 export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
   return [
     {
       label: 'Seat',
-      value: inputs.seat === 'FO'
-        ? 'First Officer (3 stripes)'
-        : inputs.seat === 'CA'
-          ? 'Captain (4 stripes)'
-          : '—',
+      value: formatSeatName(inputs.seat),
     },
     {
       label: 'Longevity (Jul 2026)',
