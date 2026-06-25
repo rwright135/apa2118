@@ -85,8 +85,18 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
   // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
-  // Raw, non-probability-weighted — what you'd actually get if the offer comes
   const bPVGap = scenarioB.preJcbaTotal - scenarioA.preJcbaTotal   // + = Vote No wins
+
+  const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
+  const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
+  const bRetPV = bRetPayoutRow
+    ? bRetPayoutRow.retentionCashFlow * bRetPayoutRow.discountFactor
+    : 0
+  const bRetNominal = pB > 0 && bRetPayoutRow
+    ? bRetPayoutRow.retentionCashFlow / pB
+    : 0
+
+  const monthsFromNow = (n: number) => `${n} month${n !== 1 ? 's' : ''} from now`
 
   // ── Worst case: Outcome C (no offer, stay on CBA) ────────────────────────────
   // Nominal wages + PS you give up compared to accepting the TA today
@@ -151,7 +161,14 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              The maximum present value advantage over the next <strong style={{ color: 'var(--text-muted)' }}>{jcba} months</strong> if the second offer materializes — a +{(percentAboveTA * 100).toFixed(0)}% premium arriving in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}, with retention bonus included at a <strong style={{ color: 'var(--text-muted)' }}>{Math.round(pB * 100)}% payout probability</strong>. Your {Math.round(result.voteNoScenario.probability * 100)}% offer arrival probability is not applied here — this is the ceiling assuming the offer comes.
+              If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
+              <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bPVGap))}</strong> in today&apos;s dollars between now and JCBA closing in {jcba} months vs. Voting Yes.
+              {bRetPV > 0 && (
+                <>
+                  {' '}This number also includes the present value of your Retention Bonus payment of{' '}
+                  <strong style={{ color: 'var(--text-muted)' }}>{fmt(bRetNominal)}</strong> on {monthsFromNow(bRetPayoutMonths)} at {Math.round(pB * 100)}% payout probability.
+                </>
+              )}
             </p>
           </div>
 
