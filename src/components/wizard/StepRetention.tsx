@@ -16,7 +16,7 @@ const RETENTION_SCENARIOS = [
     key: 'C' as const,
     color: 'var(--negative)',
     title: 'Scenario C — Vote No, No Offer',
-    label: 'If we vote no and wait all the way to JCBA — how likely is the bonus paid in full?',
+    label: 'If we vote no, do not receive a second offer, and our next contract is ratified at the conclusion of JCBA, how likely will the bonus be paid in full?',
     inputKey: 'retentionPayoutProbabilityC' as const,
   },
 ]
@@ -95,9 +95,6 @@ export function StepRetention() {
                 label={scenario.label}
                 showMinMax
               />
-              <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-                {scenario.helper}
-              </p>
             </RetentionScenarioBox>
           )
         })}
