@@ -6,7 +6,7 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 
 export function StepAnniversary() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const anniversaryMonth = inputs.anniversaryMonth ?? 0
+  const anniversaryMonth = inputs.anniversaryMonth
 
   return (
     <WizardLayout
@@ -22,7 +22,7 @@ export function StepAnniversary() {
               onClick={() => setInput('anniversaryMonth', idx)}
               className="py-3 rounded-xl text-sm font-semibold transition-all duration-200"
               style={
-                anniversaryMonth === idx
+                anniversaryMonth !== undefined && anniversaryMonth === idx
                   ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
                   : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
               }
@@ -32,7 +32,7 @@ export function StepAnniversary() {
           ))}
         </div>
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={anniversaryMonth === undefined}>Continue</NavButton>
     </WizardLayout>
   )
 }

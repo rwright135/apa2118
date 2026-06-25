@@ -44,7 +44,6 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
 }
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
-  anniversaryMonth: 0,
   lineType: 'FLYING',
   investmentRate: 0.08,
   retentionPayoutProbabilityB: 0.95,
