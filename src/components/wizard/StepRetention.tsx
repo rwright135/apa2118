@@ -89,7 +89,7 @@ export function StepRetention() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
   const balance = inputs.retentionCurrentBalance ?? 0
   const probB   = inputs.retentionPayoutProbabilityB ?? 0.95
-  const probC   = inputs.retentionPayoutProbabilityC ?? 0.90
+  const probC   = inputs.retentionPayoutProbabilityC ?? 0.75
 
   return (
     <WizardLayout

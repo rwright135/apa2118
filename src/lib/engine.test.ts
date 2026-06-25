@@ -16,7 +16,7 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   profitSharingLastYear: 1000,
   retentionCurrentBalance: 50000,
   retentionPayoutProbabilityB: 0.95,
-  retentionPayoutProbabilityC: 0.90,
+  retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VNS }],
   advancedPostJCBA: {
     enabled: false,
