@@ -2,7 +2,6 @@ import { CONTRACT_PARAMS } from '../../data/contractParams'
 import {
   RETENTION_OUTCOME_COLORS,
   RETENTION_OUTCOME_DESCRIPTIONS,
-  RETENTION_OUTCOME_SHORT,
   type RetentionOutcomeId,
 } from '../../lib/retentionOutcomes'
 
