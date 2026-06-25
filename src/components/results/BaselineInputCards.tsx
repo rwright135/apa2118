@@ -106,7 +106,7 @@ export function BaselineInputCards({ inputs }: Props) {
         <CombinedInputCard
           items={[
             { label: 'Anniversary', value: formatAnniversaryMonth(inputs.anniversaryMonth) },
-            { label: 'Years until retirement', value: formatYearsUntilRetirementValue(inputs.dateOfBirth) },
+            { label: 'Years until Retirement', value: formatYearsUntilRetirementValue(inputs.dateOfBirth) },
           ]}
         />
         {profileItems.map(({ label, value }) => (
