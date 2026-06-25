@@ -32,7 +32,7 @@ export function ResultsPlaceholder() {
         </div>
 
         <button
-          onClick={() => goToStep('review')}
+          onClick={() => goToStep('advanced')}
           className="mt-6 w-full py-3 bg-white/10 rounded-xl text-gray-300 font-medium hover:bg-white/15 transition-colors"
         >
           ← Edit Inputs

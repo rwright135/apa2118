@@ -35,7 +35,7 @@ const DIR_STYLE: Record<Direction, { active: React.CSSProperties; inactive: Reac
 }
 
 export function StepAdvanced() {
-  const { inputs, setInput, nextStep, prevStep } = useStore()
+  const { inputs, setInput, compute, prevStep, isComputing } = useStore()
   const adv = inputs.advancedPostJCBA ?? DEFAULT_ADV
 
   const update = (key: ScenarioBranch, field: string, value: unknown) => {
@@ -135,7 +135,9 @@ export function StepAdvanced() {
           </div>
         )}
       </div>
-      <NavButton onClick={nextStep}>Continue to Review</NavButton>
+      <NavButton onClick={compute} disabled={isComputing}>
+        {isComputing ? 'Calculating...' : 'Calculate My Results →'}
+      </NavButton>
     </WizardLayout>
   )
 }

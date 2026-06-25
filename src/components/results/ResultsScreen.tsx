@@ -30,7 +30,7 @@ export function ResultsScreen() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
-            onClick={() => goToStep('review')}
+            onClick={() => goToStep('advanced')}
             className="flex items-center gap-1.5 text-sm transition-colors"
             style={{ color: 'var(--text-muted)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-base)')}

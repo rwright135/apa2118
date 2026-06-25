@@ -16,7 +16,6 @@ export type WizardStep =
   | 'voteNo'
   | 'retention'
   | 'advanced'
-  | 'review'
   | 'results'
 
 export const WIZARD_STEPS: WizardStep[] = [
@@ -32,7 +31,6 @@ export const WIZARD_STEPS: WizardStep[] = [
   'retention',
   'voteNo',
   'advanced',
-  'review',
   'results',
 ]
 
