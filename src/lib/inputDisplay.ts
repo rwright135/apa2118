@@ -15,10 +15,6 @@ export function formatCurrency(v?: number): string {
   return v ? `$${v.toLocaleString()}` : '$0'
 }
 
-export function formatPct(v?: number): string {
-  return v !== undefined ? `${(v * 100).toFixed(1)}%` : '—'
-}
-
 export function formatSeatName(seat?: Seat): string {
   if (seat === 'FO') return 'First Officer'
   if (seat === 'CA') return 'Captain'
@@ -54,7 +50,7 @@ export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayI
   ]
 }
 
-export function getFinancialInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
+export function getBaselineFinancialInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
   return [
     {
       label: 'Annual Profit Sharing',
@@ -63,22 +59,6 @@ export function getFinancialInputItems(inputs: Partial<UserInputs>): InputDispla
     {
       label: 'Retention Bonus Balance',
       value: formatCurrency(inputs.retentionCurrentBalance),
-    },
-    {
-      label: 'Outcome A Payout Date',
-      value: 'Oct 1, 2026 (fixed)',
-    },
-    {
-      label: 'Outcome B Bonus Certainty',
-      value: formatPct(inputs.retentionPayoutProbabilityB),
-    },
-    {
-      label: 'Outcome C Bonus Certainty',
-      value: formatPct(inputs.retentionPayoutProbabilityC),
-    },
-    {
-      label: 'Investment Return Rate',
-      value: formatPct(inputs.investmentRate),
     },
   ]
 }
