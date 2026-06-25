@@ -20,8 +20,9 @@ export function ResultsScreen() {
       className="min-h-screen"
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
-      {/* Sticky header */}
+      {/* Sticky header — id used by ShareSheet to hide during image capture */}
       <div
+        id="results-toolbar"
         className="sticky top-0 z-10 backdrop-blur border-b px-4 py-3"
         style={{
           background: 'color-mix(in srgb, var(--bg-base) 94%, transparent)',
