@@ -134,7 +134,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
         ))}
       </div>
       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-        Outcome path weights update as you adjust your assumptions above. The bonus accrues until its payout date under Outcomes B and C.
+        Scenario probabilities update as you adjust your assumptions above. The bonus accrues until its payout date under Scenarios B and C.
       </p>
     </div>
   )
