@@ -30,7 +30,7 @@ interface Props {
 export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbability, probB, probC }: Props) {
   const payoutDays = CONTRACT_PARAMS.RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION
   const payoutDateB = addDays(addMonthsTo(START_DATE, arrivalMonths), payoutDays)
-  const payoutDateC = addMonthsTo(START_DATE, jcbaMonths)
+  const payoutDateC = addDays(addMonthsTo(START_DATE, jcbaMonths), payoutDays)
   const noOfferProbability = 1 - offerProbability
 
   const rows = [
@@ -55,7 +55,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       label: 'Vote No, no offer',
       color: 'var(--negative)',
       date: fmtDate(payoutDateC),
-      note: `JCBA conclusion (${jcbaMonths} mo from now)`,
+      note: `JCBA conclusion + ${payoutDays} days (${jcbaMonths} mo from now)`,
       probability: noOfferProbability,
     },
   ]

@@ -159,8 +159,23 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
 
-  const preJcbaRows  = rows.slice(0, jcbaMonth)
-  const displayRows  = expanded ? preJcbaRows : preJcbaRows.slice(0, steadyStateIndex + 1)
+  const preJcbaRows = rows.slice(0, jcbaMonth)
+  // Retention for Scenario C pays ~60 days after JCBA; include those post-JCBA months in the table.
+  const postJcbaRetentionRows = rows.filter(
+    r => r.monthIndex >= jcbaMonth && (r.retentionCashFlow > 0 || r.retentionAccrualNote > 0.01)
+  )
+  const allTableRows = postJcbaRetentionRows.length > 0
+    ? [...preJcbaRows, ...postJcbaRetentionRows]
+    : preJcbaRows
+
+  const displayRows = expanded
+    ? allTableRows
+    : (() => {
+        const preSteady = preJcbaRows.slice(0, steadyStateIndex + 1)
+        return postJcbaRetentionRows.length > 0
+          ? [...preSteady, ...postJcbaRetentionRows]
+          : preSteady
+      })()
   const hasMore      = preJcbaRows.length > steadyStateIndex + 1
   const isVoteYes    = activeTab === 'YES'
 
@@ -225,12 +240,23 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             {displayRows.map((row: MonthlyRow, i: number) => {
               const isFirstOfYear      = row.month === 0 || i === 0
               const isSteadyStateStart = i === steadyStateIndex
+              const isFirstPostJcbaRetention =
+                row.monthIndex >= jcbaMonth &&
+                (row.retentionCashFlow > 0 || row.retentionAccrualNote > 0.01) &&
+                (i === 0 || displayRows[i - 1].monthIndex < jcbaMonth)
               return (
                 <>
                   {isSteadyStateStart && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
                       <td colSpan={9} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
+                      </td>
+                    </tr>
+                  )}
+                  {isFirstPostJcbaRetention && (
+                    <tr key={`post-jcba-${i}`} style={{ background: 'rgba(34,197,94,0.05)' }}>
+                      <td colSpan={9} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
+                        ── Post-JCBA retention accrual & payout (60 days after JCBA ratification) ──
                       </td>
                     </tr>
                   )}
@@ -280,6 +306,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       )}
       <div className="px-4 py-2 text-center text-xs" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         Table stops at JCBA month {jcbaMonth} — all scenarios converge to identical rates after this point
+        {postJcbaRetentionRows.length > 0 && activeTab === 'C' && (
+          <> · Retention accrual & payout rows after JCBA are shown for Scenario C</>
+        )}
       </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
