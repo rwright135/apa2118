@@ -159,6 +159,8 @@ export function BaselineInputCards({ inputs }: Props) {
             value={value}
             icon={label === 'Retention Bonus Balance' ? (
               <span className="text-xl shrink-0 leading-none" aria-hidden="true">💰</span>
+            ) : label === 'Annual Profit Sharing' ? (
+              <span className="text-xl shrink-0 leading-none" aria-hidden="true">💵</span>
             ) : undefined}
           />
         ))}
