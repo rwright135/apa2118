@@ -10,7 +10,6 @@ const RETENTION_SCENARIOS = [
     color: '#a855f7',
     title: 'Scenario B — Vote No + 2nd Offer',
     label: 'If we vote no and get a second offer — how likely is the bonus paid in full?',
-    helper: 'Covers the scenario where management returns with a bridge offer before JCBA.',
     inputKey: 'retentionPayoutProbabilityB' as const,
   },
   {
@@ -18,7 +17,6 @@ const RETENTION_SCENARIOS = [
     color: 'var(--negative)',
     title: 'Scenario C — Vote No, No Offer',
     label: 'If we vote no and wait all the way to JCBA — how likely is the bonus paid in full?',
-    helper: 'Covers the scenario where no second offer comes and the bonus accrues until JCBA concludes.',
     inputKey: 'retentionPayoutProbabilityC' as const,
   },
 ]
