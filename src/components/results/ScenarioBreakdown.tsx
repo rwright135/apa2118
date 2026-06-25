@@ -9,91 +9,62 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-// ── Stat row ──────────────────────────────────────────────────────────────────
+// ── Row definitions ───────────────────────────────────────────────────────────
 
-function StatRow({
-  label,
-  sub,
-  yesVal,
-  noVal,
-  highlight,
-}: {
+interface StatDef {
   label: string
   sub: string
-  yesVal: number
-  noVal: number
+  getYes: (s: ScenarioSummary) => number
+  getNo:  (s: ScenarioSummary) => number
   highlight?: boolean
-}) {
-  return (
-    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-      <td className="px-4 py-3 pr-6">
-        <div className="text-sm leading-snug" style={{ color: highlight ? 'var(--text-base)' : 'var(--text-muted)', fontWeight: highlight ? 600 : 400 }}>
-          {label}
-        </div>
-        <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>{sub}</div>
-      </td>
-      <td className="py-3 px-4 text-right whitespace-nowrap">
-        <span className="text-sm font-semibold tabular-nums" style={{ color: highlight ? 'var(--gold)' : 'var(--text-base)' }}>
-          {fmt(yesVal)}
-        </span>
-      </td>
-      <td className="py-3 px-4 text-right whitespace-nowrap">
-        <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>
-          {fmt(noVal)}
-        </span>
-      </td>
-    </tr>
-  )
 }
 
-function buildStats(yes: ScenarioSummary, no: ScenarioSummary) {
-  return [
-    {
-      label: "Pre-JCBA Total (today's dollars)",
-      sub: 'Present value of all cash flows in the decision window',
-      yesVal: yes.preJcbaTotal,
-      noVal: no.preJcbaTotal,
-      highlight: true,
-    },
-    {
-      label: 'Projected Retirement Balance',
-      sub: '401(k) contributions compounded to age 65',
-      yesVal: yes.retirementBalanceAt65,
-      noVal: no.retirementBalanceAt65,
-    },
-    {
-      label: 'Total Gross Pay',
-      sub: 'Nominal — does not account for timing',
-      yesVal: yes.totalGrossPay,
-      noVal: no.totalGrossPay,
-    },
-    {
-      label: 'Profit Sharing',
-      sub: 'Semi-annual payouts, scales with pay rate',
-      yesVal: yes.totalProfitSharing,
-      noVal: no.totalProfitSharing,
-    },
-    {
-      label: 'Retention Bonus',
-      sub: 'Probability-weighted accrual and payout',
-      yesVal: yes.totalRetention,
-      noVal: no.totalRetention,
-    },
-  ]
-}
+const STATS: StatDef[] = [
+  {
+    label: "Pre-JCBA Total",
+    sub:   "Present value · decision window only",
+    getYes: s => s.preJcbaTotal,
+    getNo:  s => s.preJcbaTotal,
+    highlight: true,
+  },
+  {
+    label: "Projected Retirement Balance",
+    sub:   "401(k) compounded to age 65",
+    getYes: s => s.retirementBalanceAt65,
+    getNo:  s => s.retirementBalanceAt65,
+  },
+  {
+    label: "Total Gross Pay",
+    sub:   "Nominal — does not account for timing",
+    getYes: s => s.totalGrossPay,
+    getNo:  s => s.totalGrossPay,
+  },
+  {
+    label: "Profit Sharing",
+    sub:   "Semi-annual · scales with pay rate",
+    getYes: s => s.totalProfitSharing,
+    getNo:  s => s.totalProfitSharing,
+  },
+  {
+    label: "Retention Bonus",
+    sub:   "Probability-weighted",
+    getYes: s => s.totalRetention,
+    getNo:  s => s.totalRetention,
+  },
+]
 
-// ── Single scenario breakdown ─────────────────────────────────────────────────
+// ── Per-scenario rows inside the shared table body ────────────────────────────
 
-function SingleScenarioBreakdown({
+function ScenarioRows({
   result,
   index,
-  showLabel,
+  showHeader,
 }: {
   result: ComparisonResult
-  index: number
-  showLabel: boolean
+  index:  number
+  showHeader: boolean
 }) {
-  const [showWeighting, setShowWeighting] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
@@ -102,69 +73,110 @@ function SingleScenarioBreakdown({
   const vns       = result.voteNoScenario
   const p         = vns.probability
 
-  const stats = buildStats(scenarioA, voteNo)
-
   return (
-    <div className="space-y-3">
-      {showLabel && (
-        <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-          Scenario {index + 1}{' '}
-          <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>
-            · {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
-          </span>
-        </div>
+    <>
+      {/* Scenario section header */}
+      {showHeader && (
+        <tr style={{ background: 'var(--bg-elevated)' }}>
+          <td
+            colSpan={3}
+            className="px-4 py-2 text-xs font-semibold"
+            style={{ color: 'var(--text-muted)', borderTop: index > 0 ? '2px solid var(--border)' : undefined }}
+          >
+            Scenario {index + 1}
+            <span className="ml-2 font-normal" style={{ color: 'var(--text-faint)' }}>
+              {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo arrival · +{(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA {vns.jcbaDurationMonths}mo
+            </span>
+          </td>
+        </tr>
       )}
 
-      {/* Stats table */}
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <th className="px-4 py-2.5 text-left text-xs" style={{ color: 'var(--text-faint)' }} />
-              <th className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: 'var(--gold)' }}>Vote Yes</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold" style={{ color: 'var(--text-faint)' }}>Vote No</th>
-            </tr>
-          </thead>
-          <tbody style={{ background: 'var(--bg-surface)' }}>
-            {stats.map(s => (
-              <StatRow key={s.label} {...s} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* How Vote No is calculated */}
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
-        <button
-          onClick={() => setShowWeighting(v => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-sm transition-colors"
-          style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
-        >
-          <span>How Vote No expected value is calculated</span>
-          <span style={{ color: 'var(--accent)' }}>{showWeighting ? '↑ Hide' : '↓ Show'}</span>
-        </button>
-        {showWeighting && (
-          <div className="px-4 py-3" style={{ background: 'var(--bg-surface)' }}>
-            <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Vote No = (Scenario B × {Math.round(p * 100)}%) + (Scenario C × {Math.round((1 - p) * 100)}%)
-            </p>
-            {[
-              { label: `Scenario B — 2nd bridge offer (${Math.round(p * 100)}% weight)`, pv: scenarioB.preJcbaTotal },
-              { label: `Scenario C — No offer, wait for JCBA (${Math.round((1 - p) * 100)}% weight)`, pv: scenarioC.preJcbaTotal },
-            ].map(({ label, pv }) => (
-              <div key={label} className="flex justify-between items-center py-2 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{label}</span>
-                <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>{fmt(pv)}</span>
+      {/* Stat rows */}
+      {STATS.map(stat => {
+        const yesVal = stat.getYes(scenarioA)
+        const noVal  = stat.getNo(voteNo)
+        return (
+          <tr
+            key={stat.label}
+            style={{
+              borderBottom: '1px solid var(--border-subtle)',
+              background: stat.highlight ? 'var(--bg-elevated)' : undefined,
+            }}
+          >
+            <td className="px-4 py-3">
+              <div
+                className="text-sm leading-snug"
+                style={{ color: stat.highlight ? 'var(--text-base)' : 'var(--text-muted)', fontWeight: stat.highlight ? 600 : 400 }}
+              >
+                {stat.label}
               </div>
-            ))}
-            <div className="flex justify-between items-center pt-2 mt-1" style={{ borderTop: '1px solid var(--border)' }}>
-              <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Weighted Vote No total</span>
-              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>{fmt(voteNo.preJcbaTotal)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>{stat.sub}</div>
+            </td>
+            <td className="px-4 py-3 text-right whitespace-nowrap">
+              <span className="text-sm font-semibold tabular-nums" style={{ color: stat.highlight ? 'var(--gold)' : 'var(--text-base)' }}>
+                {fmt(yesVal)}
+              </span>
+            </td>
+            <td className="px-4 py-3 text-right whitespace-nowrap">
+              <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>
+                {fmt(noVal)}
+              </span>
+            </td>
+          </tr>
+        )
+      })}
+
+      {/* How Vote No is weighted — toggle row */}
+      <tr
+        style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+        onClick={() => setOpen(v => !v)}
+      >
+        <td colSpan={3} className="px-4 py-2.5">
+          <span className="text-xs" style={{ color: 'var(--accent)' }}>
+            {open ? '↑ Hide' : '↓ How Vote No expected value is calculated'}
+          </span>
+        </td>
+      </tr>
+
+      {/* Expanded weighting detail */}
+      {open && (
+        <>
+          <tr style={{ background: 'var(--bg-elevated)' }}>
+            <td colSpan={3} className="px-4 pt-3 pb-1">
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+                Vote No = (Scenario B × {Math.round(p * 100)}%) + (Scenario C × {Math.round((1 - p) * 100)}%)
+              </p>
+            </td>
+          </tr>
+          {[
+            { label: `Scenario B — 2nd bridge offer`, weight: p,       pv: scenarioB.preJcbaTotal },
+            { label: `Scenario C — No offer, wait for JCBA`,   weight: 1 - p, pv: scenarioC.preJcbaTotal },
+          ].map(({ label, weight, pv }) => (
+            <tr key={label} style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+              <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                {label}
+                <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--bg-surface)', color: 'var(--text-faint)' }}>
+                  ×{Math.round(weight * 100)}%
+                </span>
+              </td>
+              <td />
+              <td className="px-4 py-2 text-right text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>
+                {fmt(pv)}
+              </td>
+            </tr>
+          ))}
+          <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+            <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Weighted Vote No total
+            </td>
+            <td />
+            <td className="px-4 py-2 text-right text-sm font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
+              {fmt(voteNo.preJcbaTotal)}
+            </td>
+          </tr>
+        </>
+      )}
+    </>
   )
 }
 
@@ -172,18 +184,36 @@ function SingleScenarioBreakdown({
 
 export function ScenarioBreakdown({ results }: Props) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
         Breakdown
       </h2>
-      {results.map((result, i) => (
-        <SingleScenarioBreakdown
-          key={i}
-          result={result}
-          index={i}
-          showLabel={results.length > 1}
-        />
-      ))}
+
+      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+        <table className="w-full" style={{ background: 'var(--bg-surface)' }}>
+          <thead>
+            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+              <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
+                Vote Yes
+              </th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+                Vote No
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((result, i) => (
+              <ScenarioRows
+                key={i}
+                result={result}
+                index={i}
+                showHeader={results.length > 1}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
