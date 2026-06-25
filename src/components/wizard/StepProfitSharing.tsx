@@ -64,7 +64,7 @@ export function StepProfitSharing() {
             className="rounded-xl overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
-            {/* Header row */}
+            {/* Header row — always the same height */}
             <div
               className="flex justify-between items-center gap-3 px-4 py-2"
               style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)' }}
@@ -72,22 +72,7 @@ export function StepProfitSharing() {
               <span className="text-xs uppercase tracking-wide shrink-0" style={{ color: 'var(--text-faint)' }}>
                 Profit Sharing Projection
               </span>
-              <span className="text-xs shrink-0 text-right leading-snug min-w-[11rem]">
-                {hasValue ? (
-                  <span style={{ color: 'var(--text-faint)' }}>Annual</span>
-                ) : (
-                  <span
-                    className="inline-block font-medium px-2 py-0.5 rounded"
-                    style={{
-                      background: 'var(--chip-bg)',
-                      color: 'var(--chip-text)',
-                      border: '1px solid var(--chip-border)',
-                    }}
-                  >
-                    Enter a number above for the calculation.
-                  </span>
-                )}
-              </span>
+              <span className="text-xs shrink-0" style={{ color: 'var(--text-faint)' }}>Annual</span>
             </div>
 
             {/* Current CBA */}
@@ -125,18 +110,12 @@ export function StepProfitSharing() {
                   <span className="text-sm" style={{ color: isLast ? 'var(--text-base)' : 'var(--text-muted)' }}>
                     {tier.label}
                     {hasValue && psPct !== null && (
-                      <>
-                        {' '}
-                        <span
-                          className="text-xs font-semibold ml-1 px-1.5 py-0.5 rounded"
-                          style={{
-                            background: 'rgba(34,197,94,0.12)',
-                            color: 'var(--positive)',
-                          }}
-                        >
-                          +{psPct}%
-                        </span>
-                      </>
+                      <span
+                        className="text-xs font-semibold ml-1.5 px-1.5 py-0.5 rounded"
+                        style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}
+                      >
+                        +{psPct}%
+                      </span>
                     )}
                   </span>
                   <span
@@ -149,6 +128,12 @@ export function StepProfitSharing() {
               )
             })}
           </div>
+        )}
+
+        {!hasValue && cbaRate !== null && (
+          <p className="text-xs text-center" style={{ color: 'var(--text-faint)' }}>
+            Enter an amount above to see projected values.
+          </p>
         )}
 
       </div>
