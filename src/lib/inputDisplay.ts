@@ -25,12 +25,16 @@ export function formatLongevity(longevity?: number): string {
   return longevity ? `Year ${longevity}` : '—'
 }
 
+export function formatAnniversaryMonth(month?: number): string {
+  return month !== undefined ? MONTHS[month] : '—'
+}
+
+export function formatYearsUntilRetirementValue(dob?: Date): string {
+  return dob ? `${getYearsUntilRetirement(dob)}` : '—'
+}
+
 export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
   return [
-    {
-      label: 'Anniversary Month',
-      value: inputs.anniversaryMonth !== undefined ? MONTHS[inputs.anniversaryMonth] : '—',
-    },
     {
       label: 'Line Type',
       value: inputs.lineType === 'FLYING'
@@ -42,10 +46,6 @@ export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayI
     {
       label: 'Extra Hours/Month',
       value: `+${inputs.extraHoursAboveMMG ?? 0} hrs above MMG`,
-    },
-    {
-      label: 'Years Until Retirement',
-      value: inputs.dateOfBirth ? `${getYearsUntilRetirement(inputs.dateOfBirth)} years` : '—',
     },
   ]
 }

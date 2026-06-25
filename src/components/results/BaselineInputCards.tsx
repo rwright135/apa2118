@@ -1,7 +1,9 @@
 import type { UserInputs } from '../../lib/types'
 import {
+  formatAnniversaryMonth,
   formatLongevity,
   formatSeatName,
+  formatYearsUntilRetirementValue,
   getBaselineFinancialInputItems,
   getProfileInputItems,
 } from '../../lib/inputDisplay'
@@ -23,6 +25,23 @@ function InputCard({ label, value }: { label: string; value: string }) {
       <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
         {value}
       </div>
+    </div>
+  )
+}
+
+function CombinedInputCard({ items }: { items: { label: string; value: string }[] }) {
+  return (
+    <div className="rounded-xl px-3 py-2.5 space-y-2.5">
+      {items.map(({ label, value }) => (
+        <div key={label}>
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            {label}
+          </div>
+          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+            {value}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -84,7 +103,12 @@ export function BaselineInputCards({ inputs }: Props) {
           seatName={formatSeatName(inputs.seat)}
           icon={seatIcon}
         />
-        <div aria-hidden="true" />
+        <CombinedInputCard
+          items={[
+            { label: 'Anniversary', value: formatAnniversaryMonth(inputs.anniversaryMonth) },
+            { label: 'Years until retirement', value: formatYearsUntilRetirementValue(inputs.dateOfBirth) },
+          ]}
+        />
         {profileItems.map(({ label, value }) => (
           <InputCard key={label} label={label} value={value} />
         ))}
