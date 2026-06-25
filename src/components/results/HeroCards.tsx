@@ -17,17 +17,8 @@ function fmtAssumptionsCompact(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% offer probability · ${vns.arrivalMonths}mo arrival · +${(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA ${vns.jcbaDurationMonths}mo`
 }
 
-function fmtAssumptionsSentence(
-  vns: VoteNoScenario,
-  retentionPayoutProbabilityB: number,
-  retentionPayoutProbabilityC: number,
-) {
-  const offerPct = Math.round(vns.probability * 100)
-  const premiumPct = (vns.percentAboveTA * 100).toFixed(0)
-  const probB = Math.round(retentionPayoutProbabilityB * 100)
-  const probC = Math.round(retentionPayoutProbabilityC * 100)
-
-  return `${offerPct}% second offer probability arriving in ${vns.arrivalMonths} months at ${premiumPct}% higher above TA with JCBA closing in ${vns.jcbaDurationMonths} months. RB probability weighted at ${probB}% and ${probC}% respectively.`
+function fmtAssumptionsFooter(vns: VoteNoScenario) {
+  return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
 }
 
 const BOTTOM_LINE_HELP = (
@@ -332,11 +323,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Assumptions: {fmtAssumptionsSentence(
-            result.voteNoScenario,
-            result.inputs.retentionPayoutProbabilityB,
-            result.inputs.retentionPayoutProbabilityC,
-          )}
+          Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
         </span>
       </div>
     </div>
