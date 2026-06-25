@@ -88,7 +88,7 @@ function SeatProfileCard({
 export function BaselineInputCards({ inputs }: Props) {
   const epauletProps = {
     size: 28,
-    boardColor: 'var(--bg-surface)',
+    boardColor: 'var(--bg-base)',
     stripeColor: 'var(--gold)',
   }
 
@@ -102,15 +102,7 @@ export function BaselineInputCards({ inputs }: Props) {
   const financialItems = getBaselineFinancialInputItems(inputs)
 
   return (
-    <div
-      className="rounded-2xl p-4"
-      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-    >
-      <h2 className="font-semibold text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-        Baseline Inputs
-      </h2>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <SeatProfileCard
           longevity={formatLongevity(inputs.longevityAsOfJul2026)}
           seatName={formatSeatName(inputs.seat)}
@@ -164,7 +156,6 @@ export function BaselineInputCards({ inputs }: Props) {
             ) : undefined}
           />
         ))}
-      </div>
     </div>
   )
 }
