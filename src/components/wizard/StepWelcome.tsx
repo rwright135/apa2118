@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useStore } from '../../state/store'
 import { ThemeToggle } from '../shared/ThemeToggle'
+import { TermsOfServiceScreen } from '../legal/TermsOfServiceScreen'
 
 const BULLETS = [
   '~3 minutes to complete',
@@ -9,6 +11,21 @@ const BULLETS = [
 
 export function StepWelcome() {
   const { nextStep } = useStore()
+  const [showTerms, setShowTerms] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [termsError, setTermsError] = useState(false)
+
+  if (showTerms) {
+    return <TermsOfServiceScreen onBack={() => setShowTerms(false)} />
+  }
+
+  const handleGetStarted = () => {
+    if (!acceptedTerms) {
+      setTermsError(true)
+      return
+    }
+    nextStep()
+  }
 
   return (
     <div
@@ -87,9 +104,39 @@ export function StepWelcome() {
           remain on your device only. Nothing is sent to or stored on a server.
         </p>
 
+        <label
+          className="flex items-start gap-3 mb-4 mx-auto text-left cursor-pointer"
+          style={{ maxWidth: '22rem' }}
+        >
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(e) => {
+              setAcceptedTerms(e.target.checked)
+              if (e.target.checked) setTermsError(false)
+            }}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[var(--gold)]"
+          />
+          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            I have read and agree to the{' '}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                setShowTerms(true)
+              }}
+              className="underline font-medium"
+              style={{ color: 'var(--gold)' }}
+            >
+              Terms of Service
+            </button>
+            .
+          </span>
+        </label>
+
         {/* CTA — fixed comfortable width, not artificially narrow */}
         <button
-          onClick={nextStep}
+          onClick={handleGetStarted}
           className="py-4 rounded-xl font-bold transition-all duration-200 active:scale-[0.98]"
           style={{
             background: 'var(--btn-bg)',
@@ -103,6 +150,16 @@ export function StepWelcome() {
         >
           Get Started
         </button>
+
+        {termsError && (
+          <p
+            className="mt-3 text-xs leading-relaxed mx-auto"
+            style={{ color: 'var(--negative)', maxWidth: '22rem' }}
+            role="alert"
+          >
+            Please read and accept the Terms of Service before continuing.
+          </p>
+        )}
 
       </div>
     </div>
