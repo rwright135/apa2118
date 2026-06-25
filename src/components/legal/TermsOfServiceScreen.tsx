@@ -43,7 +43,7 @@ const SECTIONS = [
   },
   {
     title: '10. Contact',
-    body: `Questions about these Terms may be directed to APA Teamsters Local 2118 through your usual union communication channels.`,
+    body: `Questions about these Terms may be directed to APA Teamsters Local 2118 through official Union communication channels.`,
   },
 ]
 
