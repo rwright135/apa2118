@@ -96,14 +96,6 @@ export function StepWelcome() {
           ))}
         </div>
 
-        <p
-          className="mb-4 leading-relaxed mx-auto"
-          style={{ color: 'var(--text-faint)', maxWidth: '22rem', fontSize: '0.65rem' }}
-        >
-          This tool does not collect any personally identifiable information. Your answers
-          remain on your device only. Nothing is sent to or stored on a server.
-        </p>
-
         <label
           className="flex items-start gap-3 mb-4 mx-auto text-left cursor-pointer"
           style={{ maxWidth: '22rem' }}
