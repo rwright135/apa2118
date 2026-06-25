@@ -116,7 +116,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
                 >
                   {row.outcome === 'A'
                     ? '100% bonus certainty'
-                    : `${Math.round(row.probability * 100)}% vote-no path weight`}
+                    : `${Math.round(row.probability * 100)}% Scenario Probability`}
                 </div>
                 {row.outcome === 'B' && probB !== undefined && (
                   <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
