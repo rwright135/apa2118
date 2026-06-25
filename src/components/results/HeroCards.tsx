@@ -184,7 +184,6 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               <span className="text-base font-black tabular-nums shrink-0"
                 style={{ color: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                 {cWagesShortfall > 0 ? '−' : '+'}{fmt(Math.abs(cWagesShortfall))}
-                <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-faint)' }}>nominal</span>
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
