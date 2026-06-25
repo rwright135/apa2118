@@ -4,6 +4,27 @@ import type { UserInputs } from '../../lib/types'
 
 interface Props { inputs: Partial<UserInputs> }
 
+// ── URL shortening ────────────────────────────────────────────────────────────
+
+/**
+ * Shorten a URL via TinyURL's free public API (no API key required).
+ * Falls back to the original URL silently on any network or API error.
+ */
+async function shortenURL(url: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(6000) }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const short = (await res.text()).trim()
+    if (short.startsWith('http')) return short
+    throw new Error('Unexpected response')
+  } catch {
+    return url
+  }
+}
+
 // ── Capture helpers ───────────────────────────────────────────────────────────
 
 function getResultsEl() {
@@ -17,22 +38,6 @@ async function captureImage(): Promise<string> {
   const { toPng } = await import('html-to-image')
   const bgColor = getComputedStyle(el).backgroundColor || '#ffffff'
   return toPng(el, { cacheBust: true, pixelRatio: 2, backgroundColor: bgColor, skipFonts: false })
-}
-
-/** Convert a data URL to a File for the Web Share API. */
-function dataUrlToFile(dataUrl: string, filename: string): File {
-  const [header, data] = dataUrl.split(',')
-  const mime = header.match(/:(.*?);/)![1]
-  const bytes = atob(data)
-  const arr = new Uint8Array(bytes.length)
-  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
-  return new File([arr], filename, { type: mime })
-}
-
-/** Returns true if the browser supports sharing image files natively. */
-function canNativeShare(): boolean {
-  if (!navigator.share || !navigator.canShare) return false
-  return navigator.canShare({ files: [new File([''], 'test.png', { type: 'image/png' })] })
 }
 
 async function exportPDF() {
@@ -126,25 +131,16 @@ function SheetRow({ icon, label, sublabel, onClick, loading }: SheetItem) {
   )
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="px-5 pt-3 pb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-      {children}
-    </div>
-  )
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ShareSheet({ inputs }: Props) {
   const [open, setOpen]        = useState(false)
   const [copied, setCopied]    = useState(false)
-  const [busy, setBusy]        = useState<null | 'share' | 'pdf' | 'image'>(null)
+  const [busy, setBusy]        = useState<null | 'pdf' | 'image' | 'copy'>(null)
   const [error, setError]      = useState<string | null>(null)
   const sheetRef               = useRef<HTMLDivElement>(null)
 
   const shareURL = encodeToURL(inputs)
-  const nativeShare = canNativeShare()
 
   useEffect(() => {
     if (!open) return
@@ -155,42 +151,18 @@ export function ShareSheet({ inputs }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  /** Capture the screen, then invoke the platform share sheet or download. */
-  const handleShareImage = async () => {
-    setOpen(false)
-    setBusy('share'); setError(null)
-    try {
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
-      const dataUrl = await captureImage()
-      const filename = `APA2118-Contract-Comparison-${new Date().toISOString().split('T')[0]}.png`
-
-      if (nativeShare) {
-        // Mobile: invoke OS share sheet with the image file.
-        // User picks Messages, WhatsApp, Mail, etc.
-        const file = dataUrlToFile(dataUrl, filename)
-        await navigator.share({ files: [file], title: 'APA2118 Contract Comparison' })
-      } else {
-        // Desktop fallback: download the image so the user can attach it manually.
-        const link = document.createElement('a')
-        link.download = filename
-        link.href = dataUrl
-        link.click()
-      }
-    } catch (e) {
-      // AbortError = user dismissed the native sheet — not a real error.
-      if ((e as DOMException).name !== 'AbortError') {
-        setError(`Share failed: ${(e as Error).message}`)
-        setOpen(true)
-      }
-    } finally { setBusy(null) }
-  }
-
   const handleCopy = async () => {
+    setBusy('copy'); setError(null)
     try {
-      await navigator.clipboard.writeText(shareURL)
+      const short = await shortenURL(shareURL)
+      await navigator.clipboard.writeText(short)
+      setBusy(null)
       setCopied(true)
       setTimeout(() => { setCopied(false); setOpen(false) }, 1500)
-    } catch { setError('Copy failed') }
+    } catch {
+      setBusy(null)
+      setError('Copy failed')
+    }
   }
 
   const handlePDF = async () => {
@@ -217,7 +189,7 @@ export function ShareSheet({ inputs }: Props) {
     } finally { setBusy(null) }
   }
 
-  const busyLabel = busy === 'share' ? 'Capturing…' : busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : null
+  const busyLabel = busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : busy === 'copy' ? 'Shortening…' : null
 
   return (
     <div className="relative" ref={sheetRef}>
@@ -249,7 +221,7 @@ export function ShareSheet({ inputs }: Props) {
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
             <div>
-              <div className="font-bold" style={{ color: 'var(--text-base)' }}>Share Results</div>
+              <div className="font-bold" style={{ color: 'var(--text-base)' }}>Export Results</div>
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>APA2118 Contract Comparison</div>
             </div>
             <button
@@ -263,28 +235,13 @@ export function ShareSheet({ inputs }: Props) {
             </button>
           </div>
 
-          {/* Send section */}
-          <SectionLabel>Send</SectionLabel>
-          <SheetRow
-            icon="🖼️"
-            label={nativeShare ? 'Share as image' : 'Download image to share'}
-            sublabel={
-              nativeShare
-                ? 'Opens your share sheet — pick Messages, WhatsApp, email, or any app'
-                : 'Save the image, then attach it as a picture message'
-            }
-            onClick={handleShareImage}
-            loading={busy === 'share'}
-          />
           <SheetRow
             icon={copied ? '✓' : '🔗'}
             label={copied ? 'Link copied!' : 'Copy link'}
-            sublabel="Paste anywhere — all your inputs are encoded in the URL"
+            sublabel="Shortened link — all your inputs are encoded inside"
             onClick={handleCopy}
+            loading={busy === 'copy'}
           />
-
-          {/* Save section */}
-          <SectionLabel>Save</SectionLabel>
           <SheetRow
             icon="📄"
             label="Download as PDF"
