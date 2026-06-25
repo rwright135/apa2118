@@ -1,10 +1,8 @@
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
+import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
-
-const VOTE_YES_COLOR = '#c9a84c'
-const VOTE_NO_COLOR = '#7ba3c9'
 
 interface ChartDatum {
   name: string
@@ -33,21 +31,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-function buildChartData(results: ComparisonResult[]): ChartDatum[] {
-  return results.flatMap((result, i) => {
+export function ComparisonBarChart({ results }: Props) {
+  const { voteYes, voteNo } = useResultChartColors()
+
+  const data: ChartDatum[] = results.flatMap((result, i) => {
     const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-    const voteNo = result.voteNoExpected
+    const voteNoExpected = result.voteNoExpected
     const prefix = results.length > 1 ? `Scenario ${i + 1} · ` : ''
 
     return [
-      { name: `${prefix}Vote Yes`, value: scenarioA.preJcbaTotal, fill: VOTE_YES_COLOR },
-      { name: `${prefix}Vote No (exp.)`, value: voteNo.preJcbaTotal, fill: VOTE_NO_COLOR },
+      { name: `${prefix}Vote Yes`, value: scenarioA.preJcbaTotal, fill: voteYes },
+      { name: `${prefix}Vote No (exp.)`, value: voteNoExpected.preJcbaTotal, fill: voteNo },
     ]
   })
-}
 
-export function ComparisonBarChart({ results }: Props) {
-  const data = buildChartData(results)
   const categoryGap = results.length === 1 ? '62%' : '38%'
 
   return (
@@ -55,11 +52,11 @@ export function ComparisonBarChart({ results }: Props) {
       {/* Legend */}
       <div className="flex gap-4 mb-3">
         <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: VOTE_YES_COLOR }} />
+          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: voteYes }} />
           Vote Yes
         </div>
         <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: VOTE_NO_COLOR }} />
+          <span className="inline-block w-3 h-2 rounded-sm" style={{ background: voteNo }} />
           Vote No (expected)
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
+import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -113,12 +114,12 @@ function ScenarioRows({
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>{stat.sub}</div>
             </td>
             <td className="px-4 py-3 text-right whitespace-nowrap">
-              <span className="text-sm font-semibold tabular-nums" style={{ color: stat.highlight ? 'var(--gold)' : 'var(--text-base)' }}>
+              <span className="text-sm font-semibold tabular-nums" style={{ color: stat.highlight ? VOTE_YES_CSS : 'var(--text-base)' }}>
                 {fmt(yesVal)}
               </span>
             </td>
             <td className="px-4 py-3 text-right whitespace-nowrap">
-              <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>
+              <span className="text-sm font-semibold tabular-nums" style={{ color: VOTE_NO_CSS }}>
                 {fmt(noVal)}
               </span>
             </td>
@@ -194,10 +195,10 @@ export function ScenarioBreakdown({ results }: Props) {
           <thead>
             <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
               <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
-              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_YES_CSS }}>
                 Vote Yes
               </th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_CSS }}>
                 Vote No
               </th>
             </tr>

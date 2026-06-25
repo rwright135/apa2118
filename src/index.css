@@ -29,6 +29,7 @@ html {
   --gold-dark:     #96771f;
   --navy:          #1a2b4a;
   --vote-no:       #7ba3c9;
+  --vote-no-dim:   rgba(123, 163, 201, 0.15);
 
   /* Primary CTA button */
   --btn-bg:        #c9a84c;
@@ -86,6 +87,7 @@ html {
   --chip-text:     #1a2b4a;
 
   --vote-no:       #1a2b4a;
+  --vote-no-dim:   rgba(26, 43, 74, 0.15);
 }
 
 /* ── Remove number input spinners (up/down arrows) ──────────────────────── */

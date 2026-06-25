@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
+import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
-const VOTE_YES_COLOR = 'var(--gold)'
-const VOTE_NO_COLOR = 'var(--vote-no)'
+const VOTE_YES_COLOR = VOTE_YES_CSS
+const VOTE_NO_COLOR = VOTE_NO_CSS
 
 interface Props { results: ComparisonResult[] }
 
@@ -163,7 +164,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
                 Vote Yes
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_COLOR }}>
                 Vote No
               </th>
               <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
@@ -200,7 +201,7 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
                     <span className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>{fmt(aVal)}</span>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <span className="text-base font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>{fmt(noVal)}</span>
+                    <span className="text-base font-semibold tabular-nums" style={{ color: VOTE_NO_COLOR }}>{fmt(noVal)}</span>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="text-base font-black tabular-nums" style={{ color: diffColor }}>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
+import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -10,7 +11,7 @@ function fmtAxis(n: number) {
   return `$${n}`
 }
 
-const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
+const SCENARIO_DETAIL_COLORS = ['#a855f7', '#ef4444']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -30,6 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function CumulativeLineChart({ results }: Props) {
   const [showDetail, setShowDetail] = useState(false)
+  const { voteYes, voteNo } = useResultChartColors()
 
   // Use the longest JCBA window across all scenarios to set chart length
   const maxJcba = Math.max(...results.map(r => r.voteNoScenario.jcbaDurationMonths))
@@ -79,13 +81,12 @@ export function CumulativeLineChart({ results }: Props) {
 
           {results.map((_, ri) => {
             const suffix = results.length > 1 ? ` (S${ri + 1})` : ''
-            const noColor = SCENARIO_COLORS[ri]
             return [
-              <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke="#c9a84c" strokeWidth={2.5} dot={false} />,
-              <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={noColor}   strokeWidth={2.5} dot={false} />,
+              <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
+              <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
               ...(showDetail ? [
-                <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={noColor} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-                <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke="#ef4444"  strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
+                <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={SCENARIO_DETAIL_COLORS[0]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
+                <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={SCENARIO_DETAIL_COLORS[1]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
               ] : []),
             ]
           })}
