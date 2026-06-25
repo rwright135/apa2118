@@ -32,46 +32,79 @@ function ScenarioCard({
   retentionProbabilityB?: number
   retentionProbabilityC?: number
 }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const color = SCENARIO_COLORS[index]
   const label = SCENARIO_LABELS[index]
+  const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(0)}% · JCBA ${scenario.jcbaDurationMonths}mo`
 
   return (
     <div
       className="rounded-2xl overflow-hidden"
       style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}
     >
-      {/* Card header */}
-      <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer"
-        style={{ background: 'var(--bg-elevated)', borderBottom: expanded ? '1px solid var(--border-subtle)' : 'none' }}
-        onClick={() => setExpanded(v => !v)}
-      >
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-          <span className="font-bold text-sm" style={{ color }}>{label}</span>
-          {!expanded && (
-            <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}>
-              {Math.round(scenario.probability * 100)}% · {scenario.arrivalMonths}mo · +{(scenario.percentAboveTA * 100).toFixed(0)}% · JCBA {scenario.jcbaDurationMonths}mo
-            </span>
-          )}
+      {!expanded ? (
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+              <span className="font-bold text-sm" style={{ color }}>{label}</span>
+            </div>
+            {onRemove && (
+              <button
+                onClick={onRemove}
+                className="text-xs px-2 py-1 rounded-lg transition-colors shrink-0"
+                style={{ color: 'var(--negative)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          <div className="text-xs mb-4" style={{ color: 'var(--text-faint)' }}>
+            {summary}
+          </div>
+          <button
+            onClick={() => setExpanded(true)}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            style={{
+              border: `1.5px solid ${color}`,
+              color,
+              background: 'var(--bg-elevated)',
+            }}
+          >
+            Modify assumptions
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          {onRemove && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onRemove() }}
-              className="text-xs px-2 py-1 rounded-lg transition-colors"
-              style={{ color: 'var(--negative)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-            >
-              Remove
-            </button>
-          )}
-          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{expanded ? '▲' : '▼'}</span>
-        </div>
-      </div>
+      ) : (
+        <>
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+              <span className="font-bold text-sm" style={{ color }}>{label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {onRemove && (
+                <button
+                  onClick={onRemove}
+                  className="text-xs px-2 py-1 rounded-lg transition-colors"
+                  style={{ color: 'var(--negative)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+                >
+                  Remove
+                </button>
+              )}
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+                style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
+              >
+                Collapse
+              </button>
+            </div>
+          </div>
 
-      {expanded && (
-        <div className="px-4 py-5 space-y-8">
+          <div className="px-4 py-5 space-y-8">
           {/* Probability */}
           <div>
             <div className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
@@ -173,7 +206,8 @@ function ScenarioCard({
             probB={retentionProbabilityB}
             probC={retentionProbabilityC}
           />
-        </div>
+          </div>
+        </>
       )}
     </div>
   )
