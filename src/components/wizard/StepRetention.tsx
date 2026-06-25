@@ -71,21 +71,16 @@ function RetentionOutcomeBox({
 function WhyThisMattersCard() {
   return (
     <div
-      className="rounded-2xl px-4 py-4"
-      style={{
-        background: 'var(--chip-bg)',
-        border: '1px solid var(--chip-border)',
-      }}
+      className="rounded-xl p-4 text-sm leading-relaxed"
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
     >
-      <div className="font-semibold text-sm mb-2" style={{ color: 'var(--gold)' }}>
-        Why this matters
-      </div>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Why this matters: </span>
+      <span style={{ color: 'var(--text-muted)' }}>
         If we vote no, the retention bonus does not pay out on a fixed date — it accrues until a
         second bridge offer or JCBA ratification resolves the contract. Your balance above is only
         part of the picture. Assign a probability to each outcome below for how likely the full
         bonus is actually paid.
-      </p>
+      </span>
     </div>
   )
 }
