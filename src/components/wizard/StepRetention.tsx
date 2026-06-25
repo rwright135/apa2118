@@ -76,10 +76,12 @@ function WhyThisMattersCard() {
     >
       <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Why this matters: </span>
       <span style={{ color: 'var(--text-muted)' }}>
-        If we vote no, the retention bonus does not pay out on a fixed date — it accrues until a
-        second bridge offer or JCBA ratification resolves the contract. Your balance above is only
-        part of the picture. Assign a probability to each outcome below for how likely the full
-        bonus is actually paid.
+        If we vote no, the timing and certainty of the retention bonus payout is unknown. This is
+        not a fear tactic, it is purely a statement of fact. Despite the formal agreement and strong
+        company financials, disruption to the future payout, whether it be partial or in entirety,
+        is not a non-zero event. We have to weigh this reality as Allegiant Pilots could soon
+        become the largest finance lenders to the company. Assign a probability to each outcome
+        below for how likely the full bonus is actually paid.
       </span>
     </div>
   )
