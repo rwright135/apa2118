@@ -110,6 +110,7 @@ export function StepAdvanced() {
                     <label className="text-xs" style={{ color: 'var(--text-muted)' }}>By how much? (%)</label>
                     <input
                       type="range"
+                      tabIndex={-1}
                       min={1}
                       max={30}
                       step={1}

@@ -17,7 +17,7 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="wizard-layout min-h-screen flex flex-col"
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
       {/* Top bar */}

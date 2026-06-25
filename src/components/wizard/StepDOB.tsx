@@ -80,6 +80,7 @@ export function StepDOB() {
             </div>
             <input
               type="range"
+              tabIndex={-1}
               min={1960}
               max={MAX_YEAR}
               value={selectedYear}
