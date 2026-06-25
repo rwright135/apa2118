@@ -100,7 +100,7 @@ export function StepProfitSharing() {
                 className="font-semibold"
                 style={{ color: hasValue ? 'var(--text-base)' : 'var(--text-faint)' }}
               >
-                {hasValue ? `$${ps.toLocaleString()}` : 'n/a'}
+                {hasValue ? `$${ps.toLocaleString()}` : 'TBD'}
               </span>
             </div>
 
@@ -141,7 +141,7 @@ export function StepProfitSharing() {
                     className="font-bold"
                     style={{ color: hasValue ? 'var(--positive)' : 'var(--text-faint)' }}
                   >
-                    {hasValue && psAmt !== null ? `$${psAmt.toLocaleString()}` : 'n/a'}
+                    {hasValue && psAmt !== null ? `$${psAmt.toLocaleString()}` : 'TBD'}
                   </span>
                 </div>
               )
