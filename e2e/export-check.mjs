@@ -111,12 +111,20 @@ async function main() {
   await page.getByText('Copy link').click()
   await page.waitForTimeout(500)
   const copiedLink = await page.evaluate(() => navigator.clipboard.readText())
-  const param = new URL(copiedLink).searchParams.get('d') ?? ''
-  const rawJson = Buffer.from(param, 'base64').toString('utf8')
+  const parsedLink = new URL(copiedLink)
+  const param = parsedLink.searchParams.get('d') ?? ''
+  const rawJson = param ? Buffer.from(param, 'base64').toString('utf8') : ''
+
+  // Accept either a TinyURL short link or the compact encoded fallback URL
+  const isTinyURL = copiedLink.includes('tinyurl.com')
+  const isCompactFallback = rawJson.startsWith('{')
+
   results.link = {
-    copied: copiedLink.includes('d='),
+    link: copiedLink,
     length: copiedLink.length,
-    isCompactFormat: rawJson.startsWith('{'),        // not percent-encoded
+    isTinyURL,
+    isCompactFallback,
+    valid: isTinyURL || isCompactFallback,
     containsAdvanced: rawJson.includes('advancedPostJCBA'),
   }
 
@@ -128,8 +136,7 @@ async function main() {
   const failed =
     !results.pdf.validHeader ||
     !results.png.validPngHeader ||
-    !results.link.copied ||
-    !results.link.isCompactFormat ||
+    !results.link.valid ||
     results.link.containsAdvanced  // disabled advancedPostJCBA should be omitted
 
   if (failed) {

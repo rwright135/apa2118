@@ -4,6 +4,27 @@ import type { UserInputs } from '../../lib/types'
 
 interface Props { inputs: Partial<UserInputs> }
 
+// ── URL shortening ────────────────────────────────────────────────────────────
+
+/**
+ * Shorten a URL via TinyURL's free public API (no API key required).
+ * Falls back to the original URL silently on any network or API error.
+ */
+async function shortenURL(url: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(6000) }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const short = (await res.text()).trim()
+    if (short.startsWith('http')) return short
+    throw new Error('Unexpected response')
+  } catch {
+    return url
+  }
+}
+
 // ── Capture helpers ───────────────────────────────────────────────────────────
 
 function getResultsEl() {
@@ -115,7 +136,7 @@ function SheetRow({ icon, label, sublabel, onClick, loading }: SheetItem) {
 export function ShareSheet({ inputs }: Props) {
   const [open, setOpen]        = useState(false)
   const [copied, setCopied]    = useState(false)
-  const [busy, setBusy]        = useState<null | 'pdf' | 'image'>(null)
+  const [busy, setBusy]        = useState<null | 'pdf' | 'image' | 'copy'>(null)
   const [error, setError]      = useState<string | null>(null)
   const sheetRef               = useRef<HTMLDivElement>(null)
 
@@ -131,11 +152,17 @@ export function ShareSheet({ inputs }: Props) {
   }, [open])
 
   const handleCopy = async () => {
+    setBusy('copy'); setError(null)
     try {
-      await navigator.clipboard.writeText(shareURL)
+      const short = await shortenURL(shareURL)
+      await navigator.clipboard.writeText(short)
+      setBusy(null)
       setCopied(true)
       setTimeout(() => { setCopied(false); setOpen(false) }, 1500)
-    } catch { setError('Copy failed') }
+    } catch {
+      setBusy(null)
+      setError('Copy failed')
+    }
   }
 
   const handlePDF = async () => {
@@ -162,7 +189,7 @@ export function ShareSheet({ inputs }: Props) {
     } finally { setBusy(null) }
   }
 
-  const busyLabel = busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : null
+  const busyLabel = busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : busy === 'copy' ? 'Shortening…' : null
 
   return (
     <div className="relative" ref={sheetRef}>
@@ -211,8 +238,9 @@ export function ShareSheet({ inputs }: Props) {
           <SheetRow
             icon={copied ? '✓' : '🔗'}
             label={copied ? 'Link copied!' : 'Copy link'}
-            sublabel="Paste anywhere — all your inputs are encoded in the URL"
+            sublabel="Shortened link — all your inputs are encoded inside"
             onClick={handleCopy}
+            loading={busy === 'copy'}
           />
           <SheetRow
             icon="📄"

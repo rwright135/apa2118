@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ShareSheet } from './ShareSheet'
 
+// Default: TinyURL succeeds
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+  ok: true,
+  text: async () => 'https://tinyurl.com/abc123',
+} as unknown as Response))
+
 const MOCK_PNG = 'data:image/png;base64,iVBORw0KGgo='
 
 const { pdfSave, pdfAddImage, pdfAddPage } = vi.hoisted(() => ({
@@ -94,7 +100,20 @@ describe('ShareSheet export flows', () => {
     expect(screen.getByText('Download as image')).toBeInTheDocument()
   })
 
-  it('copies compact encoded link to clipboard', async () => {
+  it('copies shortened TinyURL link to clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+
+    await openSheet()
+    fireEvent.click(screen.getByText('Copy link'))
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+    expect(writeText.mock.calls[0][0]).toBe('https://tinyurl.com/abc123')
+    expect(await screen.findByText('Link copied!')).toBeInTheDocument()
+  })
+
+  it('falls back to the compact URL when TinyURL is unavailable', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')))
     const writeText = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
 
@@ -103,11 +122,10 @@ describe('ShareSheet export flows', () => {
 
     await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
     const url = writeText.mock.calls[0][0] as string
+    // Fallback: compact btoa(json) format, not a tinyurl
     expect(url).toContain('d=')
-    // Compact format: the 'd' param is btoa(json), not btoa(encodeURIComponent(json))
     const param = new URL(url).searchParams.get('d')!
-    const decoded = atob(param)
-    expect(decoded).toMatch(/^\{/)   // starts with '{' — raw JSON, not percent-encoded
+    expect(atob(param)).toMatch(/^\{/)
     expect(await screen.findByText('Link copied!')).toBeInTheDocument()
   })
 
