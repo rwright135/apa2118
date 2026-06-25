@@ -75,8 +75,8 @@ export function BaselineInputCards({ inputs }: Props) {
       className="rounded-2xl p-4"
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
     >
-      <h2 className="font-semibold text-sm uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
-        Your Baseline Inputs
+      <h2 className="font-semibold text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+        Baseline Inputs
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
