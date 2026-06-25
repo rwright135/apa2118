@@ -101,7 +101,7 @@ export function StepWelcome() {
           style={{ color: 'var(--text-faint)', maxWidth: '22rem' }}
         >
           This tool does not collect any personally identifiable information. Your answers
-          remain on your device only — nothing is sent to or stored on a server.
+          remain on your device only. Nothing is sent to or stored on a server.
         </p>
 
       </div>
