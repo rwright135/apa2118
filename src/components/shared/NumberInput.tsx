@@ -49,7 +49,7 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
 
   return (
     <div
-      className="flex items-center rounded-xl overflow-hidden transition-colors border-2"
+      className="flex w-full min-w-0 items-center rounded-xl overflow-hidden transition-colors border-2"
       style={{
         background: 'var(--bg-elevated)',
         borderColor: 'var(--border)',
@@ -59,7 +59,7 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
     >
       {prefix && (
         <span
-          className="px-4 py-4 text-lg font-medium border-r"
+          className="shrink-0 px-4 py-4 text-lg font-medium border-r"
           style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
         >
           {prefix}
@@ -72,12 +72,12 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
         value={value ? formatNumber(value) : ''}
         placeholder={placeholder ?? '0'}
         onChange={handleChange}
-        className="flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
+        className="min-w-0 w-full flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
         style={{ color: 'var(--text-base)' }}
       />
       {suffix && (
         <span
-          className="px-4 py-4 text-base font-medium border-l"
+          className="shrink-0 px-4 py-4 text-base font-medium border-l"
           style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
         >
           {suffix}

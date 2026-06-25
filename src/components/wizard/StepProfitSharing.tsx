@@ -69,23 +69,25 @@ export function StepProfitSharing() {
               className="flex justify-between items-center gap-3 px-4 py-2"
               style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)' }}
             >
-              <span className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              <span className="text-xs uppercase tracking-wide shrink-0" style={{ color: 'var(--text-faint)' }}>
                 Profit Sharing Projection
               </span>
-              {hasValue ? (
-                <span className="text-xs shrink-0" style={{ color: 'var(--text-faint)' }}>Annual</span>
-              ) : (
-                <span
-                  className="text-xs font-medium px-2 py-0.5 rounded shrink-0 text-right leading-snug"
-                  style={{
-                    background: 'var(--chip-bg)',
-                    color: 'var(--chip-text)',
-                    border: '1px solid var(--chip-border)',
-                  }}
-                >
-                  Enter a number above for the calculation.
-                </span>
-              )}
+              <span className="text-xs shrink-0 text-right leading-snug min-w-[11rem]">
+                {hasValue ? (
+                  <span style={{ color: 'var(--text-faint)' }}>Annual</span>
+                ) : (
+                  <span
+                    className="inline-block font-medium px-2 py-0.5 rounded"
+                    style={{
+                      background: 'var(--chip-bg)',
+                      color: 'var(--chip-text)',
+                      border: '1px solid var(--chip-border)',
+                    }}
+                  >
+                    Enter a number above for the calculation.
+                  </span>
+                )}
+              </span>
             </div>
 
             {/* Current CBA */}
