@@ -130,12 +130,6 @@ export function StepProfitSharing() {
           </div>
         )}
 
-        {!hasValue && cbaRate !== null && (
-          <p className="text-xs text-center" style={{ color: 'var(--text-faint)' }}>
-            Enter an amount above to see projected values.
-          </p>
-        )}
-
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
