@@ -35,9 +35,9 @@ export function ReviewScreen() {
       items: [
         { label: 'Annual Profit Sharing', value: formatCurrency(inputs.profitSharingLastYear) },
         { label: 'Retention Bonus Balance', value: formatCurrency(inputs.retentionCurrentBalance) },
-        { label: 'Retention Payout (Vote Yes)', value: 'Oct 1, 2026 (fixed)' },
-        { label: 'Retention Certainty (Vote No + 2nd Offer)', value: formatPct(inputs.retentionPayoutProbabilityB) },
-        { label: 'Retention Certainty (Vote No + Wait JCBA)', value: formatPct(inputs.retentionPayoutProbabilityC) },
+        { label: 'Outcome A Payout Date', value: 'Oct 1, 2026 (fixed)' },
+        { label: 'Outcome B Bonus Certainty', value: formatPct(inputs.retentionPayoutProbabilityB) },
+        { label: 'Outcome C Bonus Certainty', value: formatPct(inputs.retentionPayoutProbabilityC) },
         { label: 'Investment Return Rate', value: formatPct(inputs.investmentRate) },
       ],
     },

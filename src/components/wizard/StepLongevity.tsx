@@ -7,12 +7,12 @@ const CA_RATES = [163.29,171.42,178.27,185.36,192.76,198.54,204.49,210.60,215.85
 
 export function StepLongevity() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const longevity = inputs.longevityAsOfJul2026 ?? 1
+  const longevity = inputs.longevityAsOfJul2026
 
-  const currentRate = inputs.seat === 'FO'
-    ? FO_RATES[longevity - 1]
-    : inputs.seat === 'CA'
-    ? CA_RATES[longevity - 1]
+  const currentRate = inputs.seat && longevity
+    ? inputs.seat === 'FO'
+      ? FO_RATES[longevity - 1]
+      : CA_RATES[longevity - 1]
     : null
 
   return (
@@ -29,7 +29,7 @@ export function StepLongevity() {
               onClick={() => setInput('longevityAsOfJul2026', yr)}
               className="py-4 rounded-xl text-lg font-bold transition-all duration-200"
               style={
-                longevity === yr
+                longevity !== undefined && longevity === yr
                   ? { background: 'var(--btn-bg)', color: 'var(--btn-text)', outline: '2px solid var(--gold)', outlineOffset: '2px' }
                   : { background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
               }
@@ -53,7 +53,7 @@ export function StepLongevity() {
           </div>
         )}
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={longevity === undefined}>Continue</NavButton>
     </WizardLayout>
   )
 }

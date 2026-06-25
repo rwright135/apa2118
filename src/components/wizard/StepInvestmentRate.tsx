@@ -21,6 +21,16 @@ export function StepInvestmentRate() {
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">
+        <div
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Why this matters: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            This rate discounts future pay into today's dollars AND compounds retirement contributions moving forward. In order to evaluate your options from an unbiased standpoint, you have to account for the time value of money. For example, $50,000 in your 401(k) starting today vs. starting in two years has a serious compound interest effect. Simply put, money today is worth more than money tomorrow.
+          </span>
+        </div>
+
         <SliderInput
           value={ratePct}
           min={4}
@@ -51,16 +61,6 @@ export function StepInvestmentRate() {
               </button>
             )
           })}
-        </div>
-
-        <div
-          className="rounded-xl p-4 text-sm leading-relaxed"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-        >
-          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Why this matters: </span>
-          <span style={{ color: 'var(--text-muted)' }}>
-            The rate above discounts future pay into today's dollars AND compounds retirement contributions moving forward. In order to evaluate your options from an unbiased standpoint, you have to account for the time value of money. For example, $50,000 in your 401(k) starting today vs. starting in two years has a serious compound interest effect. Simply put, money today is worth more than money tomorrow.
-          </span>
         </div>
       </div>
       <NavButton onClick={nextStep}>Continue</NavButton>

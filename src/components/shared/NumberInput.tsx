@@ -1,5 +1,7 @@
+import { useRef, type ChangeEvent } from 'react'
+
 interface Props {
-  value: number
+  value: number | undefined
   onChange: (v: number) => void
   prefix?: string
   suffix?: string
@@ -9,30 +11,51 @@ interface Props {
   step?: number
 }
 
-function parseNumericInput(raw: string): number | null {
-  const trimmed = raw.trim()
-  if (trimmed === '' || trimmed === '-') return 0
-  const parsed = Number(trimmed)
-  return Number.isFinite(parsed) ? parsed : null
+function formatNumber(n: number): string {
+  return n.toLocaleString('en-US')
+}
+
+function parseDigits(raw: string): number {
+  const digits = raw.replace(/\D/g, '')
+  if (digits === '') return 0
+  return Number(digits)
+}
+
+function clamp(n: number, min?: number, max?: number): number {
+  let result = n
+  if (min !== undefined) result = Math.max(result, min)
+  if (max !== undefined) result = Math.min(result, max)
+  return result
+}
+
+function formatDisplayValue(value: number | undefined): string {
+  if (value === undefined) return ''
+  return formatNumber(value)
 }
 
 export function NumberInput({ value, onChange, prefix, suffix, min, max, placeholder, step = 1 }: Props) {
-  const clamp = (n: number) => {
-    let next = n
-    if (min !== undefined) next = Math.max(min, next)
-    if (max !== undefined) next = Math.min(max, next)
-    return next
-  }
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleChange = (raw: string) => {
-    const parsed = parseNumericInput(raw)
-    if (parsed === null) return
-    onChange(clamp(parsed))
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target
+    const cursorFromEnd = input.value.length - (input.selectionStart ?? input.value.length)
+    const isEmpty = input.value.replace(/\D/g, '') === ''
+
+    const num = clamp(parseDigits(input.value), min, max)
+    onChange(num)
+
+    requestAnimationFrame(() => {
+      const el = inputRef.current
+      if (!el) return
+      const formatted = isEmpty ? '' : formatNumber(num)
+      const newPos = Math.max(0, formatted.length - cursorFromEnd)
+      el.setSelectionRange(newPos, newPos)
+    })
   }
 
   return (
     <div
-      className="flex items-center rounded-xl overflow-hidden transition-colors border-2"
+      className="flex w-full min-w-0 items-center rounded-xl overflow-hidden transition-colors border-2"
       style={{
         background: 'var(--bg-elevated)',
         borderColor: 'var(--border)',
@@ -42,32 +65,32 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
     >
       {prefix && (
         <span
-          className="px-4 py-4 text-lg font-medium border-r"
+          className="shrink-0 px-4 py-4 text-lg font-medium border-r"
           style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
         >
           {prefix}
         </span>
       )}
       <input
+        ref={inputRef}
         type="text"
         inputMode={step % 1 === 0 ? 'numeric' : 'decimal'}
         enterKeyHint="done"
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        value={value || ''}
+        value={formatDisplayValue(value)}
         placeholder={placeholder ?? '0'}
-        onChange={(e) => handleChange(e.target.value)}
-        onBlur={(e) => handleChange(e.target.value)}
+        onChange={handleChange}
         onKeyDown={(e) => {
           if (e.key === 'Enter') e.currentTarget.blur()
         }}
-        className="wizard-text-input flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
+        className="wizard-text-input min-w-0 w-full flex-1 bg-transparent px-4 py-4 text-lg font-semibold outline-none placeholder:opacity-30"
         style={{ color: 'var(--text-base)' }}
       />
       {suffix && (
         <span
-          className="px-4 py-4 text-base font-medium border-l"
+          className="shrink-0 px-4 py-4 text-base font-medium border-l"
           style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
         >
           {suffix}

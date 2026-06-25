@@ -98,7 +98,7 @@ export function CumulativeLineChart({ results }: Props) {
           className="text-xs font-medium transition-colors"
           style={{ color: 'var(--accent)' }}
         >
-          {showDetail ? 'Hide scenario detail' : 'Show how Vote No is weighted (Scenario B & C)'}
+          {showDetail ? 'Hide scenario detail' : 'Show how Vote No is weighted (Outcome B & C)'}
         </button>
       </div>
     </div>

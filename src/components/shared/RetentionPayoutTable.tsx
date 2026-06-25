@@ -1,4 +1,10 @@
 import { CONTRACT_PARAMS } from '../../data/contractParams'
+import {
+  RETENTION_OUTCOME_COLORS,
+  RETENTION_OUTCOME_DESCRIPTIONS,
+  RETENTION_OUTCOME_SHORT,
+  type RetentionOutcomeId,
+} from '../../lib/retentionOutcomes'
 
 function addDays(date: Date, days: number): Date {
   const d = new Date(date)
@@ -33,29 +39,36 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
   const payoutDateC = addDays(addMonthsTo(START_DATE, jcbaMonths), payoutDays)
   const noOfferProbability = 1 - offerProbability
 
-  const rows = [
+  const rows: Array<{
+    outcome: RetentionOutcomeId
+    label: string
+    color: string
+    date: string
+    note: string
+    probability: number
+  }> = [
     {
-      scenario: 'A',
-      label: 'Vote Yes',
-      color: 'var(--gold)',
+      outcome: 'A',
+      label: RETENTION_OUTCOME_SHORT.A,
+      color: RETENTION_OUTCOME_COLORS.A,
       date: fmtDate(PAYOUT_DATE_A),
-      note: 'Fixed — 60 days after ratification',
+      note: RETENTION_OUTCOME_DESCRIPTIONS.A,
       probability: 1,
     },
     {
-      scenario: 'B',
-      label: 'Vote No + 2nd offer',
-      color: '#a855f7',
+      outcome: 'B',
+      label: RETENTION_OUTCOME_SHORT.B,
+      color: RETENTION_OUTCOME_COLORS.B,
       date: fmtDate(payoutDateB),
-      note: `Offer arrival + ${payoutDays} days (${arrivalMonths} mo from now)`,
+      note: RETENTION_OUTCOME_DESCRIPTIONS.B,
       probability: offerProbability,
     },
     {
-      scenario: 'C',
-      label: 'Vote No, no offer',
-      color: 'var(--negative)',
+      outcome: 'C',
+      label: RETENTION_OUTCOME_SHORT.C,
+      color: RETENTION_OUTCOME_COLORS.C,
       date: fmtDate(payoutDateC),
-      note: `JCBA conclusion + ${payoutDays} days (${jcbaMonths} mo from now)`,
+      note: RETENTION_OUTCOME_DESCRIPTIONS.C,
       probability: noOfferProbability,
     },
   ]
@@ -63,7 +76,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
   return (
     <div>
       <div className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>
-        Computed payout dates per scenario
+        Computed payout dates per outcome
       </div>
       <div
         className="rounded-xl overflow-hidden"
@@ -71,7 +84,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
       >
         {rows.map((row, i) => (
           <div
-            key={row.scenario}
+            key={row.outcome}
             className="px-4 py-3"
             style={{
               background: i % 2 === 0 ? 'var(--bg-elevated)' : 'var(--bg-surface)',
@@ -99,18 +112,18 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
                 </div>
                 <div
                   className="text-xs"
-                  style={{ color: row.scenario === 'A' ? 'var(--positive)' : 'var(--text-faint)' }}
+                  style={{ color: row.outcome === 'A' ? 'var(--positive)' : 'var(--text-faint)' }}
                 >
-                  {row.scenario === 'A'
-                    ? '100% if Vote Yes'
-                    : `${Math.round(row.probability * 100)}% scenario weight`}
+                  {row.outcome === 'A'
+                    ? '100% bonus certainty'
+                    : `${Math.round(row.probability * 100)}% vote-no path weight`}
                 </div>
-                {row.scenario === 'B' && probB !== undefined && (
+                {row.outcome === 'B' && probB !== undefined && (
                   <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
                     {Math.round(probB * 100)}% bonus certainty
                   </div>
                 )}
-                {row.scenario === 'C' && probC !== undefined && (
+                {row.outcome === 'C' && probC !== undefined && (
                   <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
                     {Math.round(probC * 100)}% bonus certainty
                   </div>
@@ -121,7 +134,7 @@ export function RetentionPayoutTable({ arrivalMonths, jcbaMonths, offerProbabili
         ))}
       </div>
       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-        Scenario weights update as you adjust your assumptions above. Bonus accrues until its payout date under Scenarios B and C.
+        Outcome path weights update as you adjust your assumptions above. The bonus accrues until its payout date under Outcomes B and C.
       </p>
     </div>
   )

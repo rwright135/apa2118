@@ -44,15 +44,10 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
 }
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
-  longevityAsOfJul2026: 1,
-  anniversaryMonth: 0,
   lineType: 'FLYING',
-  extraHoursAboveMMG: 0,
   investmentRate: 0.08,
-  profitSharingLastYear: 0,
-  retentionCurrentBalance: 0,
   retentionPayoutProbabilityB: 0.95,
-  retentionPayoutProbabilityC: 0.90,
+  retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],
   advancedPostJCBA: {
     enabled: false,

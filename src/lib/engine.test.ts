@@ -16,7 +16,7 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   profitSharingLastYear: 1000,
   retentionCurrentBalance: 50000,
   retentionPayoutProbabilityB: 0.95,
-  retentionPayoutProbabilityC: 0.90,
+  retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VNS }],
   advancedPostJCBA: {
     enabled: false,
@@ -48,6 +48,23 @@ describe('getLongevityAt', () => {
   it('caps at 12', () => {
     const target = new Date(2034, 8, 1) // Many years later
     expect(getLongevityAt(4, 8, baseDate, target)).toBe(12)
+  })
+
+  // June anniversary: June 2026 already happened before July 1 baseline.
+  // The entered longevity already reflects it — no increment until June 2027.
+  it('does not increment a June anniversary before June 2027', () => {
+    const may2027 = new Date(2027, 4, 1)
+    expect(getLongevityAt(3, 5, baseDate, may2027)).toBe(3)
+  })
+
+  it('increments a June anniversary at June 2027, not before', () => {
+    const jun2027 = new Date(2027, 5, 1)
+    expect(getLongevityAt(3, 5, baseDate, jun2027)).toBe(4)
+  })
+
+  it('does not double-count June 2026 anniversary at start date', () => {
+    // At July 1 2026 itself, longevity should still be the entered baseline
+    expect(getLongevityAt(3, 5, baseDate, baseDate)).toBe(3)
   })
 })
 

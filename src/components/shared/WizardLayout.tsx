@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ProgressBar } from './ProgressBar'
 import { ThemeToggle } from './ThemeToggle'
 import { WIZARD_STEPS } from '../../state/store'
@@ -14,6 +15,10 @@ interface Props {
 export function WizardLayout({ step, title, subtitle, onBack, children }: Props) {
   const contentSteps = WIZARD_STEPS.filter(s => s !== 'welcome' && s !== 'results')
   const contentIndex = contentSteps.indexOf(step as typeof contentSteps[number])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [step])
 
   return (
     <div

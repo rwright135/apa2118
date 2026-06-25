@@ -144,13 +144,13 @@ function ScenarioRows({
           <tr style={{ background: 'var(--bg-elevated)' }}>
             <td colSpan={3} className="px-4 pt-3 pb-1">
               <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-                Vote No = (Scenario B × {Math.round(p * 100)}%) + (Scenario C × {Math.round((1 - p) * 100)}%)
+                Vote No = (Outcome B × {Math.round(p * 100)}%) + (Outcome C × {Math.round((1 - p) * 100)}%)
               </p>
             </td>
           </tr>
           {[
-            { label: `Scenario B — 2nd bridge offer`, weight: p,       pv: scenarioB.preJcbaTotal },
-            { label: `Scenario C — No offer, wait for JCBA`,   weight: 1 - p, pv: scenarioC.preJcbaTotal },
+            { label: 'Outcome B — 2nd bridge offer arrives', weight: p,       pv: scenarioB.preJcbaTotal },
+            { label: 'Outcome C — No offer, stay on CBA until JCBA',   weight: 1 - p, pv: scenarioC.preJcbaTotal },
           ].map(({ label, weight, pv }) => (
             <tr key={label} style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
               <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>

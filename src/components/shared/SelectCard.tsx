@@ -18,19 +18,19 @@ export function SelectCard({ selected, onClick, icon, title, description }: Prop
     >
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="text-2xl shrink-0" style={{ color: selected ? 'var(--accent)' : 'var(--text-faint)' }}>
+          <div className="text-2xl shrink-0" style={{ color: selected ? 'var(--accent)' : 'var(--text-muted)' }}>
             {icon}
           </div>
         )}
         <div className="flex-1 min-w-0">
           <div
             className="font-semibold"
-            style={{ color: selected ? 'var(--text-base)' : 'var(--text-muted)' }}
+            style={{ color: 'var(--text-base)' }}
           >
             {title}
           </div>
           {description && (
-            <div className="text-sm mt-0.5" style={{ color: 'var(--text-faint)' }}>
+            <div className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
               {description}
             </div>
           )}

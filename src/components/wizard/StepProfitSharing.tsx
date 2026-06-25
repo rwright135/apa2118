@@ -31,11 +31,13 @@ const CA_TIERS: Tier[] = [
 
 export function StepProfitSharing() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const ps = inputs.profitSharingLastYear ?? 0
+  const ps = inputs.profitSharingLastYear
+  const psAmount = ps ?? 0
   const l  = (inputs.longevityAsOfJul2026 ?? 1) - 1
 
   const cbaRate = inputs.seat === 'FO' ? FO_CBA[l] : inputs.seat === 'CA' ? CA_CBA[l] : null
   const tiers   = inputs.seat === 'FO' ? FO_TIERS  : inputs.seat === 'CA' ? CA_TIERS  : null
+  const hasValue = psAmount > 0
 
   return (
     <WizardLayout
@@ -58,20 +60,20 @@ export function StepProfitSharing() {
           step={100}
         />
 
-        {ps > 0 && cbaRate !== null && tiers !== null && (
+        {cbaRate !== null && tiers !== null && (
           <div
             className="rounded-xl overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
-            {/* Header row */}
+            {/* Header row — always the same height */}
             <div
-              className="flex justify-between items-center px-4 py-2"
+              className="flex justify-between items-center gap-3 px-4 py-2"
               style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)' }}
             >
-              <span className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              <span className="text-xs uppercase tracking-wide shrink-0" style={{ color: 'var(--text-faint)' }}>
                 Profit Sharing Projection
               </span>
-              <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Annual</span>
+              <span className="text-xs shrink-0" style={{ color: 'var(--text-faint)' }}>Annual</span>
             </div>
 
             {/* Current CBA */}
@@ -82,17 +84,20 @@ export function StepProfitSharing() {
               <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 Current CBA
               </span>
-              <span className="font-semibold" style={{ color: 'var(--text-base)' }}>
-                ${ps.toLocaleString()}
+              <span
+                className="font-semibold"
+                style={{ color: hasValue ? 'var(--text-base)' : 'var(--text-faint)' }}
+              >
+                {hasValue ? `$${psAmount.toLocaleString()}` : 'TBD'}
               </span>
             </div>
 
             {/* Three TA tiers */}
             {tiers.map((tier, i) => {
-              const multiplier = tier.rates[l] / cbaRate
-              const psPct      = Math.round((multiplier - 1) * 100)
-              const psAmt      = Math.round(ps * multiplier)
-              const isLast     = i === tiers.length - 1
+              const isLast = i === tiers.length - 1
+              const multiplier = hasValue ? tier.rates[l] / cbaRate : null
+              const psPct      = multiplier !== null ? Math.round((multiplier - 1) * 100) : null
+              const psAmt      = multiplier !== null ? Math.round(psAmount * multiplier) : null
 
               return (
                 <div
@@ -104,22 +109,21 @@ export function StepProfitSharing() {
                   }}
                 >
                   <span className="text-sm" style={{ color: isLast ? 'var(--text-base)' : 'var(--text-muted)' }}>
-                    {tier.label}{' '}
-                    <span
-                      className="text-xs font-semibold ml-1 px-1.5 py-0.5 rounded"
-                      style={{
-                        background: 'rgba(34,197,94,0.12)',
-                        color: 'var(--positive)',
-                      }}
-                    >
-                      +{psPct}%
-                    </span>
+                    {tier.label}
+                    {hasValue && psPct !== null && (
+                      <span
+                        className="text-xs font-semibold ml-1.5 px-1.5 py-0.5 rounded"
+                        style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}
+                      >
+                        +{psPct}%
+                      </span>
+                    )}
                   </span>
                   <span
                     className="font-bold"
-                    style={{ color: 'var(--positive)' }}
+                    style={{ color: hasValue ? 'var(--positive)' : 'var(--text-faint)' }}
                   >
-                    ${psAmt.toLocaleString()}
+                    {hasValue && psAmt !== null ? `$${psAmt.toLocaleString()}` : 'TBD'}
                   </span>
                 </div>
               )
@@ -128,7 +132,7 @@ export function StepProfitSharing() {
         )}
 
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
     </WizardLayout>
   )
 }

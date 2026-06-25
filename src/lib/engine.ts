@@ -33,6 +33,13 @@ export function getRetirementDate(dob: Date): Date {
 /**
  * Compute pilot's longevity at a given date.
  * Longevity increments on the anniversaryMonth each year, capped at 12.
+ *
+ * The baseLongevity is the pilot's longevity AS OF baseDate (July 1, 2026),
+ * so any anniversary that falls on or before baseDate is already reflected in
+ * baseLongevity and must NOT be counted again. For example, a June anniversary
+ * pilot who enters longevity=3 already had their June 2026 increment; the next
+ * increment is June 2027. The strict `annivMonth > startMonth` condition
+ * enforces this correctly for any anniversary month ≤ July.
  */
 export function getLongevityAt(
   baseLongevity: number,
@@ -81,7 +88,7 @@ export function getMonthlyHours(
       : isTA
       ? CONTRACT_PARAMS.MMG_RESERVE_TA
       : CONTRACT_PARAMS.MMG_RESERVE_CBA
-  return mmg + inputs.extraHoursAboveMMG
+  return mmg + (inputs.extraHoursAboveMMG ?? 0)
 }
 
 // ─── 401k rate ────────────────────────────────────────────────────────────────
@@ -130,7 +137,7 @@ export function getProfitSharingForYear(
     scenarioRate = getRate(inputs.seat, longevityAtDate, tier)
   }
 
-  return inputs.profitSharingLastYear * (scenarioRate / baseRate)
+  return (inputs.profitSharingLastYear ?? 0) * (scenarioRate / baseRate)
 }
 
 // ─── Retention bonus ──────────────────────────────────────────────────────────
@@ -182,7 +189,7 @@ export function buildMonthlyStream(
   let cumulativePV = 0
   let cumulativePV401k = 0
 
-  let retentionAccruedBalance = inputs.retentionCurrentBalance
+  let retentionAccruedBalance = inputs.retentionCurrentBalance ?? 0
 
   for (let m = 0; m < totalMonths; m++) {
     const date = addMonths(startDate, m)
@@ -249,7 +256,7 @@ export function buildMonthlyStream(
 
     if (scenarioId === 'A') {
       if (m === retentionPayoutMonth) {
-        retentionCashFlow = inputs.retentionCurrentBalance
+        retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
     } else {
       const currentRate = getRate(inputs.seat, longevity, 'CBA')
