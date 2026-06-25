@@ -161,7 +161,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: cWagesShortfall > 0 ? 'var(--negative)' : 'var(--positive)' }} />
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                  If no offer arrives — Outcome C · {jcba}-month window
+                  If no offer arrives
                 </span>
               </div>
               <span className="text-base font-black tabular-nums shrink-0"
