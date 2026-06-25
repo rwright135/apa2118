@@ -33,6 +33,13 @@ export function getRetirementDate(dob: Date): Date {
 /**
  * Compute pilot's longevity at a given date.
  * Longevity increments on the anniversaryMonth each year, capped at 12.
+ *
+ * The baseLongevity is the pilot's longevity AS OF baseDate (July 1, 2026),
+ * so any anniversary that falls on or before baseDate is already reflected in
+ * baseLongevity and must NOT be counted again. For example, a June anniversary
+ * pilot who enters longevity=3 already had their June 2026 increment; the next
+ * increment is June 2027. The strict `annivMonth > startMonth` condition
+ * enforces this correctly for any anniversary month ≤ July.
  */
 export function getLongevityAt(
   baseLongevity: number,
