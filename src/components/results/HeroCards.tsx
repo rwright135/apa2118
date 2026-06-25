@@ -90,21 +90,21 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
   return (
-    <div className="rounded-xl overflow-hidden flex-1 min-w-0" style={{ background: bg, border }}>
+    <div className="rounded-xl overflow-hidden min-w-0" style={{ background: bg, border }}>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left"
+        className="w-full px-4 py-3 text-left"
         style={{ background: 'transparent' }}
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
-          <span className="text-xs font-semibold uppercase tracking-wide leading-tight" style={{ color: 'var(--text-faint)' }}>
+          <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
             {title}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-base font-black tabular-nums" style={{ color: valueColor }}>{value}</span>
+        <div className="flex items-center justify-end gap-1.5 mt-1.5 pl-3.5">
+          <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
           <svg
             width="12" height="12" viewBox="0 0 12 12" fill="none"
             stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
@@ -170,7 +170,7 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 
   return (
     <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="px-4 pt-4 pb-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" style={{ background: 'var(--bg-elevated)' }}>
 
           <RiskCard
             dotColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
@@ -209,6 +209,7 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             }
           />
 
+          <div className="md:col-span-2 xl:col-span-1 min-w-0">
           <RiskCard
             dotColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
             title="Worth the Risk?"
@@ -234,6 +235,7 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
               </>
             }
           />
+          </div>
 
         </div>
     </div>
