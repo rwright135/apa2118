@@ -131,7 +131,7 @@ export function StepProfitSharing() {
         )}
 
       </div>
-      <NavButton onClick={nextStep}>Continue</NavButton>
+      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
     </WizardLayout>
   )
 }
