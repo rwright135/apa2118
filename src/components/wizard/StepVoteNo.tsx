@@ -211,7 +211,7 @@ export function StepVoteNo() {
         >
           <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Explain: </span>
           <span style={{ color: 'var(--text-muted)' }}>
-            Set your own probability assumptions to evaluate the value of a potential second offer — and a no-offer outcome — across different timelines. Add up to 3 scenarios to compare them side by side.
+            Set your own probability assumptions to evaluate the value of a potential second offer, and a no-offer outcome, across different timelines. Add up to 3 scenarios to compare them side by side.
           </span>
         </div>
 
