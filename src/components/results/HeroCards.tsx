@@ -131,7 +131,7 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-5 py-3 text-xs font-medium transition-colors"
+        className="w-full flex items-center px-5 py-3 text-xs font-medium transition-colors"
         style={{ color: 'var(--text-muted)', background: 'transparent' }}
       >
         <span className="flex items-center gap-1.5">
@@ -139,10 +139,6 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
           {voteNoLeads
             ? 'What if the offer never comes? Best & worst case'
             : 'Why does Vote No trail? Scenario-by-scenario breakdown'}
-        </span>
-        <span className="text-xs px-2 py-0.5 rounded-full"
-          style={{ background: 'var(--bg-elevated)', color: 'var(--text-faint)', border: '1px solid var(--border-subtle)' }}>
-          Raw scenarios · no probability weighting
         </span>
       </button>
 
