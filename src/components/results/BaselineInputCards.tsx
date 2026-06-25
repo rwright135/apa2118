@@ -5,6 +5,7 @@ import {
   formatSeatName,
   formatYearsUntilRetirementValue,
   getBaselineFinancialInputItems,
+  getExtraHoursColor,
   getLineTypeIcon,
   getProfileInputItems,
 } from '../../lib/inputDisplay'
@@ -14,7 +15,17 @@ interface Props {
   inputs: UserInputs
 }
 
-function InputCard({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
+function InputCard({
+  label,
+  value,
+  icon,
+  valueContent,
+}: {
+  label: string
+  value?: string
+  icon?: React.ReactNode
+  valueContent?: React.ReactNode
+}) {
   return (
     <div
       className="rounded-xl px-3 py-2.5"
@@ -25,9 +36,11 @@ function InputCard({ label, value, icon }: { label: string; value: string; icon?
       </div>
       <div className="flex items-center gap-2">
         {icon}
-        <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
-          {value}
-        </div>
+        {valueContent ?? (
+          <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+            {value}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -109,18 +122,36 @@ export function BaselineInputCards({ inputs }: Props) {
             { label: 'Years until Retirement', value: formatYearsUntilRetirementValue(inputs.dateOfBirth) },
           ]}
         />
-        {profileItems.map(({ label, value }) => (
-          <InputCard
-            key={label}
-            label={label}
-            value={value}
-            icon={label === 'Line Type' ? (
-              <span className="text-xl shrink-0 leading-none" aria-hidden="true">
-                {getLineTypeIcon(inputs.lineType)}
-              </span>
-            ) : undefined}
-          />
-        ))}
+        {profileItems.map(({ label, value }) => {
+          if (label === 'Extra Hours/Month') {
+            const hours = inputs.extraHoursAboveMMG ?? 0
+            return (
+              <InputCard
+                key={label}
+                label={label}
+                valueContent={(
+                  <div className="text-sm font-semibold leading-snug">
+                    <span style={{ color: getExtraHoursColor(hours) }}>+{hours}</span>
+                    <span style={{ color: 'var(--text-base)' }}> hrs above MMG</span>
+                  </div>
+                )}
+              />
+            )
+          }
+
+          return (
+            <InputCard
+              key={label}
+              label={label}
+              value={value}
+              icon={label === 'Line Type' ? (
+                <span className="text-xl shrink-0 leading-none" aria-hidden="true">
+                  {getLineTypeIcon(inputs.lineType)}
+                </span>
+              ) : undefined}
+            />
+          )
+        })}
         {financialItems.map(({ label, value }) => (
           <InputCard key={label} label={label} value={value} />
         ))}

@@ -39,6 +39,19 @@ export function formatYearsUntilRetirementValue(dob?: Date): string {
   return dob ? `${getYearsUntilRetirement(dob)}` : '—'
 }
 
+export function getExtraHoursColor(hours: number): string {
+  if (hours < 3) return 'var(--negative)'
+  if (hours <= 6) return 'var(--warning)'
+  if (hours <= 10) return '#86efac'
+  if (hours <= 14) return 'var(--positive)'
+  return '#15803d'
+}
+
+export function formatExtraHoursAboveMMG(hours?: number): string {
+  const value = hours ?? 0
+  return `+${value} hrs above MMG`
+}
+
 export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayItem[] {
   return [
     {
@@ -51,7 +64,7 @@ export function getProfileInputItems(inputs: Partial<UserInputs>): InputDisplayI
     },
     {
       label: 'Extra Hours/Month',
-      value: `+${inputs.extraHoursAboveMMG ?? 0} hrs above MMG`,
+      value: formatExtraHoursAboveMMG(inputs.extraHoursAboveMMG),
     },
   ]
 }
