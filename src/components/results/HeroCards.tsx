@@ -152,8 +152,8 @@ function RiskRewardAccordion({ result }: { result: ComparisonResult }) {
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Assumes offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at +{(percentAboveTA * 100).toFixed(0)}% above TA, then JCBA closes at {jcba} months.
-              Not probability-weighted — this is the raw best-case outcome.
+              Offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at +{(percentAboveTA * 100).toFixed(0)}% above TA, JCBA closes at {jcba} months.
+              Your <strong style={{ color: 'var(--text-muted)' }}>{Math.round(result.voteNoScenario.probability * 100)}% offer arrival probability is not applied</strong> — this treats the offer as guaranteed so you can see the ceiling. Retention payout probability is still factored in.
             </p>
           </div>
 
