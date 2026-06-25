@@ -149,7 +149,7 @@ export function StepWelcome() {
             style={{ color: 'var(--negative)', maxWidth: '22rem' }}
             role="alert"
           >
-            Please read and accept the Terms of Service before continuing.
+            Please read &amp; accept the terms of service to continue.
           </p>
         )}
 
