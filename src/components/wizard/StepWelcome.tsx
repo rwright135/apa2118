@@ -154,7 +154,7 @@ export function StepWelcome() {
         )}
 
         <p className="mt-6 text-xs" style={{ color: 'var(--text-faint)' }}>
-          Version 1.1
+          Version 1.2
         </p>
 
       </div>
