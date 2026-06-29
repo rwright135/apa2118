@@ -70,7 +70,7 @@ export function StepPayRaise() {
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2028',
+      label: 'Jan 2028 (DOS+18 Months)',
       sublabel: `Longevity year ${lonAt2028} · final tier`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
