@@ -79,29 +79,59 @@ interface RiskCardProps {
   body: React.ReactNode
   accentBg?: string
   accentBorder?: string
+  collapsible?: boolean
+  defaultExpanded?: boolean
 }
 
-function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
+function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder, collapsible = false, defaultExpanded = true }: RiskCardProps) {
+  const [open, setOpen] = useState(defaultExpanded)
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
+
+  const header = (
+    <>
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+        <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
+          {title}
+        </span>
+      </div>
+      <div className="flex items-center justify-end gap-1.5 mt-1.5 pl-3.5">
+        <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
+        {collapsible && (
+          <svg
+            width="12" height="12" viewBox="0 0 12 12" fill="none"
+            stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
+            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
+          >
+            <path d="M2 4l4 4 4-4"/>
+          </svg>
+        )}
+      </div>
+    </>
+  )
+
   return (
     <div className="rounded-xl overflow-hidden min-w-0" style={{ background: bg, border }}>
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
-          <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
-            {title}
-          </span>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          className="w-full px-4 py-3 text-left"
+          style={{ background: 'transparent' }}
+        >
+          {header}
+        </button>
+      ) : (
+        <div className="px-4 py-3">{header}</div>
+      )}
+      {(!collapsible || open) && (
+        <div className="px-4 pb-4 pt-0">
+          <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
+          </div>
         </div>
-        <div className="flex items-center justify-end mt-1.5 pl-3.5">
-          <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
-        </div>
-      </div>
-      <div className="px-4 pb-4 pt-0">
-        <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -187,7 +217,15 @@ function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
   )
 }
 
-function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
+function RiskRewardBreakdown({
+  result,
+  collapsible = false,
+  defaultExpanded = true,
+}: {
+  result: ComparisonResult
+  collapsible?: boolean
+  defaultExpanded?: boolean
+}) {
   const {
     jcba,
     arrivalMonths,
@@ -214,6 +252,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             title="If the second offer arrives"
             value={<>{bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}</>}
             valueColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               <>
                 If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
@@ -230,6 +270,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             title="If no offer arrives"
             value={<>{cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}</>}
             valueColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               cWagesShortfall > 0
                 ? <>
@@ -254,6 +296,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             valueColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
             accentBg={cPVGap > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
             accentBorder={`1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               <>
                 Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
@@ -314,26 +358,58 @@ const BENCHMARK_SCENARIOS = [
 ] as const
 
 function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
       <div
         className="flex items-center justify-between px-5 py-3 border-b"
         style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
       >
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          style={{ background: 'transparent' }}
+        >
           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: scenarioColor }} />
           <span className="font-bold text-sm" style={{ color: scenarioColor }}>{label}</span>
+        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <RiskRewardHelp />
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+            style={{ background: 'transparent' }}
+          >
+            <svg
+              width="14" height="14" viewBox="0 0 12 12" fill="none"
+              stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
+              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+            >
+              <path d="M2 4l4 4 4-4"/>
+            </svg>
+          </button>
         </div>
-        <RiskRewardHelp />
       </div>
 
-      <RiskRewardBreakdown result={result} />
-
-      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-        </span>
-      </div>
+      {expanded ? (
+        <>
+          <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+          <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+            <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
+            </span>
+          </div>
+        </>
+      ) : (
+        <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
+          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+            Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
