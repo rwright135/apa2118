@@ -6,6 +6,9 @@ import {
   AVERAGE_ARRIVAL_MONTHS_ROUNDED,
   AVERAGE_ECONOMIC_INCREASE_PERCENT,
 } from '../data/airlineSecondOfferHistory'
+import {
+  AVERAGE_JCBA_MONTHS_ROUNDED,
+} from '../data/jcbaMergerHistory'
 
 export type WizardStep =
   | 'welcome'
@@ -46,21 +49,21 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
   probability: 0.50,
   arrivalMonths: AVERAGE_ARRIVAL_MONTHS_ROUNDED,
   percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
-  jcbaDurationMonths: 36,
+  jcbaDurationMonths: AVERAGE_JCBA_MONTHS_ROUNDED,
 }
 
 export const AVERAGE_SCENARIO = {
   probability: 0.50,
   arrivalMonths: AVERAGE_ARRIVAL_MONTHS_ROUNDED,
   percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
-  jcbaDurationMonths: 36,
+  jcbaDurationMonths: AVERAGE_JCBA_MONTHS_ROUNDED,
 }
 
 export const WORST_CASE_SCENARIO = {
   probability: 0.25,
   arrivalMonths: 18,
   percentAboveTA: 0.10,
-  jcbaDurationMonths: 60,
+  jcbaDurationMonths: 65,
 }
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {

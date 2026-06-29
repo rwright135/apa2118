@@ -5,6 +5,7 @@ import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
 import { SecondOfferArrivalInput } from './SecondOfferArrivalInput'
 import { SecondOfferImprovementInput } from './SecondOfferImprovementInput'
+import { JcbaDurationInput } from './JcbaDurationInput'
 import type { VoteNoScenario } from '../../lib/types'
 
 // ── Your Scenario (user-editable) ────────────────────────────────────────────
@@ -105,23 +106,13 @@ function ScenarioCard({
           />
 
           {/* JCBA duration */}
-          <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
-              How long until the JCBA is concluded?
-            </label>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
-              If there&apos;s no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes.
-            </p>
-            <SliderInput
-              value={scenario.jcbaDurationMonths}
-              min={6}
-              max={60}
-              step={3}
-              onChange={(v) => onChange({ jcbaDurationMonths: v })}
-              formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
-              showMinMax
-            />
-          </div>
+          <JcbaDurationInput
+            value={scenario.jcbaDurationMonths}
+            min={6}
+            max={72}
+            step={1}
+            onChange={(v) => onChange({ jcbaDurationMonths: v })}
+          />
           </div>
         </>
       )}
