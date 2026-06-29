@@ -155,6 +155,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
   const [showRetention, setShowRetention] = useState(false)
+  const [applyWeight, setApplyWeight]     = useState(false)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
@@ -165,6 +166,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
+
+  const p = result.voteNoScenario.probability
+  // Weight to apply when "show probability-weighted" is on
+  const scenarioWeight = activeTab === 'B' ? p : activeTab === 'C' ? 1 - p : 1
+  const isScenarioTab  = activeTab === 'B' || activeTab === 'C'
+  const weight = (isScenarioTab && applyWeight) ? scenarioWeight : 1
 
   const preJcbaRows = rows.slice(0, jcbaMonth)
   // Retention for Scenario C pays ~60 days after JCBA; include those post-JCBA months in the table.
@@ -226,6 +233,42 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             </button>
           ))}
         </div>
+
+        {/* Probability weight note + toggle — only on raw scenario tabs */}
+        {isScenarioTab && (
+          <div className="mt-3 flex items-start justify-between gap-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                Raw scenario — no probability weighting applied
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                These are the full numbers if this outcome occurs.
+                This scenario has a <strong>{Math.round(scenarioWeight * 100)}%</strong> probability weighting in the blended Vote No.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setApplyWeight(v => !v)}
+              className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={
+                applyWeight
+                  ? { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)', color: 'var(--gold)' }
+                  : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
+              }
+            >
+              <span
+                className="w-7 h-4 rounded-full relative transition-colors"
+                style={{ background: applyWeight ? 'var(--gold)' : 'var(--border)' }}
+              >
+                <span
+                  className="absolute top-0.5 w-3 h-3 rounded-full transition-all"
+                  style={{ background: 'white', left: applyWeight ? '14px' : '2px' }}
+                />
+              </span>
+              Apply {Math.round(scenarioWeight * 100)}% weight
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main table */}
@@ -309,7 +352,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
                     {columns.map(col => {
-                      const val = (row as unknown as Record<string, number>)[col.key]
+                      const raw = (row as unknown as Record<string, number>)[col.key]
+                      const val = raw * weight
                       return (
                         <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
                           style={{
@@ -356,23 +400,23 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
             Pre-JCBA Total PV
             <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-              (pay + PS + retention + 401k + brokerage)
+              (pay + PS + retention + 401k + brokerage){applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
             </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.preJcbaTotal)}
+            {fmt(summary.preJcbaTotal * weight)}
           </div>
         </div>
         <div>
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            401(k) projected @ retirement
+            401(k) projected @ retirement{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.retirementBalanceAt65)}
+            {fmt(summary.retirementBalanceAt65 * weight)}
           </div>
         </div>
         <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-          Matches Breakdown table above ↑
+          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Breakdown table above ↑'}
         </div>
       </div>
 
