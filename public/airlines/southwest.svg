@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Southwest Airlines">
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  <path d="M32 10 C22 10 14 18 14 28 C14 40 24 50 32 56 C40 50 50 40 50 28 C50 18 42 10 32 10 Z" fill="#ffffff" stroke="#ffffff" stroke-width="4"/>
+  <path d="M32 14 C24 14 18 20 18 28 C18 37 26 45 32 50 C38 45 46 37 46 28 C46 20 40 14 32 14 Z" fill="#304CB2"/>
+  <path d="M32 18 C27 18 22 22 22 28 C22 34 27 39 32 43 C37 39 42 34 42 28 C42 22 37 18 32 18 Z" fill="#DA291C"/>
+  <path d="M32 22 C30 22 28 24 28 28 C28 31 30 33 32 35 C34 33 36 31 36 28 C36 24 34 22 32 22 Z" fill="#FFC72C"/>
+</svg>

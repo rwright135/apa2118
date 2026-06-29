@@ -3,6 +3,7 @@ import { useStore, DEFAULT_VOTE_NO_SCENARIO, AVERAGE_SCENARIO, WORST_CASE_SCENAR
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
+import { SecondOfferArrivalInput } from './SecondOfferArrivalInput'
 import type { VoteNoScenario } from '../../lib/types'
 
 const JCBA_PRESETS = [
@@ -92,20 +93,12 @@ function ScenarioCard({
           </div>
 
           {/* Arrival months */}
-          <div>
-            <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-              If the second offer comes — how many months from now?
-            </label>
-            <SliderInput
-              value={scenario.arrivalMonths}
-              min={6}
-              max={60}
-              step={1}
-              onChange={(v) => onChange({ arrivalMonths: v })}
-              formatValue={(v) => `${v} months`}
-              showMinMax
-            />
-          </div>
+          <SecondOfferArrivalInput
+            value={scenario.arrivalMonths}
+            min={6}
+            max={60}
+            onChange={(v) => onChange({ arrivalMonths: v })}
+          />
 
           {/* % above TA */}
           <div>
