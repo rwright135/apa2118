@@ -4,6 +4,8 @@ import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
 interface Props { results: ComparisonResult[] }
 
+const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
+
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
@@ -90,7 +92,7 @@ function ScenarioRows({
             className="px-4 py-2 text-xs font-semibold"
             style={{ color: 'var(--text-muted)', borderTop: index > 0 ? '2px solid var(--border)' : undefined }}
           >
-            Scenario {index + 1}
+            {SCENARIO_LABELS[index] ?? `Scenario ${index + 1}`}
             <span className="ml-2 font-normal" style={{ color: 'var(--text-faint)' }}>
               {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo arrival · +{(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA {vns.jcbaDurationMonths}mo
             </span>
@@ -215,7 +217,7 @@ export function ScenarioBreakdown({ results }: Props) {
                 key={i}
                 result={result}
                 index={i}
-                showHeader={results.length > 1}
+                showHeader={true}
               />
             ))}
           </tbody>
