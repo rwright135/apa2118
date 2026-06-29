@@ -21,7 +21,6 @@ interface TierRow {
   sublabel: string
   rate: number
   monthlyPay: number
-  raiseDollarsPerHr: number
   raiseMonthly: number
 }
 
@@ -50,7 +49,6 @@ export function StepPayRaise() {
       sublabel: 'What you earn today',
       rate: cbaRate,
       monthlyPay: cbaRate * mmg,
-      raiseDollarsPerHr: 0,
       raiseMonthly: 0,
     },
     {
@@ -58,7 +56,6 @@ export function StepPayRaise() {
       sublabel: 'Effective July 1 · includes back pay',
       rate: dosRate,
       monthlyPay: dosRate * mmg,
-      raiseDollarsPerHr: dosRate - cbaRate,
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
     {
@@ -66,7 +63,6 @@ export function StepPayRaise() {
       sublabel: `Longevity year ${lonAt2027}`,
       rate: jan27Rate,
       monthlyPay: jan27Rate * mmg,
-      raiseDollarsPerHr: jan27Rate - cbaRate,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
@@ -74,7 +70,6 @@ export function StepPayRaise() {
       sublabel: `Longevity year ${lonAt2028} · final tier`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
-      raiseDollarsPerHr: jan28Rate - cbaRate,
       raiseMonthly: (jan28Rate - cbaRate) * mmg,
     },
   ]
@@ -138,13 +133,6 @@ export function StepPayRaise() {
                   )}
                 </div>
               </div>
-              {hasRaise && (
-                <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}>
-                    +{fmtRate(tier.raiseDollarsPerHr)}/hr vs. today
-                  </span>
-                </div>
-              )}
             </div>
           )
         })}
