@@ -2,6 +2,10 @@ import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
 import { saveToLocalStorage, clearLocalStorage } from './persistence'
+import {
+  AVERAGE_ARRIVAL_MONTHS,
+  AVERAGE_ECONOMIC_INCREASE_PERCENT,
+} from '../data/airlineSecondOfferHistory'
 
 export type WizardStep =
   | 'welcome'
@@ -40,15 +44,15 @@ export const WIZARD_STEPS: WizardStep[] = [
 
 export const DEFAULT_VOTE_NO_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 13,
-  percentAboveTA: 0.15,
+  arrivalMonths: AVERAGE_ARRIVAL_MONTHS,
+  percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
   jcbaDurationMonths: 36,
 }
 
 export const AVERAGE_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 13,
-  percentAboveTA: 0.15,
+  arrivalMonths: AVERAGE_ARRIVAL_MONTHS,
+  percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
   jcbaDurationMonths: 36,
 }
 

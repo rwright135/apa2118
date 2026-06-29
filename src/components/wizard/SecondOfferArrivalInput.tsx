@@ -3,6 +3,7 @@ import { SliderInput } from '../shared/SliderInput'
 import {
   AIRLINE_HISTORY_INTRO,
   AIRLINE_SECOND_OFFER_HISTORY,
+  ARRIVAL_AVERAGE_MATH,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
 
@@ -40,6 +41,20 @@ function InfoIcon() {
       <circle cx="12" cy="12" r="9" />
       <path d="M12 10v6M12 7h.01" strokeLinecap="round" />
     </svg>
+  )
+}
+
+function CalculationBox({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-xl p-4 mt-4"
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+    >
+      <div className="font-semibold text-xs mb-2" style={{ color: 'var(--gold)' }}>{title}</div>
+      <div className="text-xs leading-relaxed space-y-1.5 tabular-nums" style={{ color: 'var(--text-muted)' }}>
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -145,19 +160,23 @@ function AirlineTimeline({ min, max, activeId, onSelect }: {
                   <img src={record.logoSrc} alt="" className="w-6 h-6 object-contain" />
                 </span>
                 <span className="text-[10px] font-medium tabular-nums" style={{ color: 'var(--text-faint)' }}>
-                  {record.approximateMonths}mo
+                  {record.approximateMonths}mo{record.isArrivalOutlier ? '*' : ''}
                 </span>
               </button>
             </div>
           )
         })}
       </div>
+      <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-faint)' }}>
+        * Excluded from the 13-month industry average as an outlier
+      </p>
     </div>
   )
 }
 
 function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  const { dayValues, carrierCount, averageDays, months, outlierLabel } = ARRIVAL_AVERAGE_MATH
 
   useEffect(() => {
     if (!open) return
@@ -247,6 +266,19 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
               ))}
             </tbody>
           </table>
+
+          <CalculationBox title="How we get 13 months (Average scenario default)">
+            <p>
+              {outlierLabel} is treated as an outlier and excluded from the average.
+            </p>
+            <p>
+              ({dayValues.join(' + ')}) ÷ {carrierCount} = {Math.round(averageDays)} days average
+            </p>
+            <p>
+              {Math.round(averageDays)} ÷ 365 × 12 = <strong style={{ color: 'var(--text-base)' }}>{months} months</strong>
+            </p>
+          </CalculationBox>
+
           <p className="text-[11px] mt-4 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
             * Approximate increase in total economic value between first and second offers.
           </p>

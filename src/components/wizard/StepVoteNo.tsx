@@ -4,6 +4,7 @@ import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
 import { SecondOfferArrivalInput } from './SecondOfferArrivalInput'
+import { SecondOfferImprovementInput } from './SecondOfferImprovementInput'
 import type { VoteNoScenario } from '../../lib/types'
 
 const JCBA_PRESETS = [
@@ -23,7 +24,7 @@ function ScenarioCard({
 }) {
   const [expanded, setExpanded] = useState(true)
   const color = 'var(--gold)'
-  const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(0)}% · JCBA ${scenario.jcbaDurationMonths}mo`
+  const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(1)}% · JCBA ${scenario.jcbaDurationMonths}mo`
 
   return (
     <div
@@ -101,23 +102,13 @@ function ScenarioCard({
           />
 
           {/* % above TA */}
-          <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
-              How much better would that offer be vs. the TA?
-            </label>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
-              A positive number means the new offer beats the current TA rates.
-            </p>
-            <SliderInput
-              value={Math.round(scenario.percentAboveTA * 1000) / 10}
-              min={5}
-              max={20}
-              step={0.5}
-              onChange={(v) => onChange({ percentAboveTA: v / 100 })}
-              formatValue={(v) => `+${v.toFixed(1)}%`}
-              showMinMax
-            />
-          </div>
+          <SecondOfferImprovementInput
+            value={Math.round(scenario.percentAboveTA * 1000) / 10}
+            min={5}
+            max={20}
+            step={0.5}
+            onChange={(v) => onChange({ percentAboveTA: v / 100 })}
+          />
 
           {/* JCBA duration */}
           <div>
@@ -216,7 +207,7 @@ function LockedScenarioCard({
         />
         <StatRow
           label="Offer improvement vs. TA"
-          value={`+${(scenario.percentAboveTA * 100).toFixed(0)}%`}
+          value={`+${(scenario.percentAboveTA * 100).toFixed(1)}%`}
         />
         <StatRow
           label="JCBA concluded"
