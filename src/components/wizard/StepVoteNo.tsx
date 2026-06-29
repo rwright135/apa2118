@@ -3,7 +3,6 @@ import { useStore, DEFAULT_VOTE_NO_SCENARIO, AVERAGE_SCENARIO, WORST_CASE_SCENAR
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
-import { RetentionPayoutTable } from '../shared/RetentionPayoutTable'
 import type { VoteNoScenario } from '../../lib/types'
 
 const JCBA_PRESETS = [
@@ -17,15 +16,9 @@ const JCBA_PRESETS = [
 function ScenarioCard({
   scenario,
   onChange,
-  jcbaMonths,
-  retentionProbabilityB,
-  retentionProbabilityC,
 }: {
   scenario: VoteNoScenario
   onChange: (patch: Partial<VoteNoScenario>) => void
-  jcbaMonths: number
-  retentionProbabilityB?: number
-  retentionProbabilityC?: number
 }) {
   const [expanded, setExpanded] = useState(true)
   const color = 'var(--gold)'
@@ -171,15 +164,6 @@ function ScenarioCard({
               })}
             </div>
           </div>
-
-          {/* Retention payout table */}
-          <RetentionPayoutTable
-            arrivalMonths={scenario.arrivalMonths}
-            jcbaMonths={jcbaMonths}
-            offerProbability={scenario.probability}
-            probB={retentionProbabilityB}
-            probC={retentionProbabilityC}
-          />
           </div>
         </>
       )}
@@ -281,9 +265,6 @@ export function StepVoteNo() {
           <ScenarioCard
             scenario={scenario}
             onChange={updateScenario}
-            jcbaMonths={scenario.jcbaDurationMonths}
-            retentionProbabilityB={inputs.retentionPayoutProbabilityB}
-            retentionProbabilityC={inputs.retentionPayoutProbabilityC}
           />
 
           <LockedScenarioCard
