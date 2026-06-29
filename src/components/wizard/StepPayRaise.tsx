@@ -134,12 +134,15 @@ export function StepPayRaise() {
                 </div>
               </div>
               {hasRaise && (
-                <div className="mt-2 pt-2 flex items-center gap-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                <div className="mt-2 pt-2 flex items-center gap-3 flex-wrap" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}>
                     +{fmtRate(tier.raiseDollarsPerHr)}/hr vs. today
                   </span>
                   <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
                     +{fmt(tier.raiseMonthly)}/mo
+                  </span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                    +{fmt(tier.raiseMonthly * 12)}/yr
                   </span>
                 </div>
               )}
@@ -201,13 +204,20 @@ export function StepPayRaise() {
         {dosRaiseMonthly > 0 ? (
           <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
             <div className="text-xs mb-1" style={{ color: 'var(--text-faint)' }}>
-              At the July 2026 rate, your monthly raise is {fmt(dosRaiseMonthly)}
+              At the July 2026 rate, your monthly raise is {fmt(dosRaiseMonthly)} ({fmt(dosRaiseMonthly * 12)}/yr)
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmt(monthlySavings)}/mo
-              </span>
-              <span className="text-xs" style={{ color: 'var(--text-faint)' }}>invested in your brokerage</span>
+            <div className="flex items-baseline gap-x-3 gap-y-1 flex-wrap">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+                  {fmt(monthlySavings)}/mo
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>invested</span>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                  {fmt(monthlySavings * 12)}/yr
+                </span>
+              </div>
             </div>
             {pct === 0 && (
               <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
