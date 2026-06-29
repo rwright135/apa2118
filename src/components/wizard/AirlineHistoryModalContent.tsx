@@ -22,14 +22,14 @@ function ArticleLink({ label, url }: { label: string; url: string }) {
 
 function AirlineArticleLinks({ record }: { record: AirlineSecondOfferRecord }) {
   return (
-    <ul className="space-y-1 mt-1.5">
+    <div className="mt-1.5 text-xs flex flex-wrap items-center gap-x-1.5 gap-y-1">
       {record.articleLinks.map((link, index) => (
-        <li key={link.url}>
-          <span style={{ color: 'var(--text-faint)' }}>{articleLinkTypeLabel(record, index)}: </span>
-          <ArticleLink label={link.label} url={link.url} />
-        </li>
+        <span key={link.url} className="flex items-center gap-x-1.5">
+          {index > 0 && <span style={{ color: 'var(--text-faint)' }}>|</span>}
+          <ArticleLink label={articleLinkTypeLabel(record, index)} url={link.url} />
+        </span>
       ))}
-    </ul>
+    </div>
   )
 }
 

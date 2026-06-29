@@ -71,16 +71,16 @@ function AirlineTooltipBody({ record }: { record: AirlineSecondOfferRecord }) {
           <dd style={{ color: 'var(--text-muted)' }}>{record.economicIncrease}</dd>
         </div>
       </dl>
-      <ul className="space-y-1 mt-2 pt-2 border-t text-xs" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="mt-2 pt-2 border-t text-xs flex flex-wrap items-center gap-x-1.5 gap-y-1" style={{ borderColor: 'var(--border-subtle)' }}>
         {record.articleLinks.map((link, index) => (
-          <li key={link.url}>
-            <span style={{ color: 'var(--text-faint)' }}>{articleLinkTypeLabel(record, index)}: </span>
+          <span key={link.url} className="flex items-center gap-x-1.5">
+            {index > 0 && <span style={{ color: 'var(--text-faint)' }}>|</span>}
             <a href={link.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2" style={{ color: 'var(--accent)' }}>
-              {link.label}
+              {articleLinkTypeLabel(record, index)}
             </a>
-          </li>
+          </span>
         ))}
-      </ul>
+      </div>
     </>
   )
 }
