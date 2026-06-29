@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 178">
+  <!-- Left/shadow face -->
+  <polygon points="0,178 100,0 100,178" fill="#A50B2F"/>
+  <!-- Right/light face -->
+  <polygon points="100,0 200,178 100,178" fill="#E31837"/>
+  <!-- White notch -->
+  <polygon points="0,178 32,178 100,132 168,178 200,178 100,68" fill="#ffffff"/>
+</svg>

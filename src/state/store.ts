@@ -2,6 +2,13 @@ import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
 import { saveToLocalStorage, clearLocalStorage } from './persistence'
+import {
+  AVERAGE_ARRIVAL_MONTHS_ROUNDED,
+  AVERAGE_ECONOMIC_INCREASE_PERCENT,
+} from '../data/airlineSecondOfferHistory'
+import {
+  AVERAGE_JCBA_MONTHS_ROUNDED,
+} from '../data/jcbaMergerHistory'
 
 export type WizardStep =
   | 'welcome'
@@ -40,23 +47,23 @@ export const WIZARD_STEPS: WizardStep[] = [
 
 export const DEFAULT_VOTE_NO_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 11,
-  percentAboveTA: 0.15,
-  jcbaDurationMonths: 36,
+  arrivalMonths: AVERAGE_ARRIVAL_MONTHS_ROUNDED,
+  percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
+  jcbaDurationMonths: AVERAGE_JCBA_MONTHS_ROUNDED,
 }
 
 export const AVERAGE_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 11,
-  percentAboveTA: 0.15,
-  jcbaDurationMonths: 36,
+  arrivalMonths: AVERAGE_ARRIVAL_MONTHS_ROUNDED,
+  percentAboveTA: AVERAGE_ECONOMIC_INCREASE_PERCENT / 100,
+  jcbaDurationMonths: AVERAGE_JCBA_MONTHS_ROUNDED,
 }
 
 export const WORST_CASE_SCENARIO = {
   probability: 0.25,
   arrivalMonths: 18,
   percentAboveTA: 0.10,
-  jcbaDurationMonths: 60,
+  jcbaDurationMonths: 65,
 }
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
@@ -168,6 +175,7 @@ export const useStore = create<AppState>((set, get) => ({
       return
     }
     set({ isComputing: true })
+    const start = Date.now()
     setTimeout(() => {
       try {
         const fullInputs = inputs as UserInputs
@@ -177,7 +185,11 @@ export const useStore = create<AppState>((set, get) => ({
           buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
           buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
         ]
-        set({ results: multiResults, isComputing: false, currentStep: 'results' })
+        const elapsed = Date.now() - start
+        const remaining = Math.max(0, 3000 - elapsed)
+        setTimeout(() => {
+          set({ results: multiResults, isComputing: false, currentStep: 'results' })
+        }, remaining)
       } catch (e) {
         console.error('Computation error', e)
         set({ isComputing: false })

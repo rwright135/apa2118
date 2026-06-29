@@ -16,15 +16,12 @@ function fmtRate(n: number) {
   return `$${n.toFixed(2)}`
 }
 
-function formatUpgradeDate(yearsFromStart: number) {
-  return `Jul ${2026 + yearsFromStart}`
-}
-
 interface TierRow {
   label: string
   sublabel: string
   rate: number
   monthlyPay: number
+  raiseDollarsPerHr: number
   raiseMonthly: number
 }
 
@@ -53,27 +50,31 @@ export function StepPayRaise() {
       sublabel: 'What you earn today',
       rate: cbaRate,
       monthlyPay: cbaRate * mmg,
+      raiseDollarsPerHr: 0,
       raiseMonthly: 0,
     },
     {
       label: 'Jul 2026 (DOS)',
-      sublabel: 'Back Pay Effective July 1st',
+      sublabel: 'Effective July 1 · includes back pay',
       rate: dosRate,
       monthlyPay: dosRate * mmg,
+      raiseDollarsPerHr: dosRate - cbaRate,
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2027 (DOS+6 months)',
-      sublabel: `${lonAt2027} Year ${seat}`,
+      label: 'Jan 2027 (DOS+6 Months)',
+      sublabel: `Longevity year ${lonAt2027}`,
       rate: jan27Rate,
       monthlyPay: jan27Rate * mmg,
+      raiseDollarsPerHr: jan27Rate - cbaRate,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
       label: 'Jan 2028 (DOS+18 Months)',
-      sublabel: `${lonAt2028} Year ${seat}`,
+      sublabel: `Longevity year ${lonAt2028} · final tier`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
+      raiseDollarsPerHr: jan28Rate - cbaRate,
       raiseMonthly: (jan28Rate - cbaRate) * mmg,
     },
   ]
@@ -86,14 +87,6 @@ export function StepPayRaise() {
     ? getRate('CA', upgradeLon, 'TA_DOS_EOY2026')
     : null
 
-  // For the slider preview, show savings at each Bridge TA tier
-  const savingsTiers = tiers.slice(1).map((tier) => ({
-    label: tier.label,
-    raiseMonthly: tier.raiseMonthly,
-    monthlySavings: Math.max(0, tier.raiseMonthly) * pct,
-  }))
-  const hasRaisePreview = savingsTiers.some((tier) => tier.raiseMonthly > 0)
-
   function handleSlider(e: React.ChangeEvent<HTMLInputElement>) {
     setInput('brokerageSavingsPct', Number(e.target.value) / 100)
   }
@@ -101,77 +94,12 @@ export function StepPayRaise() {
   return (
     <WizardLayout
       step="payRaise"
-      title="Your Pay Raise on the Bridge TA"
-      subtitle="See how your hourly rate changes with the new contract — and decide how much of your raise to invest."
+      title="Investing your Bridge Agreement Pay Raise"
+      subtitle="Set how much of your raise to invest, then see the impact across each contract tier."
       onBack={prevStep}
     >
-      <div className="mb-6 space-y-2">
-        {tiers.map((tier, i) => {
-          const isCurrent = i === 0
-          const hasRaise  = tier.raiseMonthly > 0
-          return (
-            <div
-              key={tier.label}
-              className="rounded-xl px-4 py-3"
-              style={{
-                background: isCurrent ? 'var(--bg-subtle)' : 'var(--bg-elevated)',
-                border: isCurrent ? '1px solid var(--border)' : '1px solid var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
-                    {tier.label}
-                  </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                    {tier.sublabel}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="text-base font-bold tabular-nums" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--gold)' }}>
-                    {fmtRate(tier.rate)}/hr
-                  </div>
-                  <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
-                    {fmt(tier.monthlyPay)}/mo
-                  </div>
-                  {hasRaise && (
-                    <div className="text-xs font-semibold tabular-nums mt-0.5" style={{ color: 'var(--positive)' }}>
-                      +{fmt(tier.raiseMonthly)}/mo
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        })}
-
-        {/* CA upgrade preview for FO pilots */}
-        {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
-          <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
-                  After upgrade to Captain ({formatUpgradeDate(inputs.upgradeToCAInYears)})
-                </div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                  Captain rate at longevity {upgradeLon} · DOS tier
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                  {fmtRate(upgradeCARate)}/hr
-                </div>
-                <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
-                  {fmt(upgradeCARate * mmg)}/mo
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Savings slider */}
-      <div className="rounded-xl px-4 py-4 mb-6" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+      {/* Investment slider — top */}
+      <div className="rounded-xl px-4 py-4 mb-5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-3">
           <div>
             <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
@@ -181,7 +109,7 @@ export function StepPayRaise() {
               Saved to a brokerage account and compounded to retirement
             </div>
           </div>
-          <div className="text-xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+          <div className="text-2xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
             {Math.round(pct * 100)}%
           </div>
         </div>
@@ -197,52 +125,82 @@ export function StepPayRaise() {
           style={{ accentColor: 'var(--gold)' }}
         />
 
-        <div className="flex justify-between text-xs mt-1 mb-4" style={{ color: 'var(--text-faint)' }}>
+        <div className="flex justify-between text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
           <span>0%</span>
           <span>50%</span>
           <span>100%</span>
         </div>
+      </div>
 
-        {hasRaisePreview ? (
-          <div className="rounded-lg px-3 py-2.5 space-y-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Your monthly raise steps up through the Bridge TA — here&apos;s what {Math.round(pct * 100)}% looks like at each tier:
-            </div>
-            <div className="space-y-2">
-              {savingsTiers.map((tier) => (
-                <div
-                  key={tier.label}
-                  className="flex items-start justify-between gap-3 rounded-lg px-2.5 py-2"
-                  style={{ background: 'var(--bg-elevated)' }}
-                >
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                      {tier.label}
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                      Raise {fmt(tier.raiseMonthly)}/mo
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-base font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-                      {fmt(tier.monthlySavings)}/mo
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                      to brokerage
-                    </div>
+      {/* Tier cards */}
+      <div className="mb-6 space-y-3">
+        {tiers.map((tier, i) => {
+          const isCurrent = i === 0
+          const hasRaise  = tier.raiseMonthly > 0
+          const invested  = tier.raiseMonthly * pct
+          return (
+            <div
+              key={tier.label}
+              className="rounded-xl px-4 py-4"
+              style={{
+                background: isCurrent ? 'var(--bg-subtle)' : 'var(--bg-elevated)',
+                border: isCurrent ? '1px solid var(--border)' : '1px solid var(--border-subtle)',
+              }}
+            >
+              {/* Header row */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
+                    {tier.label}
                   </div>
                 </div>
-              ))}
-            </div>
-            {pct === 0 && (
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                Slide to model brokerage savings
+                <div className="text-right shrink-0">
+                  <div className="text-lg font-bold tabular-nums" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--gold)' }}>
+                    {fmtRate(tier.rate)}/hr
+                  </div>
+                  <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
+                    {fmt(tier.monthlyPay)}/mo
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-xs text-center py-2" style={{ color: 'var(--text-faint)' }}>
-            Enter your longevity to see rate details
+
+              {/* Raise + investment rows */}
+              {hasRaise && (
+                <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Monthly Raise</span>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                      +{fmt(tier.raiseMonthly)}/mo
+                    </span>
+                  </div>
+                  {pct > 0 && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Savings/Month</span>
+                      <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                        {fmt(invested)}/mo
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* CA upgrade preview for FO pilots */}
+        {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
+          <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--gold)' }}>
+              After upgrade to Captain (year {inputs.upgradeToCAInYears})
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                Captain rate at longevity {upgradeLon} · DOS tier
+              </div>
+              <div className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                {fmtRate(upgradeCARate)}/hr · {fmt(upgradeCARate * mmg)}/mo
+              </div>
+            </div>
           </div>
         )}
       </div>

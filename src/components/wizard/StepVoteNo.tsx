@@ -3,33 +3,23 @@ import { useStore, DEFAULT_VOTE_NO_SCENARIO, AVERAGE_SCENARIO, WORST_CASE_SCENAR
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
-import { RetentionPayoutTable } from '../shared/RetentionPayoutTable'
+import { SecondOfferArrivalInput } from './SecondOfferArrivalInput'
+import { SecondOfferImprovementInput } from './SecondOfferImprovementInput'
+import { JcbaDurationInput } from './JcbaDurationInput'
 import type { VoteNoScenario } from '../../lib/types'
-
-const JCBA_PRESETS = [
-  { label: 'Optimistic', months: 18, desc: '1.5 yrs' },
-  { label: 'Likely',     months: 30, desc: '2.5 yrs' },
-  { label: 'Conservative', months: 48, desc: '4 yrs' },
-]
 
 // ── Your Scenario (user-editable) ────────────────────────────────────────────
 
 function ScenarioCard({
   scenario,
   onChange,
-  jcbaMonths,
-  retentionProbabilityB,
-  retentionProbabilityC,
 }: {
   scenario: VoteNoScenario
   onChange: (patch: Partial<VoteNoScenario>) => void
-  jcbaMonths: number
-  retentionProbabilityB?: number
-  retentionProbabilityC?: number
 }) {
   const [expanded, setExpanded] = useState(true)
   const color = 'var(--gold)'
-  const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(0)}% · JCBA ${scenario.jcbaDurationMonths}mo`
+  const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(1)}% · JCBA ${scenario.jcbaDurationMonths}mo`
 
   return (
     <div
@@ -99,86 +89,29 @@ function ScenarioCard({
           </div>
 
           {/* Arrival months */}
-          <div>
-            <label className="block text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-              If the second offer comes — how many months from now?
-            </label>
-            <SliderInput
-              value={scenario.arrivalMonths}
-              min={6}
-              max={60}
-              step={1}
-              onChange={(v) => onChange({ arrivalMonths: v })}
-              formatValue={(v) => `${v} months`}
-              showMinMax
-            />
-          </div>
+          <SecondOfferArrivalInput
+            value={scenario.arrivalMonths}
+            min={6}
+            max={36}
+            onChange={(v) => onChange({ arrivalMonths: v })}
+          />
 
           {/* % above TA */}
-          <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
-              How much better would that offer be vs. the TA?
-            </label>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
-              A positive number means the new offer beats the current TA rates.
-            </p>
-            <SliderInput
-              value={Math.round(scenario.percentAboveTA * 1000) / 10}
-              min={5}
-              max={20}
-              step={0.5}
-              onChange={(v) => onChange({ percentAboveTA: v / 100 })}
-              formatValue={(v) => `+${v.toFixed(1)}%`}
-              showMinMax
-            />
-          </div>
+          <SecondOfferImprovementInput
+            value={Math.round(scenario.percentAboveTA * 1000) / 10}
+            min={5}
+            max={20}
+            step={0.5}
+            onChange={(v) => onChange({ percentAboveTA: v / 100 })}
+          />
 
           {/* JCBA duration */}
-          <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
-              How long until the JCBA is concluded?
-            </label>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
-              If there&apos;s no second offer, you stay on current CBA (DOS+5) rates all the way until the JCBA concludes.
-            </p>
-            <SliderInput
-              value={scenario.jcbaDurationMonths}
-              min={6}
-              max={60}
-              step={3}
-              onChange={(v) => onChange({ jcbaDurationMonths: v })}
-              formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
-              showMinMax
-            />
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {JCBA_PRESETS.map(({ label: pl, months, desc }) => {
-                const active = scenario.jcbaDurationMonths === months
-                return (
-                  <button
-                    key={pl}
-                    onClick={() => onChange({ jcbaDurationMonths: months })}
-                    className="py-2 px-2 rounded-xl text-center transition-all duration-200"
-                    style={
-                      active
-                        ? { background: 'var(--sel-bg)', border: `2px solid ${color}`, color: 'var(--text-base)' }
-                        : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-                    }
-                  >
-                    <div className="font-bold text-xs">{desc}</div>
-                    <div className="text-xs mt-0.5" style={{ color: active ? color : 'var(--text-faint)' }}>{pl}</div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Retention payout table */}
-          <RetentionPayoutTable
-            arrivalMonths={scenario.arrivalMonths}
-            jcbaMonths={jcbaMonths}
-            offerProbability={scenario.probability}
-            probB={retentionProbabilityB}
-            probC={retentionProbabilityC}
+          <JcbaDurationInput
+            value={scenario.jcbaDurationMonths}
+            min={6}
+            max={72}
+            step={1}
+            onChange={(v) => onChange({ jcbaDurationMonths: v })}
           />
           </div>
         </>
@@ -239,7 +172,7 @@ function LockedScenarioCard({
         />
         <StatRow
           label="Offer improvement vs. TA"
-          value={`+${(scenario.percentAboveTA * 100).toFixed(0)}%`}
+          value={`+${(scenario.percentAboveTA * 100).toFixed(1)}%`}
         />
         <StatRow
           label="JCBA concluded"
@@ -273,7 +206,7 @@ export function StepVoteNo() {
         >
           <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Explain: </span>
           <span style={{ color: 'var(--text-muted)' }}>
-            Customize your own assumptions below, then compare your results against our fixed Average and Worst Case scenarios side by side.
+            Customize your own assumptions below, then compare your results against industry-backed historical average and worst-case scenarios.
           </span>
         </div>
 
@@ -281,9 +214,6 @@ export function StepVoteNo() {
           <ScenarioCard
             scenario={scenario}
             onChange={updateScenario}
-            jcbaMonths={scenario.jcbaDurationMonths}
-            retentionProbabilityB={inputs.retentionPayoutProbabilityB}
-            retentionProbabilityC={inputs.retentionPayoutProbabilityC}
           />
 
           <LockedScenarioCard

@@ -1,9 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
-import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
-
-const VOTE_YES_COLOR = VOTE_YES_CSS
-const VOTE_NO_COLOR = VOTE_NO_CSS
 
 interface Props { results: ComparisonResult[] }
 
@@ -13,12 +9,64 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function fmtAssumptionsCompact(vns: VoteNoScenario) {
-  return `${Math.round(vns.probability * 100)}% offer probability · ${vns.arrivalMonths}mo arrival · +${(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA ${vns.jcbaDurationMonths}mo`
-}
-
 function fmtAssumptionsFooter(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
+}
+
+const RISK_REWARD_HELP = (
+  'Instead of a single expected-value number, these cards show the upside if a second offer arrives, '
+  + 'the downside if it doesn\'t, and whether the potential reward is worth the risk of voting No.'
+)
+
+function HelpButton({ label, helpText }: { label: string; helpText: string }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const close = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
+        style={{
+          color: 'var(--text-faint)',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        ?
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-2 z-20 w-64 rounded-xl px-3 py-2.5 text-xs leading-relaxed shadow-lg"
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-muted)',
+          }}
+        >
+          {helpText}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RiskRewardHelp() {
+  return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
 }
 
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
@@ -31,28 +79,26 @@ interface RiskCardProps {
   body: React.ReactNode
   accentBg?: string
   accentBorder?: string
+  collapsible?: boolean
+  defaultExpanded?: boolean
 }
 
-function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
-  const [open, setOpen] = useState(true)
+function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder, collapsible = false, defaultExpanded = true }: RiskCardProps) {
+  const [open, setOpen] = useState(defaultExpanded)
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
-  return (
-    <div className="rounded-xl overflow-hidden min-w-0" style={{ background: bg, border }}>
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="w-full px-4 py-3 text-left"
-        style={{ background: 'transparent' }}
-      >
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
-          <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
-            {title}
-          </span>
-        </div>
-        <div className="flex items-center justify-end gap-1.5 mt-1.5 pl-3.5">
-          <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
+
+  const header = (
+    <>
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+        <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
+          {title}
+        </span>
+      </div>
+      <div className="flex items-center justify-end gap-1.5 mt-1.5 pl-3.5">
+        <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
+        {collapsible && (
           <svg
             width="12" height="12" viewBox="0 0 12 12" fill="none"
             stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
@@ -60,10 +106,27 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
           >
             <path d="M2 4l4 4 4-4"/>
           </svg>
-        </div>
-      </button>
-      {open && (
-        <div className="px-4 pb-3 pt-0">
+        )}
+      </div>
+    </>
+  )
+
+  return (
+    <div className="rounded-xl overflow-hidden min-w-0" style={{ background: bg, border }}>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          className="w-full px-4 py-3 text-left"
+          style={{ background: 'transparent' }}
+        >
+          {header}
+        </button>
+      ) : (
+        <div className="px-4 py-3">{header}</div>
+      )}
+      {(!collapsible || open) && (
+        <div className="px-4 pb-4 pt-0">
           <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
           </div>
@@ -73,14 +136,13 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
   )
 }
 
-function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
+function computeRiskRewardMetrics(result: ComparisonResult) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
   const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
-  // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
   const bNominalGap =
     (scenarioB.totalGrossPay + scenarioB.totalProfitSharing + scenarioB.totalRetention) -
     (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.totalRetention)
@@ -88,22 +150,16 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
-  // ── Worst case: Outcome C (no offer, stay on CBA) ────────────────────────────
-  // Nominal wages + PS you give up compared to accepting the TA today
   const cWagesShortfall =
     (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)   // + = Vote No earns less
+    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
 
-  // Vote Yes pays current retention balance at ratification; Scenario C delays it
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
 
-  // ── Retention bonus growth & recovery (Scenario C) ───────────────────────────
-  // Find the payout row to get exact timing and discount factor
   const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
   const cRetPayoutMonths = cRetPayoutRow?.monthIndex ?? (jcba + 2)
 
-  // Nominal accrued balance at payout — sum of starting balance + monthly accruals
   let cRetAccrued = retentionCurrentBalance
   for (const row of scenarioC.rows) {
     if (row.monthIndex >= cRetPayoutMonths) break
@@ -113,14 +169,91 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const cExpectedRetentionPayout = cRetAccrued * pC
   const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
 
+  return {
+    jcba,
+    arrivalMonths,
+    percentAboveTA,
+    retentionCurrentBalance,
+    pB,
+    pC,
+    bNominalGap,
+    bRetPayoutRow,
+    bRetPayoutMonths,
+    cWagesShortfall,
+    cHeadlineLoss,
+    cNetAfterRetention,
+    cRetAccrued,
+    cExpectedRetentionPayout,
+  }
+}
+
+function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
+  const { bNominalGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
+  const upsideIsGain = bNominalGap >= 0
+  const upsideAmount = fmt(Math.abs(bNominalGap))
+  const riskAmount = fmt(Math.abs(cHeadlineLoss))
+
   return (
-    <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" style={{ background: 'var(--bg-elevated)' }}>
+    <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
+      If a second offer arrives, you stand to{' '}
+      <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
+        {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
+      </strong>
+      {' '}vs. Voting Yes
+      {cHeadlineLoss > 0 ? (
+        <>
+          {' '}— but you&apos;re risking{' '}
+          <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
+          {' '}if no offer arrives.
+        </>
+      ) : (
+        <>
+          {' '}— and if no offer arrives, you still come out{' '}
+          <strong style={{ color: 'var(--positive)' }}>{riskAmount} ahead</strong>
+          {' '}on nominal pay vs. Voting Yes.
+        </>
+      )}
+    </p>
+  )
+}
+
+function RiskRewardBreakdown({
+  result,
+  collapsible = false,
+  defaultExpanded = true,
+}: {
+  result: ComparisonResult
+  collapsible?: boolean
+  defaultExpanded?: boolean
+}) {
+  const {
+    jcba,
+    arrivalMonths,
+    percentAboveTA,
+    retentionCurrentBalance,
+    pB,
+    pC,
+    bNominalGap,
+    bRetPayoutRow,
+    bRetPayoutMonths,
+    cWagesShortfall,
+    cHeadlineLoss,
+    cNetAfterRetention,
+    cRetAccrued,
+    cExpectedRetentionPayout,
+  } = computeRiskRewardMetrics(result)
+
+  return (
+    <div style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 
           <RiskCard
             dotColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
             title="If the second offer arrives"
             value={<>{bNominalGap >= 0 ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
             valueColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               <>
                 If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
@@ -137,6 +270,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             title="If no offer arrives"
             value={<>{cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}</>}
             valueColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               cWagesShortfall > 0
                 ? <>
@@ -161,6 +296,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
             valueColor={cNetAfterRetention > 0 ? 'var(--warning)' : 'var(--positive)'}
             accentBg={cNetAfterRetention > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
             accentBorder={`1px solid ${cNetAfterRetention > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
+            collapsible={collapsible}
+            defaultExpanded={defaultExpanded}
             body={
               <>
                 Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
@@ -181,6 +318,7 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
           />
           </div>
 
+        </div>
     </div>
   )
 }
@@ -190,10 +328,14 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="px-5 pt-5 pb-2">
-        <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-          Risk vs. reward
+      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+            Risk vs Reward
+          </div>
+          <RiskRewardHelp />
         </div>
+        <RiskRewardHeadline result={result} />
       </div>
 
       <RiskRewardBreakdown result={result} />
@@ -208,81 +350,66 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   )
 }
 
-// ── Multiple scenarios: comparison table ──────────────────────────────────────
+// ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
 
-function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
+const BENCHMARK_SCENARIOS = [
+  { label: 'Average', color: '#3b82f6' },
+  { label: 'Worst Case', color: '#ef4444' },
+] as const
+
+function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                Assumptions
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
-                Vote Yes
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_COLOR }}>
-                Vote No
-              </th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                Difference
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result, i) => {
-              const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-              const voteNo    = result.voteNoExpected
-              const aVal      = scenarioA.preJcbaTotal
-              const noVal     = voteNo.preJcbaTotal
-              const diff      = aVal - noVal
-              const aWins     = diff > 0
-              const vns       = result.voteNoScenario
-              const diffColor = aWins ? 'var(--positive)' : VOTE_NO_COLOR
-
-              return (
-                <tr
-                  key={i}
-                  className="border-b last:border-b-0"
-                  style={{ borderColor: 'var(--border-subtle)' }}
-                >
-                  <td className="px-5 py-4">
-                    <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-muted)' }}>
-                      Scenario {i + 1}
-                    </div>
-                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                      {fmtAssumptionsCompact(vns)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>{fmt(aVal)}</span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-base font-semibold tabular-nums" style={{ color: VOTE_NO_COLOR }}>{fmt(noVal)}</span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="text-base font-black tabular-nums" style={{ color: diffColor }}>
-                      {aWins ? '+' : '−'}{fmt(Math.abs(diff))}
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: diffColor, opacity: 0.75 }}>
-                      {aWins ? 'Vote Yes' : 'Vote No'} leads
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
+      <div
+        className="flex items-center justify-between px-5 py-3 border-b"
+        style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+      >
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          style={{ background: 'transparent' }}
+        >
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: scenarioColor }} />
+          <span className="font-bold text-sm" style={{ color: scenarioColor }}>{label}</span>
+        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <RiskRewardHelp />
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+            style={{ background: 'transparent' }}
+          >
+            <svg
+              width="14" height="14" viewBox="0 0 12 12" fill="none"
+              stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
+              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+            >
+              <path d="M2 4l4 4 4-4"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA decision window only · present value in today's dollars
-        </span>
-      </div>
+      {expanded ? (
+        <>
+          <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+          <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+            <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
+            </span>
+          </div>
+        </>
+      ) : (
+        <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
+          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+            Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
@@ -290,13 +417,34 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
 // ── Export ────────────────────────────────────────────────────────────────────
 
 export function HeroCards({ results }: Props) {
-  if (results.length === 1) {
-    return <SingleScenarioVerdict result={results[0]} />
-  }
+  const userResult       = results[0]
+  const referenceResults = results.slice(1)
 
   return (
-    <div className="space-y-2">
-      <MultiScenarioTable results={results} />
+    <div className="space-y-4">
+      {/* User's scenario — full risk/reward breakdown */}
+      <SingleScenarioVerdict result={userResult} />
+
+      {/* Industry benchmarks (Average, Worst Case) */}
+      {referenceResults.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
+            Industry benchmarks
+          </div>
+          {referenceResults.map((result, i) => {
+            const benchmark = BENCHMARK_SCENARIOS[i]
+            return (
+              <CompactScenarioCard
+                key={i}
+                result={result}
+                label={benchmark?.label ?? `Scenario ${i + 2}`}
+                scenarioColor={benchmark?.color ?? 'var(--text-muted)'}
+              />
+            )
+          })}
+        </div>
+      )}
+
       <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
         After the JCBA concludes, all paths converge to the same rates — those years cancel out.
       </p>
