@@ -307,8 +307,9 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 // ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
 
 const REFERENCE_LABELS = ['Average', 'Worst Case']
+const REFERENCE_SCENARIO_COLORS = ['#3b82f6', 'var(--negative)']
 
-function CompactScenarioCard({ result, label }: { result: ComparisonResult; label: string }) {
+function CompactScenarioCard({ result, label, color }: { result: ComparisonResult; label: string; color: string }) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const voteNo    = result.voteNoExpected
   const aVal      = scenarioA.preJcbaTotal
@@ -318,21 +319,26 @@ function CompactScenarioCard({ result, label }: { result: ComparisonResult; labe
   const maxVal    = Math.max(aVal, noVal)
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}>
+      <div
+        className="flex items-center justify-between px-5 py-3"
+        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+          <span className="font-bold text-sm" style={{ color }}>{label}</span>
+        </div>
+        <BottomLineHelp />
+      </div>
+
       <div className="px-5 pt-4 pb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-              {label}
-            </div>
-            <div className="text-xl font-black leading-tight mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
-              {aWins ? 'Vote Yes' : 'Vote No'} leads
-            </div>
-            <div className="text-base font-bold" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
-              by {fmt(Math.abs(diff))}
-            </div>
+        <div className="mb-3">
+          <div className="text-xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
+            {aWins ? 'Vote Yes' : 'Vote No'} leads
           </div>
-          <BottomLineHelp />
+          <div className="text-base font-bold" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
+            by {fmt(Math.abs(diff))}
+          </div>
         </div>
 
         <div className="space-y-2.5">
@@ -387,6 +393,7 @@ export function HeroCards({ results }: Props) {
               key={i}
               result={result}
               label={REFERENCE_LABELS[i] ?? `Scenario ${i + 2}`}
+              color={REFERENCE_SCENARIO_COLORS[i] ?? 'var(--text-muted)'}
             />
           ))}
         </div>
