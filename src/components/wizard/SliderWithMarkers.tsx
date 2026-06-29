@@ -26,6 +26,7 @@ interface Props {
 const CHIP = 32
 const GAP  = 4
 const ROW_H = CHIP + 6
+const TRACK_GAP = 16   // px clearance between slider thumb and first chip row
 
 function monthToPct(months: number, min: number, max: number) {
   return ((months - min) / (max - min)) * 100
@@ -159,7 +160,7 @@ function ClusterChip({
   return (
     <div
       className="absolute z-20 pointer-events-none"
-      style={{ left: `${left}%`, top: `${CHIP / 2 + 4}px`, transform: 'translateX(-50%)' }}
+      style={{ left: `${left}%`, top: `${TRACK_GAP}px`, transform: 'translateX(-50%)' }}
     >
       <div className="pointer-events-auto">
         <button
@@ -243,7 +244,7 @@ export function SliderWithMarkers({
       <div
         ref={containerRef}
         className="relative"
-        style={{ paddingBottom: `${CHIP + ROW_H}px` }}
+        style={{ paddingBottom: `${TRACK_GAP + CHIP + ROW_H}px` }}
       >
         <input
           type="range"
