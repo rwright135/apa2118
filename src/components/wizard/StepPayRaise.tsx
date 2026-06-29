@@ -17,7 +17,7 @@ function fmtRate(n: number) {
 }
 
 function formatUpgradeDate(yearsFromStart: number) {
-  return `July 1st, ${2026 + yearsFromStart}`
+  return `Jul ${2026 + yearsFromStart}`
 }
 
 interface TierRow {
