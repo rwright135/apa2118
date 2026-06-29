@@ -79,9 +79,8 @@ export function AirlineHistoryTable() {
         {AIRLINE_SECOND_OFFER_HISTORY.map((record) => (
           <tr key={record.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
             <td className="py-3 pr-3 align-top">
-              <div className="flex items-center gap-2">
-                <img src={record.logoSrc} alt="" className="h-7 w-auto max-w-[72px] object-contain" />
-                <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{record.airline}</span>
+              <div className="flex items-center justify-center" style={{ width: 72, height: 28 }}>
+                <img src={record.logoSrc} alt={record.airline} className="h-full w-full object-contain" />
               </div>
             </td>
             <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</td>
