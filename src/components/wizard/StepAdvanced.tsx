@@ -1,140 +1,138 @@
 import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
-import type { AdvancedPostJCBA } from '../../lib/types'
+import { SliderInput } from '../shared/SliderInput'
+import { POST_JCBA_UPLIFT } from '../../lib/scenarios'
 
-type Direction = 'HIGHER' | 'SAME' | 'LOWER'
-type ScenarioBranch = 'scenarioA' | 'scenarioB' | 'scenarioC'
-
-const SCENARIOS: { key: ScenarioBranch; label: string; desc: string }[] = [
-  { key: 'scenarioA', label: 'Vote Yes', desc: 'Starting from TA rates (~37% higher)' },
-  { key: 'scenarioB', label: 'Vote No + 2nd Offer', desc: 'Starting from even higher rates' },
-  { key: 'scenarioC', label: 'Vote No, No Offer', desc: 'Starting from current CBA rates' },
-]
-
-const DEFAULT_ADV: AdvancedPostJCBA = {
-  enabled: false,
-  scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
-  scenarioB: { direction: 'SAME', magnitude: 0, probability: 1 },
-  scenarioC: { direction: 'SAME', magnitude: 0, probability: 1 },
-}
-
-const DIR_STYLE: Record<Direction, { active: React.CSSProperties; inactive: React.CSSProperties }> = {
-  HIGHER: {
-    active: { background: 'rgba(34,197,94,0.15)', border: '1px solid var(--positive)', color: 'var(--positive)' },
-    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' },
-  },
-  SAME: {
-    active: { background: 'var(--sel-bg)', border: '1px solid var(--sel-border)', color: 'var(--text-base)' },
-    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' },
-  },
-  LOWER: {
-    active: { background: 'rgba(239,68,68,0.15)', border: '1px solid var(--negative)', color: 'var(--negative)' },
-    inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' },
-  },
-}
+const DEFAULT_PENALTY = 0.15
 
 export function StepAdvanced() {
   const { inputs, setInput, compute, prevStep, isComputing } = useStore()
-  const adv = inputs.advancedPostJCBA ?? DEFAULT_ADV
+  const adv = inputs.advancedPostJCBA ?? { scenarioCPenalty: DEFAULT_PENALTY }
+  const penalty = adv.scenarioCPenalty ?? DEFAULT_PENALTY
 
-  const update = (key: ScenarioBranch, field: string, value: unknown) => {
-    setInput('advancedPostJCBA', { ...adv, [key]: { ...adv[key], [field]: value } })
-  }
+  const upliftPct = Math.round(POST_JCBA_UPLIFT * 100)
+  const penaltyPct = Math.round(penalty * 100)
+  // Scenario C JCBA expressed as % of base TA_JAN2028 rates
+  const cJcbaRelativePct = Math.round((1 + POST_JCBA_UPLIFT) * (1 - penalty) * 100)
 
   return (
     <WizardLayout
       step="advanced"
-      title="Advanced: Post-JCBA pay assumption"
-      subtitle="Optional. Do you believe the JCBA outcome differs based on which contract you're negotiating from?"
+      title="Post-JCBA Pay Assumptions"
       onBack={prevStep}
     >
-      <div className="mb-8 space-y-6">
-        {/* Toggle */}
+      <div className="mb-8 space-y-5">
+
+        {/* Intro */}
         <div
-          className="flex items-center justify-between rounded-xl p-4"
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Key insight: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            Unequivocally, the resulting pay rates and benefits under the JCBA will be different depending on
+            which contract we are negotiating from. A higher starting point today means a stronger foundation
+            for the next agreement — and that difference compounds over your entire career.
+          </span>
+        </div>
+
+        {/* Fixed +20% assumption for A and B */}
+        <div
+          className="rounded-xl p-4 space-y-3"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <div className="font-semibold text-sm" style={{ color: 'var(--text-base)' }}>
+            Built-in assumption: +{upliftPct}% at JCBA for any deal
+          </div>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            For this calculator we assume that ratifying any bridge agreement — whether this offer or a future one —
+            means the JCBA contracted pay and benefits will be <strong style={{ color: 'var(--text-base)' }}>{upliftPct}% higher</strong> than
+            what would be achieved starting from current TA rates. Having a deal on the table gives the
+            negotiating committee a materially stronger position going into JCBA talks.
+          </p>
+
+          <div className="space-y-2 pt-1">
+            <div
+              className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
+              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
+            >
+              <span className="mt-0.5 font-bold" style={{ color: 'var(--positive)' }}>A</span>
+              <div>
+                <span className="font-semibold" style={{ color: 'var(--positive)' }}>Vote Yes — </span>
+                <span style={{ color: 'var(--text-muted)' }}>
+                  JCBA rates = current TA rates + {upliftPct}%. You negotiated from the existing offer.
+                </span>
+              </div>
+            </div>
+            <div
+              className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
+              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
+            >
+              <span className="mt-0.5 font-bold" style={{ color: 'var(--positive)' }}>B</span>
+              <div>
+                <span className="font-semibold" style={{ color: 'var(--positive)' }}>2nd Offer — </span>
+                <span style={{ color: 'var(--text-muted)' }}>
+                  JCBA rates = bridge offer rates + {upliftPct}%. Because the bridge offer is already above TA,
+                  the JCBA starting point is even higher — compounding the advantage.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* User input: Scenario C penalty */}
+        <div
+          className="rounded-xl p-4 space-y-5"
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
         >
           <div>
-            <div className="font-medium" style={{ color: 'var(--text-base)' }}>
-              Enable advanced assumptions
+            <div className="font-semibold text-sm mb-2" style={{ color: 'var(--negative)' }}>
+              No Offer (Outcome C) — Your Estimate
             </div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-              Default: post-JCBA pay is the same for all paths
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              If we vote no and no second offer comes, we head into JCBA negotiations starting from
+              the current CBA (DOS+5, 2016 contract). How much <em>lower</em> do you believe the final
+              JCBA pay and benefits will be compared to negotiating from a ratified deal?
+            </p>
+            <p className="text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              This percentage is measured against the Vote Yes JCBA outcome — not the 2nd-offer
+              outcome — so extreme assumptions in your other scenario cannot inflate this figure.
+            </p>
+          </div>
+
+          <SliderInput
+            value={penaltyPct}
+            min={0}
+            max={30}
+            step={1}
+            onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
+            formatValue={(v) => v === 0 ? 'No difference' : `${v}% lower`}
+            accentColor="var(--negative)"
+            showMinMax
+          />
+
+          {/* Live summary row */}
+          <div
+            className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            <span className="mt-0.5 font-bold" style={{ color: 'var(--negative)' }}>C</span>
+            <div>
+              <span className="font-semibold" style={{ color: 'var(--negative)' }}>No Offer — </span>
+              <span style={{ color: 'var(--text-muted)' }}>
+                JCBA rates = {cJcbaRelativePct}% of current TA rates
+                {penaltyPct > 0 && (
+                  <span> ({penaltyPct}% below the Vote Yes JCBA outcome)</span>
+                )}
+                . Negotiating from DOS+5 CBA (2016) without a deal.
+              </span>
             </div>
           </div>
-          <button
-            onClick={() => setInput('advancedPostJCBA', { ...adv, enabled: !adv.enabled })}
-            className="relative w-12 h-6 rounded-full transition-colors shrink-0"
-            style={{ background: adv.enabled ? 'var(--gold)' : 'var(--bg-subtle)', border: '1px solid var(--border)' }}
-          >
-            <span
-              className="absolute top-1 w-4 h-4 rounded-full transition-transform"
-              style={{
-                background: adv.enabled ? 'var(--btn-text)' : 'var(--text-faint)',
-                transform: adv.enabled ? 'translateX(28px)' : 'translateX(4px)',
-              }}
-            />
-          </button>
         </div>
 
-        {adv.enabled && (
-          <div className="space-y-4">
-            {SCENARIOS.map(({ key, label, desc }) => (
-              <div
-                key={key}
-                className="rounded-xl p-4 space-y-3"
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-              >
-                <div>
-                  <div className="font-semibold" style={{ color: 'var(--text-base)' }}>{label}</div>
-                  <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{desc}</div>
-                </div>
-                <div className="flex gap-2">
-                  {(['HIGHER', 'SAME', 'LOWER'] as Direction[]).map((dir) => {
-                    const active = adv[key].direction === dir
-                    return (
-                      <button
-                        key={dir}
-                        onClick={() => update(key, 'direction', dir)}
-                        className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-                        style={active ? DIR_STYLE[dir].active : DIR_STYLE[dir].inactive}
-                      >
-                        {dir === 'HIGHER' ? '↑ Higher' : dir === 'LOWER' ? '↓ Lower' : '= Same'}
-                      </button>
-                    )
-                  })}
-                </div>
-                {adv[key].direction !== 'SAME' && (
-                  <div className="space-y-2">
-                    <label className="text-xs" style={{ color: 'var(--text-muted)' }}>By how much? (%)</label>
-                    <input
-                      type="range"
-                      tabIndex={-1}
-                      min={1}
-                      max={30}
-                      step={1}
-                      value={Math.round((adv[key].magnitude || 0.05) * 100)}
-                      onChange={(e) => update(key, 'magnitude', Number(e.target.value) / 100)}
-                      className="w-full h-2 rounded-full"
-                      style={{ background: 'var(--bg-surface)' }}
-                    />
-                    <div className="text-center font-bold" style={{ color: 'var(--gold)' }}>
-                      {Math.round((adv[key].magnitude || 0.05) * 100)}%
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!adv.enabled && (
-          <div className="text-sm text-center py-4" style={{ color: 'var(--text-faint)' }}>
-            Post-JCBA pay assumed equal for all paths — the conservative, apples-to-apples view.
-          </div>
-        )}
       </div>
+
       <NavButton onClick={compute} disabled={isComputing}>
         {isComputing ? 'Calculating...' : 'Calculate My Results →'}
       </NavButton>

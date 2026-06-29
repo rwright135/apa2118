@@ -15,11 +15,11 @@ export interface VoteNoScenario {
 }
 
 export interface AdvancedPostJCBA {
-  enabled: boolean
-  // Per scenario: what do you expect post-JCBA pay to be relative to TA Jan2028
-  scenarioA: { direction: 'HIGHER' | 'SAME' | 'LOWER'; magnitude: number; probability: number }
-  scenarioB: { direction: 'HIGHER' | 'SAME' | 'LOWER'; magnitude: number; probability: number }
-  scenarioC: { direction: 'HIGHER' | 'SAME' | 'LOWER'; magnitude: number; probability: number }
+  /**
+   * How much lower Scenario C (no offer) JCBA outcome is compared to Scenario A (vote yes).
+   * 0.15 = 15% lower. Scenarios A and B always get a hard-coded +20% JCBA uplift.
+   */
+  scenarioCPenalty: number
 }
 
 export interface UserInputs {

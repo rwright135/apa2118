@@ -26,12 +26,7 @@ const SAMPLE_INPUTS: Partial<UserInputs> = {
     percentAboveTA: 0.1,
     jcbaDurationMonths: 30,
   }],
-  advancedPostJCBA: {
-    enabled: false,
-    scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
-    scenarioB: { direction: 'SAME', magnitude: 0, probability: 1 },
-    scenarioC: { direction: 'SAME', magnitude: 0, probability: 1 },
-  },
+  advancedPostJCBA: { scenarioCPenalty: 0.15 },
 }
 
 describe('encodeToURL', () => {
@@ -64,22 +59,17 @@ describe('encodeToURL', () => {
     expect(newURL.length).toBeLessThan(legacyURL.length)
   })
 
-  it('omits disabled advancedPostJCBA to keep URLs short', () => {
+  it('omits advancedPostJCBA when it matches the default (scenarioCPenalty = 0.15)', () => {
     const url = encodeToURL(SAMPLE_INPUTS)
     const param = new URL(url).searchParams.get('d')!
     const json = atob(param)
     expect(json).not.toContain('advancedPostJCBA')
   })
 
-  it('includes advancedPostJCBA when it is enabled', () => {
+  it('includes advancedPostJCBA when scenarioCPenalty differs from default', () => {
     const inputs: Partial<UserInputs> = {
       ...SAMPLE_INPUTS,
-      advancedPostJCBA: {
-        enabled: true,
-        scenarioA: { direction: 'HIGHER', magnitude: 0.05, probability: 0.8 },
-        scenarioB: { direction: 'SAME', magnitude: 0, probability: 1 },
-        scenarioC: { direction: 'LOWER', magnitude: 0.02, probability: 0.7 },
-      },
+      advancedPostJCBA: { scenarioCPenalty: 0.25 },
     }
     const url = encodeToURL(inputs)
     const param = new URL(url).searchParams.get('d')!

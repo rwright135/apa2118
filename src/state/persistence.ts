@@ -5,12 +5,11 @@ const URL_PARAM = 'd'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-/** True when advancedPostJCBA is disabled *and* all scenario values are default. */
+const DEFAULT_SCENARIO_C_PENALTY = 0.15
+
+/** True when advancedPostJCBA matches the out-of-box default (no user customisation needed). */
 function isDefaultAdvanced(adv: AdvancedPostJCBA): boolean {
-  if (adv.enabled) return false
-  const isDefaultScenario = (s: { direction: string; magnitude: number; probability: number }) =>
-    s.direction === 'SAME' && s.magnitude === 0 && s.probability === 1
-  return isDefaultScenario(adv.scenarioA) && isDefaultScenario(adv.scenarioB) && isDefaultScenario(adv.scenarioC)
+  return adv.scenarioCPenalty === DEFAULT_SCENARIO_C_PENALTY
 }
 
 // ── URL encode / decode ───────────────────────────────────────────────────────

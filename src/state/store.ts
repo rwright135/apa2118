@@ -61,12 +61,7 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],
-  advancedPostJCBA: {
-    enabled: false,
-    scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
-    scenarioB: { direction: 'SAME', magnitude: 0, probability: 1 },
-    scenarioC: { direction: 'SAME', magnitude: 0, probability: 1 },
-  },
+  advancedPostJCBA: { scenarioCPenalty: 0.15 },
 }
 
 interface AppState {
@@ -128,6 +123,11 @@ export const useStore = create<AppState>((set, get) => ({
         const d = new Date(sanitized.dateOfBirth as unknown as string)
         sanitized.dateOfBirth = isNaN(d.getTime()) ? undefined : d
       }
+      // Migrate legacy advancedPostJCBA format (old: { enabled, scenarioA, scenarioB, scenarioC })
+      if (sanitized.advancedPostJCBA && 'enabled' in (sanitized.advancedPostJCBA as object)) {
+        sanitized.advancedPostJCBA = { scenarioCPenalty: 0.15 }
+      }
+
       // Migrate legacy localStorage: if old voteNoOffer + jcbaDurationMonths exist, convert
       if (!sanitized.voteNoScenarios) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
