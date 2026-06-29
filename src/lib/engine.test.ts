@@ -13,6 +13,7 @@ const makeInputs = (overrides: Partial<UserInputs> = {}): UserInputs => ({
   extraHoursAboveMMG: 0,
   dateOfBirth: new Date(1985, 0, 1), // Age 41 in 2026, retires 2050
   investmentRate: 0.08,
+  brokerageSavingsPct: 0.33,
   profitSharingLastYear: 1000,
   retentionCurrentBalance: 50000,
   retentionPayoutProbabilityB: 0.95,

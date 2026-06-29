@@ -4,6 +4,7 @@ import { loadFromLocalStorage, decodeFromURL } from './state/persistence'
 
 import { StepWelcome } from './components/wizard/StepWelcome'
 import { StepSeat } from './components/wizard/StepSeat'
+import { StepUpgrade } from './components/wizard/StepUpgrade'
 import { StepLongevity } from './components/wizard/StepLongevity'
 import { StepAnniversary } from './components/wizard/StepAnniversary'
 import { StepLineType } from './components/wizard/StepLineType'
@@ -13,6 +14,7 @@ import { StepProfitSharing } from './components/wizard/StepProfitSharing'
 import { StepRetention } from './components/wizard/StepRetention'
 import { StepInvestmentRate } from './components/wizard/StepInvestmentRate'
 import { StepVoteNo } from './components/wizard/StepVoteNo'
+import { StepPayRaise } from './components/wizard/StepPayRaise'
 import { StepAdvanced } from './components/wizard/StepAdvanced'
 import { ResultsScreen } from './components/results/ResultsScreen'
 import { LoadingScreen } from './components/shared/LoadingScreen'
@@ -38,6 +40,7 @@ function App() {
   switch (currentStep) {
     case 'welcome':      return <StepWelcome />
     case 'seat':         return <StepSeat />
+    case 'upgrade':      return <StepUpgrade />
     case 'longevity':    return <StepLongevity />
     case 'anniversary':  return <StepAnniversary />
     case 'lineType':     return <StepLineType />
@@ -47,6 +50,7 @@ function App() {
     case 'retention':    return <StepRetention />
     case 'investmentRate':return <StepInvestmentRate />
     case 'voteNo':       return <StepVoteNo />
+    case 'payRaise':     return <StepPayRaise />
     case 'advanced':     return <StepAdvanced />
     case 'results':      return <ResultsScreen />
     default:             return <StepWelcome />

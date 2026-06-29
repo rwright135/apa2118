@@ -26,6 +26,7 @@ export interface UserInputs {
   // Identity
   seat: Seat
   longevityAsOfJul2026: number           // 1–12
+  upgradeToCAInYears?: number            // FO only: years from Jul 2026 until upgrade (undefined = no upgrade)
   anniversaryMonth: number               // 0=January, 11=December
   lineType: LineType
   extraHoursAboveMMG: number            // additional hours above MMG, default 0
@@ -34,6 +35,7 @@ export interface UserInputs {
   // Financial
   investmentRate: number                 // default 0.08
   profitSharingLastYear: number          // $ amount
+  brokerageSavingsPct: number           // 0–1: fraction of monthly raise saved to brokerage, default 0.33
 
   // Retention bonus
   retentionCurrentBalance: number        // current accrued balance $
@@ -61,6 +63,10 @@ export interface MonthlyRow {
   // Scenario
   scenarioId: ScenarioId
 
+  // Seat & longevity at this point in time
+  effectiveSeat: Seat
+  longevity: number
+
   // Pay
   hourlyRate: number
   totalHours: number
@@ -74,8 +80,13 @@ export interface MonthlyRow {
   profitSharingCash: number
 
   // Retention (0 unless payout month, or accrual note)
-  retentionCashFlow: number   // actual $ flowing this month (payout lump)
-  retentionAccrualNote: number // monthly accrual amount (for transparency, not discounted separately)
+  retentionCashFlow: number      // actual $ flowing this month (payout lump)
+  retentionAccrualNote: number   // monthly accrual amount (for transparency, not discounted separately)
+  retentionAtRetirement: number  // FV of this month's payout compounded to age 65 at investment rate
+
+  // Brokerage savings (fraction of the raise vs CBA invested externally)
+  brokerageSavingsCash: number   // $ saved to brokerage this month
+  brokerageSavingsPV: number     // PV of that contribution compounded to retirement then discounted back
 
   // Discounting
   discountFactor: number
@@ -102,6 +113,14 @@ export interface ScenarioSummary {
   retirementBalancePV: number        // that balance discounted back to today
   interimEarningsPV: number          // PV of pay before JCBA conclusion
   total401kCompoundingGain: number   // extra $ from compounding vs no-contribution baseline
+
+  // Retention invested to retirement
+  retirementRetentionBalance: number // retention payout(s) compounded to age 65 at investment rate
+
+  // Brokerage savings (compounded to retirement, then discounted to PV)
+  totalBrokerageSavings: number      // sum of monthly brokerage contributions (pre-JCBA)
+  retirementBrokerageBalance: number // brokerage balance compounded to age 65
+  brokerageSavingsPV: number         // PV of that retirement balance
 
   // For comparison
   totalGrossPay: number

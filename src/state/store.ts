@@ -6,6 +6,7 @@ import { saveToLocalStorage, clearLocalStorage } from './persistence'
 export type WizardStep =
   | 'welcome'
   | 'seat'
+  | 'upgrade'
   | 'longevity'
   | 'anniversary'
   | 'dob'
@@ -15,12 +16,14 @@ export type WizardStep =
   | 'investmentRate'
   | 'voteNo'
   | 'retention'
+  | 'payRaise'
   | 'advanced'
   | 'results'
 
 export const WIZARD_STEPS: WizardStep[] = [
   'welcome',
   'seat',
+  'upgrade',
   'longevity',
   'anniversary',
   'dob',
@@ -30,6 +33,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   'investmentRate',
   'retention',
   'voteNo',
+  'payRaise',
   'advanced',
   'results',
 ]
@@ -44,6 +48,7 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
   lineType: 'FLYING',
   investmentRate: 0.08,
+  brokerageSavingsPct: 0.33,
   retentionPayoutProbabilityB: 0.90,
   retentionPayoutProbabilityC: 0.50,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],

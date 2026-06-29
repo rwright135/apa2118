@@ -48,9 +48,15 @@ const STATS: StatDef[] = [
   },
   {
     label: "Retention Bonus",
-    sub:   "Probability-weighted",
+    sub:   "Probability-weighted payout",
     getYes: s => s.totalRetention,
     getNo:  s => s.totalRetention,
+  },
+  {
+    label: "Retention at Retirement",
+    sub:   "Payout invested & compounded to age 65",
+    getYes: s => s.retirementRetentionBalance,
+    getNo:  s => s.retirementRetentionBalance,
   },
 ]
 
