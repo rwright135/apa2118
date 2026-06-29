@@ -170,14 +170,9 @@ export function StepPayRaise() {
                   {/* Raise row */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Raise vs. today</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                        +{fmtRate(tier.raiseDollarsPerHr)}/hr
-                      </span>
-                      <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                        +{fmt(tier.raiseMonthly)}/mo
-                      </span>
-                    </div>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                      +{fmt(tier.raiseMonthly)}/mo
+                    </span>
                   </div>
                   {/* Investment row */}
                   {pct > 0 && (
