@@ -16,6 +16,10 @@ function fmtRate(n: number) {
   return `$${n.toFixed(2)}`
 }
 
+function formatUpgradeDate(yearsFromStart: number) {
+  return `July 1st, ${2026 + yearsFromStart}`
+}
+
 interface TierRow {
   label: string
   sublabel: string
@@ -141,7 +145,7 @@ export function StepPayRaise() {
         {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
           <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
             <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--gold)' }}>
-              After upgrade to Captain (year {inputs.upgradeToCAInYears})
+              After upgrade to Captain ({formatUpgradeDate(inputs.upgradeToCAInYears)})
             </div>
             <div className="flex items-center justify-between">
               <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
