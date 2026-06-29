@@ -7,12 +7,6 @@ import { SecondOfferArrivalInput } from './SecondOfferArrivalInput'
 import { SecondOfferImprovementInput } from './SecondOfferImprovementInput'
 import type { VoteNoScenario } from '../../lib/types'
 
-const JCBA_PRESETS = [
-  { label: 'Optimistic', months: 18, desc: '1.5 yrs' },
-  { label: 'Likely',     months: 30, desc: '2.5 yrs' },
-  { label: 'Conservative', months: 48, desc: '4 yrs' },
-]
-
 // ── Your Scenario (user-editable) ────────────────────────────────────────────
 
 function ScenarioCard({
