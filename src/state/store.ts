@@ -175,6 +175,7 @@ export const useStore = create<AppState>((set, get) => ({
       return
     }
     set({ isComputing: true })
+    const start = Date.now()
     setTimeout(() => {
       try {
         const fullInputs = inputs as UserInputs
@@ -184,7 +185,11 @@ export const useStore = create<AppState>((set, get) => ({
           buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
           buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
         ]
-        set({ results: multiResults, isComputing: false, currentStep: 'results' })
+        const elapsed = Date.now() - start
+        const remaining = Math.max(0, 3000 - elapsed)
+        setTimeout(() => {
+          set({ results: multiResults, isComputing: false, currentStep: 'results' })
+        }, remaining)
       } catch (e) {
         console.error('Computation error', e)
         set({ isComputing: false })
