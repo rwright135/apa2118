@@ -40,14 +40,14 @@ export const WIZARD_STEPS: WizardStep[] = [
 
 export const DEFAULT_VOTE_NO_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 11,
+  arrivalMonths: 13,
   percentAboveTA: 0.15,
   jcbaDurationMonths: 36,
 }
 
 export const AVERAGE_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 11,
+  arrivalMonths: 13,
   percentAboveTA: 0.15,
   jcbaDurationMonths: 36,
 }
