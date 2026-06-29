@@ -162,28 +162,67 @@ function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
   const upsideIsGain = bPVGap >= 0
   const upsideAmount = fmt(Math.abs(bPVGap))
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
+  const upsideColor = upsideIsGain ? 'var(--positive)' : 'var(--negative)'
+  const upsideBg = upsideIsGain ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)'
+  const upsideBorder = upsideIsGain ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'
+  const riskColor = cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'
+  const riskBg = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.10)' : 'rgba(34,197,94,0.10)'
+  const riskBorder = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.35)' : 'rgba(34,197,94,0.35)'
 
   return (
-    <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-      If a second offer arrives, you stand to{' '}
-      <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
-        {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
-      </strong>
-      {' '}vs. Voting Yes
-      {cHeadlineLoss > 0 ? (
-        <>
-          {' '}— but you&apos;re risking{' '}
-          <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
-          {' '}if no offer arrives.
-        </>
-      ) : (
-        <>
-          {' '}— and if no offer arrives, you still come out{' '}
-          <strong style={{ color: 'var(--positive)' }}>{riskAmount} ahead</strong>
-          {' '}on nominal pay vs. Voting Yes.
-        </>
-      )}
-    </p>
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-stretch">
+        {/* Reward */}
+        <div
+          className="rounded-xl px-4 py-4 text-center sm:text-left"
+          style={{ background: upsideBg, border: `1.5px solid ${upsideBorder}` }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: upsideColor }}>
+            If 2nd offer arrives
+          </div>
+          <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-faint)' }}>
+            You stand to {upsideIsGain ? 'gain' : 'lose'}
+          </div>
+          <div className="text-3xl font-black tabular-nums leading-none" style={{ color: upsideColor }}>
+            {upsideIsGain ? '+' : '−'}{upsideAmount}
+          </div>
+          <div className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
+            vs. Voting Yes
+          </div>
+        </div>
+
+        {/* VS divider */}
+        <div className="hidden sm:flex flex-col items-center justify-center px-1">
+          <span className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>but</span>
+        </div>
+        <div className="sm:hidden text-center text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>
+          but
+        </div>
+
+        {/* Risk */}
+        <div
+          className="rounded-xl px-4 py-4 text-center sm:text-left"
+          style={{ background: riskBg, border: `1.5px solid ${riskBorder}` }}
+        >
+          <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: riskColor }}>
+            If no offer arrives
+          </div>
+          <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-faint)' }}>
+            {cHeadlineLoss > 0 ? "You're risking" : 'You still come out'}
+          </div>
+          <div className="text-3xl font-black tabular-nums leading-none" style={{ color: riskColor }}>
+            {cHeadlineLoss > 0 ? '−' : '+'}{riskAmount}
+          </div>
+          <div className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
+            {cHeadlineLoss > 0 ? 'on nominal pay vs. Voting Yes' : 'ahead on nominal pay'}
+          </div>
+        </div>
+      </div>
+
+      <p className="text-sm font-semibold text-center" style={{ color: 'var(--text-muted)' }}>
+        Is the upside worth betting on Vote No?
+      </p>
+    </div>
   )
 }
 
@@ -284,9 +323,15 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+      <div
+        className="px-5 pt-5 pb-5 border-b"
+        style={{
+          borderColor: 'var(--border-subtle)',
+          background: 'linear-gradient(180deg, rgba(201,168,76,0.06) 0%, var(--bg-surface) 100%)',
+        }}
+      >
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="text-sm font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>
             Risk vs Reward
           </div>
           <RiskRewardHelp />
