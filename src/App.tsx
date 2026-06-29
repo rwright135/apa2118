@@ -14,6 +14,7 @@ import { StepProfitSharing } from './components/wizard/StepProfitSharing'
 import { StepRetention } from './components/wizard/StepRetention'
 import { StepInvestmentRate } from './components/wizard/StepInvestmentRate'
 import { StepVoteNo } from './components/wizard/StepVoteNo'
+import { StepPayRaise } from './components/wizard/StepPayRaise'
 import { StepAdvanced } from './components/wizard/StepAdvanced'
 import { ResultsScreen } from './components/results/ResultsScreen'
 import { LoadingScreen } from './components/shared/LoadingScreen'
@@ -49,6 +50,7 @@ function App() {
     case 'retention':    return <StepRetention />
     case 'investmentRate':return <StepInvestmentRate />
     case 'voteNo':       return <StepVoteNo />
+    case 'payRaise':     return <StepPayRaise />
     case 'advanced':     return <StepAdvanced />
     case 'results':      return <ResultsScreen />
     default:             return <StepWelcome />

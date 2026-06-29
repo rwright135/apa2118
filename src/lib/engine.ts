@@ -290,6 +290,16 @@ export function buildMonthlyStream(
       }
     }
 
+    // Brokerage savings: fraction of the gross monthly raise vs. CBA invested externally.
+    // Applies to all scenarios where the effective rate exceeds CBA.
+    const cbaRateForSeat = getRate(effectiveSeat, longevity, 'CBA')
+    const monthlyRaise = (hourlyRate - cbaRateForSeat) * totalHours
+    const brokSavingsPct = inputs.brokerageSavingsPct ?? 0
+    const brokerageSavingsCash = Math.max(0, monthlyRaise) * brokSavingsPct
+
+    const fvBrokerageAtRetirement = brokerageSavingsCash * Math.pow(1 + rate, (totalMonths - m) / 12)
+    const brokerageSavingsPV = fvBrokerageAtRetirement * discountFactor(rate, totalMonths)
+
     const df = discountFactor(rate, m)
     const pv = (grossPay + profitSharingCash + retentionCashFlow) * df
 
@@ -315,6 +325,8 @@ export function buildMonthlyStream(
       profitSharingCash,
       retentionCashFlow,
       retentionAccrualNote,
+      brokerageSavingsCash,
+      brokerageSavingsPV,
       discountFactor: df,
       presentValue: pv,
       presentValue401k: pv401kFromRetirement,
@@ -397,6 +409,18 @@ export function buildScenarioSummary(
   const totalRetention       = rows.reduce((sum, r) => sum + r.retentionCashFlow, 0) // may span JCBA
   const total401kContributions = preJcbaRows.reduce((sum, r) => sum + r.k401Contribution, 0)
 
+  // Brokerage savings: aggregate contributions and PV over the full career
+  const totalBrokerageSavings = rows.reduce((sum, r) => sum + r.brokerageSavingsCash, 0)
+  const brokerageSavingsPV    = rows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
+  const retirementBrokerageBalance = rows.reduce((sum, r) => {
+    const monthsToRetirement = totalMonths - r.monthIndex
+    return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
+  }, 0)
+
+  // Include brokerage savings PV in the headline pre-JCBA total
+  const preJcbaBrokeragePV = preJcbaRows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
+  const preJcbaTotalWithBrokerage = preJcbaTotal + preJcbaBrokeragePV
+
   const steadyStateIndex = detectSteadyState(rows)
 
   return {
@@ -406,12 +430,15 @@ export function buildScenarioSummary(
     rows,
     totalRows: rows.length,
     steadyStateIndex,
-    preJcbaTotal,
+    preJcbaTotal: preJcbaTotalWithBrokerage,
     presentValueTotal,
     retirementBalanceAt65,
     retirementBalancePV,
     interimEarningsPV,
     total401kCompoundingGain,
+    totalBrokerageSavings,
+    retirementBrokerageBalance,
+    brokerageSavingsPV,
     totalGrossPay,
     totalProfitSharing,
     totalRetention,

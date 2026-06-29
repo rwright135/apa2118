@@ -9,7 +9,7 @@ function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
@@ -184,13 +184,14 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     : activeTab === 'B' ? result.inputs.retentionPayoutProbabilityB
     : result.inputs.retentionPayoutProbabilityC
 
-  const columns: { key: ColumnKey; label: string; gold?: boolean }[] = [
-    { key: 'grossPay',          label: 'Gross Pay' },
-    { key: 'k401Contribution',  label: '401(k)' },
-    { key: 'profitSharingCash', label: 'Profit Share' },
-    { key: 'retentionCashFlow', label: 'Retention' },
-    { key: 'presentValue',      label: 'PV', gold: true },
-    { key: 'cumulativePV',      label: 'Cum. PV', gold: true },
+  const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
+    { key: 'grossPay',             label: 'Gross Pay' },
+    { key: 'k401Contribution',     label: '401(k)' },
+    { key: 'profitSharingCash',    label: 'Profit Share' },
+    { key: 'retentionCashFlow',    label: 'Retention' },
+    { key: 'brokerageSavingsCash', label: 'Brokerage', gold: true, voteYesOnly: false },
+    { key: 'presentValue',         label: 'PV', gold: true },
+    { key: 'cumulativePV',         label: 'Cum. PV', gold: true },
   ]
 
   return (
@@ -234,7 +235,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.label}
+                  {col.key === 'brokerageSavingsCash' ? (
+                    <span title="Fraction of your raise saved to a brokerage account, compounded to retirement">💼 {col.label}</span>
+                  ) : col.label}
                 </th>
               ))}
             </tr>
@@ -255,21 +258,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={11} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isFirstPostJcbaRetention && (
                     <tr key={`post-jcba-${i}`} style={{ background: 'rgba(34,197,94,0.05)' }}>
-                      <td colSpan={11} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
                         ── Post-JCBA retention accrual & payout (60 days after JCBA ratification) ──
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={11} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>

@@ -16,6 +16,7 @@ export type WizardStep =
   | 'investmentRate'
   | 'voteNo'
   | 'retention'
+  | 'payRaise'
   | 'advanced'
   | 'results'
 
@@ -32,6 +33,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   'investmentRate',
   'retention',
   'voteNo',
+  'payRaise',
   'advanced',
   'results',
 ]
@@ -46,6 +48,7 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
   lineType: 'FLYING',
   investmentRate: 0.08,
+  brokerageSavingsPct: 0.33,
   retentionPayoutProbabilityB: 0.95,
   retentionPayoutProbabilityC: 0.75,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],

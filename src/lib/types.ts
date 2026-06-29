@@ -35,6 +35,7 @@ export interface UserInputs {
   // Financial
   investmentRate: number                 // default 0.08
   profitSharingLastYear: number          // $ amount
+  brokerageSavingsPct: number           // 0–1: fraction of monthly raise saved to brokerage, default 0.33
 
   // Retention bonus
   retentionCurrentBalance: number        // current accrued balance $
@@ -82,6 +83,10 @@ export interface MonthlyRow {
   retentionCashFlow: number   // actual $ flowing this month (payout lump)
   retentionAccrualNote: number // monthly accrual amount (for transparency, not discounted separately)
 
+  // Brokerage savings (fraction of the raise vs CBA invested externally)
+  brokerageSavingsCash: number   // $ saved to brokerage this month
+  brokerageSavingsPV: number     // PV of that contribution compounded to retirement then discounted back
+
   // Discounting
   discountFactor: number
   presentValue: number        // PV of (grossPay + profitSharingCash + retentionCashFlow) this month
@@ -107,6 +112,11 @@ export interface ScenarioSummary {
   retirementBalancePV: number        // that balance discounted back to today
   interimEarningsPV: number          // PV of pay before JCBA conclusion
   total401kCompoundingGain: number   // extra $ from compounding vs no-contribution baseline
+
+  // Brokerage savings (compounded to retirement, then discounted to PV)
+  totalBrokerageSavings: number      // sum of monthly brokerage contributions (pre-JCBA)
+  retirementBrokerageBalance: number // brokerage balance compounded to age 65
+  brokerageSavingsPV: number         // PV of that retirement balance
 
   // For comparison
   totalGrossPay: number
