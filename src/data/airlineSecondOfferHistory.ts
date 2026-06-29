@@ -29,7 +29,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
   {
     id: 'delta',
     airline: 'Delta Air Lines',
-    logoSrc: '/airlines/delta.png',
+    logoSrc: '/airlines/delta.svg',
     firstTARejected: 'July 10, 2015',
     secondTARatified: 'December 1, 2016',
     daysBetween: 510,
@@ -50,7 +50,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
   {
     id: 'southwest',
     airline: 'Southwest Airlines',
-    logoSrc: '/airlines/southwest.png',
+    logoSrc: '/airlines/southwest.svg',
     firstTARejected: 'November 4, 2015',
     secondTARatified: 'November 7, 2016',
     daysBetween: 369,
@@ -71,7 +71,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
   {
     id: 'united',
     airline: 'United Airlines',
-    logoSrc: '/airlines/united.png',
+    logoSrc: '/airlines/united.svg',
     firstTARejected: 'November 1, 2022',
     secondTARatified: 'September 29, 2023',
     daysBetween: 332,
@@ -92,7 +92,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
   {
     id: 'fedex',
     airline: 'FedEx Express',
-    logoSrc: '/airlines/fedex.png',
+    logoSrc: '/airlines/fedex.svg',
     firstTARejected: 'July 24, 2023',
     secondTARatified: 'June 9, 2026',
     daysBetween: 1051,
