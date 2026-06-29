@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ProgressBar } from './ProgressBar'
 import { ThemeToggle } from './ThemeToggle'
-import { WIZARD_STEPS } from '../../state/store'
+import { WIZARD_STEPS, useStore } from '../../state/store'
 import type { WizardStep } from '../../state/store'
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 }
 
 export function WizardLayout({ step, title, subtitle, onBack, children }: Props) {
+  const { reset } = useStore()
   const contentSteps = WIZARD_STEPS.filter(s => s !== 'welcome' && s !== 'results')
   const contentIndex = contentSteps.indexOf(step as typeof contentSteps[number])
 
@@ -54,6 +55,21 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
         <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>
           {Math.max(1, contentIndex + 1)}/{contentSteps.length}
         </span>
+
+        <button
+          onClick={reset}
+          className="p-1 rounded-lg transition-colors"
+          style={{ color: 'var(--text-muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-base)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          aria-label="Restart calculator"
+          title="Restart — clears all selections"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+        </button>
 
         <ThemeToggle />
       </div>

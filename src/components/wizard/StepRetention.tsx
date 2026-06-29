@@ -90,8 +90,8 @@ function WhyThisMattersCard() {
 export function StepRetention() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
   const balance = inputs.retentionCurrentBalance
-  const probB   = inputs.retentionPayoutProbabilityB ?? 0.95
-  const probC   = inputs.retentionPayoutProbabilityC ?? 0.75
+  const probB   = inputs.retentionPayoutProbabilityB ?? 0.90
+  const probC   = inputs.retentionPayoutProbabilityC ?? 0.50
   const hasBalance = balance !== undefined
 
   return (
@@ -149,7 +149,7 @@ export function StepRetention() {
                     value={Math.round(
                       (outcome.inputKey === 'retentionPayoutProbabilityB' ? probB : probC) * 100,
                     )}
-                    min={50}
+                    min={outcome.inputKey === 'retentionPayoutProbabilityC' ? 0 : 50}
                     max={100}
                     step={5}
                     onChange={(v) => setInput(outcome.inputKey, v / 100)}

@@ -89,6 +89,14 @@ export function saveToLocalStorage(inputs: Partial<UserInputs>): void {
   }
 }
 
+export function clearLocalStorage(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
 export function loadFromLocalStorage(): Partial<UserInputs> | null {
   try {
     const json = localStorage.getItem(STORAGE_KEY)

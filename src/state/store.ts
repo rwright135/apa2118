@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
-import { saveToLocalStorage } from './persistence'
+import { saveToLocalStorage, clearLocalStorage } from './persistence'
 
 export type WizardStep =
   | 'welcome'
@@ -49,8 +49,8 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   lineType: 'FLYING',
   investmentRate: 0.08,
   brokerageSavingsPct: 0.33,
-  retentionPayoutProbabilityB: 0.95,
-  retentionPayoutProbabilityC: 0.75,
+  retentionPayoutProbabilityB: 0.90,
+  retentionPayoutProbabilityC: 0.50,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],
   advancedPostJCBA: {
     enabled: false,
@@ -167,10 +167,13 @@ export const useStore = create<AppState>((set, get) => ({
     }, 50)
   },
 
-  reset: () => set({
-    currentStep: 'welcome',
-    inputs: { ...DEFAULT_INPUTS },
-    results: null,
-    isComputing: false,
-  }),
+  reset: () => {
+    clearLocalStorage()
+    set({
+      currentStep: 'welcome',
+      inputs: { ...DEFAULT_INPUTS },
+      results: null,
+      isComputing: false,
+    })
+  },
 }))
