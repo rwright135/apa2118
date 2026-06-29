@@ -153,9 +153,6 @@ export function StepPayRaise() {
                   <div className="text-sm font-semibold" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
                     {tier.label}
                   </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                    {tier.sublabel}
-                  </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-lg font-bold tabular-nums" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--gold)' }}>
