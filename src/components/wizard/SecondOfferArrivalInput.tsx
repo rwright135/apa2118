@@ -139,7 +139,7 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
     <div>
       <div className="flex items-start justify-between gap-3 mb-3">
         <label className="block text-sm flex-1" style={{ color: 'var(--text-muted)' }}>
-          If the second offer comes — how many months from now?
+          If we receive a second offer, how many months from July will it take until it is ratified and implemented?
         </label>
         <button
           type="button"
