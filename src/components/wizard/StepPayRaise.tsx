@@ -166,22 +166,21 @@ export function StepPayRaise() {
 
               {/* Raise + investment rows */}
               {hasRaise && (
-                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <div className="flex items-start justify-between gap-3">
+                <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Monthly Raise</span>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                        +{fmt(tier.raiseMonthly)}/mo
-                      </div>
-                      {pct > 0 && (
-                        <div className="mt-1.5">
-                          <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                            {fmt(invested)}/mo
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                      +{fmt(tier.raiseMonthly)}/mo
+                    </span>
                   </div>
+                  {pct > 0 && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Savings/Month</span>
+                      <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                        {fmt(invested)}/mo
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
