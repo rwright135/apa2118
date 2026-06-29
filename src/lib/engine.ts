@@ -290,6 +290,11 @@ export function buildMonthlyStream(
       }
     }
 
+    // Retention compounded to retirement: treat the lump-sum payout as invested from receipt date.
+    const retentionAtRetirement = retentionCashFlow > 0
+      ? retentionCashFlow * Math.pow(1 + rate, (totalMonths - m) / 12)
+      : 0
+
     // Brokerage savings: fraction of the gross monthly raise vs. CBA invested externally.
     // Applies to all scenarios where the effective rate exceeds CBA.
     const cbaRateForSeat = getRate(effectiveSeat, longevity, 'CBA')
@@ -325,6 +330,7 @@ export function buildMonthlyStream(
       profitSharingCash,
       retentionCashFlow,
       retentionAccrualNote,
+      retentionAtRetirement,
       brokerageSavingsCash,
       brokerageSavingsPV,
       discountFactor: df,
@@ -409,6 +415,9 @@ export function buildScenarioSummary(
   const totalRetention       = rows.reduce((sum, r) => sum + r.retentionCashFlow, 0) // may span JCBA
   const total401kContributions = preJcbaRows.reduce((sum, r) => sum + r.k401Contribution, 0)
 
+  // Retention compounded to retirement: sum the FV of all payout months
+  const retirementRetentionBalance = rows.reduce((sum, r) => sum + r.retentionAtRetirement, 0)
+
   // Brokerage savings: aggregate contributions and PV over the full career
   const totalBrokerageSavings = rows.reduce((sum, r) => sum + r.brokerageSavingsCash, 0)
   const brokerageSavingsPV    = rows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
@@ -436,6 +445,7 @@ export function buildScenarioSummary(
     retirementBalancePV,
     interimEarningsPV,
     total401kCompoundingGain,
+    retirementRetentionBalance,
     totalBrokerageSavings,
     retirementBrokerageBalance,
     brokerageSavingsPV,

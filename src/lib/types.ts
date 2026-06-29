@@ -80,8 +80,9 @@ export interface MonthlyRow {
   profitSharingCash: number
 
   // Retention (0 unless payout month, or accrual note)
-  retentionCashFlow: number   // actual $ flowing this month (payout lump)
-  retentionAccrualNote: number // monthly accrual amount (for transparency, not discounted separately)
+  retentionCashFlow: number      // actual $ flowing this month (payout lump)
+  retentionAccrualNote: number   // monthly accrual amount (for transparency, not discounted separately)
+  retentionAtRetirement: number  // FV of this month's payout compounded to age 65 at investment rate
 
   // Brokerage savings (fraction of the raise vs CBA invested externally)
   brokerageSavingsCash: number   // $ saved to brokerage this month
@@ -112,6 +113,9 @@ export interface ScenarioSummary {
   retirementBalancePV: number        // that balance discounted back to today
   interimEarningsPV: number          // PV of pay before JCBA conclusion
   total401kCompoundingGain: number   // extra $ from compounding vs no-contribution baseline
+
+  // Retention invested to retirement
+  retirementRetentionBalance: number // retention payout(s) compounded to age 65 at investment rate
 
   // Brokerage savings (compounded to retirement, then discounted to PV)
   totalBrokerageSavings: number      // sum of monthly brokerage contributions (pre-JCBA)

@@ -31,6 +31,7 @@ interface RetentionDetailRow {
   probability: number
   cashFlow: number
   pvCashFlow: number
+  atRetirement: number
   isPayout: boolean
 }
 
@@ -48,6 +49,7 @@ function buildRetentionDetail(rows: MonthlyRow[], startingBalance: number, proba
       probability,
       cashFlow:       row.retentionCashFlow,
       pvCashFlow:     row.retentionCashFlow > 0 ? row.retentionCashFlow * row.discountFactor : 0,
+      atRetirement:   row.retentionAtRetirement,
       isPayout:       row.retentionCashFlow > 0.01,
     })
   }
@@ -96,6 +98,7 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>× Probability</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Cash Flow</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--gold)' }}>PV Today</th>
+              <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--gold)' }}>💼 At Retirement</th>
             </tr>
           </thead>
           <tbody>
@@ -126,6 +129,9 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
                 </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap font-bold" style={{ color: r.pvCashFlow > 0 ? 'var(--gold)' : 'var(--text-faint)' }}>
                   {r.pvCashFlow > 0 ? fmt(r.pvCashFlow) : '—'}
+                </td>
+                <td className="px-3 py-2 text-right whitespace-nowrap font-bold" style={{ color: r.atRetirement > 0 ? 'var(--gold)' : 'var(--text-faint)' }}>
+                  {r.atRetirement > 0 ? fmt(r.atRetirement) : '—'}
                 </td>
               </tr>
             ))}
