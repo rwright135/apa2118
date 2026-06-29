@@ -66,7 +66,7 @@ export function StepProfitSharing() {
           <span style={{ color: hasValue ? 'var(--text-muted)' : 'var(--text-faint)' }}>
             {hasValue ? `$${checkAmount?.toLocaleString()} check` : 'TBD check'}
           </span>
-          <span style={{ color: 'var(--text-faint)' }}>×&nbsp;2&nbsp;payments/yr</span>
+          <span style={{ color: 'var(--text-faint)' }}>×&nbsp;2&nbsp;payments/year</span>
           <span style={{ color: 'var(--text-faint)' }}>=</span>
           <span
             className="font-bold"
