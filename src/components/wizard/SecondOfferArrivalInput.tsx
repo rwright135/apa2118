@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { SliderInput } from '../shared/SliderInput'
 import {
   AIRLINE_HISTORY_INTRO,
   AIRLINE_SECOND_OFFER_HISTORY,
@@ -81,7 +80,7 @@ function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord;
         ×
       </button>
       <div className="flex items-center gap-2 mb-2 pr-4">
-        <img src={record.logoSrc} alt="" className="w-8 h-8 rounded-lg object-contain" />
+        <img src={record.logoSrc} alt="" className="h-7 w-auto max-w-[64px] object-contain" />
         <div className="font-semibold text-xs" style={{ color: 'var(--text-base)' }}>{record.airline}</div>
       </div>
       <dl className="space-y-1.5 text-xs">
@@ -124,32 +123,50 @@ function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord;
   )
 }
 
-function AirlineTimeline({ min, max, activeId, onSelect }: {
+function ArrivalSliderWithMarkers({
+  value,
+  min,
+  max,
+  onChange,
+  activeId,
+  onSelect,
+}: {
+  value: number
   min: number
   max: number
+  onChange: (value: number) => void
   activeId: string | null
   onSelect: (id: string | null) => void
 }) {
   const markerRows = assignMarkerRows(AIRLINE_SECOND_OFFER_HISTORY)
   const maxRow = Math.max(...AIRLINE_SECOND_OFFER_HISTORY.map((record) => markerRows.get(record.id) ?? 0))
+  const markerAreaHeight = 28 + maxRow * 22
 
   return (
-    <div className="pt-2">
-      <div className="text-xs mb-2" style={{ color: 'var(--text-faint)' }}>
-        Historical second-offer timing at other carriers
+    <div className="space-y-3">
+      <div className="text-center">
+        <span className="text-4xl font-bold" style={{ color: 'var(--gold)' }}>
+          {value} months
+        </span>
       </div>
+
       <div
-        className="relative rounded-lg"
-        style={{
-          height: `${44 + maxRow * 24}px`,
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
+        className="relative"
+        style={{ paddingBottom: `${markerAreaHeight}px` }}
+        onMouseLeave={() => onSelect(null)}
       >
-        <div
-          className="absolute top-1/2 left-3 right-3 h-px -translate-y-1/2"
-          style={{ background: 'var(--border)' }}
+        <input
+          type="range"
+          tabIndex={-1}
+          min={min}
+          max={max}
+          step={1}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="relative z-10 w-full h-2 rounded-full appearance-none cursor-pointer"
+          style={{ background: 'var(--bg-elevated)', accentColor: 'var(--gold)' }}
         />
+
         {AIRLINE_SECOND_OFFER_HISTORY.map((record) => {
           const row = markerRows.get(record.id) ?? 0
           const left = monthToPercent(record.approximateMonths, min, max)
@@ -158,39 +175,45 @@ function AirlineTimeline({ min, max, activeId, onSelect }: {
           return (
             <div
               key={record.id}
-              className="absolute -translate-x-1/2"
+              className="absolute z-20 -translate-x-1/2 pointer-events-none"
               style={{
-                left: `calc(12px + (100% - 24px) * ${left / 100})`,
-                top: `${12 + row * 22}px`,
+                left: `${left}%`,
+                top: 'calc(0.5rem + 8px + 4px)',
+                marginTop: `${row * 22}px`,
               }}
             >
-              {isActive && <AirlineTooltip record={record} onClose={() => onSelect(null)} />}
-              <button
-                type="button"
-                onClick={() => onSelect(isActive ? null : record.id)}
-                className="flex flex-col items-center gap-0.5 transition-transform hover:scale-105"
-                aria-label={`${record.airline}, approximately ${record.approximateMonths} months`}
-                aria-expanded={isActive}
-              >
-                <span
-                  className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-sm"
-                  style={{
-                    background: '#ffffff',
-                    border: isActive ? '2px solid var(--gold)' : '1px solid var(--border)',
-                  }}
+              <div className="relative pointer-events-auto">
+                {isActive && <AirlineTooltip record={record} onClose={() => onSelect(null)} />}
+                <button
+                  type="button"
+                  onClick={() => onSelect(isActive ? null : record.id)}
+                  onMouseEnter={() => onSelect(record.id)}
+                  className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110 focus:outline-none"
+                  aria-label={`${record.airline}, approximately ${record.approximateMonths} months`}
+                  aria-expanded={isActive}
                 >
-                  <img src={record.logoSrc} alt="" className="w-6 h-6 object-contain" />
-                </span>
-                <span className="text-[10px] font-medium tabular-nums" style={{ color: 'var(--text-faint)' }}>
-                  {record.approximateMonths}mo{record.isArrivalOutlier ? '*' : ''}
-                </span>
-              </button>
+                  <img
+                    src={record.logoSrc}
+                    alt=""
+                    className="h-6 w-auto max-w-[52px] object-contain drop-shadow-sm"
+                    draggable={false}
+                  />
+                  <span className="text-[10px] font-medium tabular-nums leading-none" style={{ color: 'var(--text-faint)' }}>
+                    {record.approximateMonths}mo{record.isArrivalOutlier ? '*' : ''}
+                  </span>
+                </button>
+              </div>
             </div>
           )
         })}
       </div>
-      <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-faint)' }}>
-        * Excluded from the 13-month industry average as an outlier
+
+      <div className="flex justify-between text-xs" style={{ color: 'var(--text-faint)' }}>
+        <span>{min} months</span>
+        <span>{max} months</span>
+      </div>
+      <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        Hover or tap an airline logo for historical timing details. * FedEx excluded from the 13-month industry average as an outlier.
       </p>
     </div>
   )
@@ -324,19 +347,11 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
         </button>
       </div>
 
-      <SliderInput
+      <ArrivalSliderWithMarkers
         value={value}
         min={min}
         max={max}
-        step={1}
         onChange={onChange}
-        formatValue={(v) => `${v} months`}
-        showMinMax
-      />
-
-      <AirlineTimeline
-        min={min}
-        max={max}
         activeId={activeAirlineId}
         onSelect={setActiveAirlineId}
       />

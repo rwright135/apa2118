@@ -43,7 +43,7 @@ export function AirlineHistorySources() {
         {AIRLINE_SECOND_OFFER_HISTORY.map((record) => (
           <div key={record.id}>
             <div className="flex items-center gap-2">
-              <img src={record.logoSrc} alt="" className="w-6 h-6 rounded object-contain bg-white p-0.5" />
+              <img src={record.logoSrc} alt="" className="h-6 w-auto max-w-[56px] object-contain" />
               <span className="font-semibold text-xs" style={{ color: 'var(--text-base)' }}>{record.airline}</span>
             </div>
             <AirlineArticleLinks record={record} />
@@ -79,7 +79,7 @@ export function AirlineHistoryTable() {
           <tr key={record.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
             <td className="py-3 pr-3 align-top">
               <div className="flex items-center gap-2">
-                <img src={record.logoSrc} alt="" className="w-8 h-8 rounded-lg object-contain bg-white p-0.5" />
+                <img src={record.logoSrc} alt="" className="h-7 w-auto max-w-[72px] object-contain" />
                 <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{record.airline}</span>
               </div>
             </td>

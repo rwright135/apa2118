@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="United Airlines">
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  <rect x="10" y="10" width="44" height="30" rx="4" fill="#0033A0"/>
+  <circle cx="24" cy="25" r="10" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <path d="M14 25 H34 M24 15 V35 M18 19 Q24 25 18 31 M30 19 Q24 25 30 31" stroke="#ffffff" stroke-width="1.5" fill="none"/>
+  <text x="32" y="54" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#0033A0">UNITED</text>
+</svg>
