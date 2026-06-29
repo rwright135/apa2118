@@ -178,9 +178,6 @@ export function StepPayRaise() {
                           <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
                             {fmt(invested)}/mo
                           </span>
-                          <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}>
-                            invested ({Math.round(pct * 100)}%)
-                          </span>
                         </div>
                       )}
                     </div>
