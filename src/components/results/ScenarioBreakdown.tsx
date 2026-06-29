@@ -71,7 +71,7 @@ function ScenarioRows({
   index:  number
   showHeader: boolean
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
 
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
@@ -134,14 +134,37 @@ function ScenarioRows({
       })}
 
       {/* How Vote No is weighted — toggle row */}
-      <tr
-        style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
-        onClick={() => setOpen(v => !v)}
-      >
-        <td colSpan={3} className="px-4 py-2.5">
-          <span className="text-xs" style={{ color: 'var(--accent)' }}>
-            {open ? '↑ Hide' : '↓ How Vote No expected value is calculated'}
-          </span>
+      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <td colSpan={3} className="px-4 py-3">
+          <button
+            type="button"
+            onClick={() => setOpen(v => !v)}
+            className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+            style={{
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              How Vote No expected value is calculated
+            </span>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="var(--text-faint)"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              style={{
+                transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              <path d="M2 4l4 4 4-4" />
+            </svg>
+          </button>
         </td>
       </tr>
 
@@ -156,8 +179,8 @@ function ScenarioRows({
             </td>
           </tr>
           {[
-            { label: 'Outcome B — 2nd bridge offer arrives', weight: p,       pv: scenarioB.preJcbaTotal },
-            { label: 'Outcome C — No offer, stay on CBA until JCBA',   weight: 1 - p, pv: scenarioC.preJcbaTotal },
+            { label: 'Vote No (Offer) — 2nd bridge offer arrives', weight: p,       pv: scenarioB.preJcbaTotal },
+            { label: 'Vote No (JCBA) — No offer, stay on CBA until JCBA',   weight: 1 - p, pv: scenarioC.preJcbaTotal },
           ].map(({ label, weight, pv }) => (
             <tr key={label} style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
               <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
