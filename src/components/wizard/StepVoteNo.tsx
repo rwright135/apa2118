@@ -263,7 +263,7 @@ export function StepVoteNo() {
   return (
     <WizardLayout
       step="voteNo"
-      title="Your Vote No Assumptions"
+      title="Your Scenerio Assumptions"
       onBack={prevStep}
     >
       <div className="mb-8 space-y-6">

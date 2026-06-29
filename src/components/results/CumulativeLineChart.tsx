@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
 import { useResultChartColors } from './useResultChartColors'
@@ -31,7 +30,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function CumulativeLineChart({ results }: Props) {
-  const [showDetail, setShowDetail] = useState(false)
   const { voteYes, voteNo } = useResultChartColors()
 
   // Use the longest JCBA window across all scenarios to set chart length
@@ -63,10 +61,8 @@ export function CumulativeLineChart({ results }: Props) {
       const suffix = results.length > 1 ? ` (${abbrev})` : ''
       point[`Vote Yes${suffix}`]  = Math.round(rResultA?.cumulativePV ?? 0)
       point[`Vote No${suffix}`]   = Math.round(rVN?.cumulativePV ?? 0)
-      if (showDetail) {
-        point[`Scen B${suffix}`]  = Math.round(rB?.cumulativePV ?? 0)
-        point[`Scen C${suffix}`]  = Math.round(rC?.cumulativePV ?? 0)
-      }
+      point[`Scen B${suffix}`]    = Math.round(rB?.cumulativePV ?? 0)
+      point[`Scen C${suffix}`]    = Math.round(rC?.cumulativePV ?? 0)
     })
 
     chartData.push(point)
@@ -87,24 +83,12 @@ export function CumulativeLineChart({ results }: Props) {
             return [
               <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
               <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
-              ...(showDetail ? [
-                <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={SCENARIO_DETAIL_COLORS[0]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-                <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={SCENARIO_DETAIL_COLORS[1]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-              ] : []),
+              <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={SCENARIO_DETAIL_COLORS[0]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
+              <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={SCENARIO_DETAIL_COLORS[1]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
             ]
           })}
         </LineChart>
       </ResponsiveContainer>
-
-      <div className="mt-2 text-center">
-        <button
-          onClick={() => setShowDetail(v => !v)}
-          className="text-xs font-medium transition-colors"
-          style={{ color: 'var(--accent)' }}
-        >
-          {showDetail ? 'Hide scenario detail' : 'Show how Vote No is weighted (Outcome B & C)'}
-        </button>
-      </div>
     </div>
   )
 }

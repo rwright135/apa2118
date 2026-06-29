@@ -31,7 +31,7 @@ export function StepUpgrade() {
   return (
     <WizardLayout
       step="upgrade"
-      title="When do you expect to upgrade to Captain?"
+      title="How many years from now do you expect to upgrade to Captain?"
       subtitle="Years from July 1, 2026"
       onBack={() => goToStep('seat')}
     >

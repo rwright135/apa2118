@@ -15,7 +15,7 @@ export function StepAnniversary() {
       onBack={prevStep}
     >
       <div className="mb-8">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {MONTHS.map((month, idx) => (
             <button
               key={month}

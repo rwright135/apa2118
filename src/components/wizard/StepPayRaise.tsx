@@ -16,12 +16,15 @@ function fmtRate(n: number) {
   return `$${n.toFixed(2)}`
 }
 
+function formatUpgradeDate(yearsFromStart: number) {
+  return `Jul ${2026 + yearsFromStart}`
+}
+
 interface TierRow {
   label: string
   sublabel: string
   rate: number
   monthlyPay: number
-  raiseDollarsPerHr: number
   raiseMonthly: number
 }
 
@@ -50,31 +53,27 @@ export function StepPayRaise() {
       sublabel: 'What you earn today',
       rate: cbaRate,
       monthlyPay: cbaRate * mmg,
-      raiseDollarsPerHr: 0,
       raiseMonthly: 0,
     },
     {
       label: 'Jul 2026 (DOS)',
-      sublabel: 'Effective July 1 · includes back pay',
+      sublabel: 'Back Pay Effective July 1st',
       rate: dosRate,
       monthlyPay: dosRate * mmg,
-      raiseDollarsPerHr: dosRate - cbaRate,
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2027',
-      sublabel: `Longevity year ${lonAt2027}`,
+      label: 'Jan 2027 (DOS+6 months)',
+      sublabel: `${lonAt2027} Year ${seat}`,
       rate: jan27Rate,
       monthlyPay: jan27Rate * mmg,
-      raiseDollarsPerHr: jan27Rate - cbaRate,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2028',
-      sublabel: `Longevity year ${lonAt2028} · final tier`,
+      label: 'Jan 2028 (DOS+18 Months)',
+      sublabel: `${lonAt2028} Year ${seat}`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
-      raiseDollarsPerHr: jan28Rate - cbaRate,
       raiseMonthly: (jan28Rate - cbaRate) * mmg,
     },
   ]
@@ -87,9 +86,13 @@ export function StepPayRaise() {
     ? getRate('CA', upgradeLon, 'TA_DOS_EOY2026')
     : null
 
-  // For the slider preview, use the DOS raise as the reference
-  const dosRaiseMonthly = tiers[1].raiseMonthly
-  const monthlySavings  = Math.max(0, dosRaiseMonthly) * pct
+  // For the slider preview, show savings at each Bridge TA tier
+  const savingsTiers = tiers.slice(1).map((tier) => ({
+    label: tier.label,
+    raiseMonthly: tier.raiseMonthly,
+    monthlySavings: Math.max(0, tier.raiseMonthly) * pct,
+  }))
+  const hasRaisePreview = savingsTiers.some((tier) => tier.raiseMonthly > 0)
 
   function handleSlider(e: React.ChangeEvent<HTMLInputElement>) {
     setInput('brokerageSavingsPct', Number(e.target.value) / 100)
@@ -98,7 +101,7 @@ export function StepPayRaise() {
   return (
     <WizardLayout
       step="payRaise"
-      title="Your pay raise"
+      title="Your Pay Raise on the Bridge TA"
       subtitle="See how your hourly rate changes with the new contract — and decide how much of your raise to invest."
       onBack={prevStep}
     >
@@ -131,18 +134,13 @@ export function StepPayRaise() {
                   <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
                     {fmt(tier.monthlyPay)}/mo
                   </div>
+                  {hasRaise && (
+                    <div className="text-xs font-semibold tabular-nums mt-0.5" style={{ color: 'var(--positive)' }}>
+                      +{fmt(tier.raiseMonthly)}/mo
+                    </div>
+                  )}
                 </div>
               </div>
-              {hasRaise && (
-                <div className="mt-2 pt-2 flex items-center gap-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}>
-                    +{fmtRate(tier.raiseDollarsPerHr)}/hr vs. today
-                  </span>
-                  <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
-                    +{fmt(tier.raiseMonthly)}/mo
-                  </span>
-                </div>
-              )}
             </div>
           )
         })}
@@ -150,15 +148,22 @@ export function StepPayRaise() {
         {/* CA upgrade preview for FO pilots */}
         {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
           <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--gold)' }}>
-              After upgrade to Captain (year {inputs.upgradeToCAInYears})
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                Captain rate at longevity {upgradeLon} · DOS tier
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
+                  After upgrade to Captain ({formatUpgradeDate(inputs.upgradeToCAInYears)})
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                  Captain rate at longevity {upgradeLon} · DOS tier
+                </div>
               </div>
-              <div className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmtRate(upgradeCARate)}/hr · {fmt(upgradeCARate * mmg)}/mo
+              <div className="text-right shrink-0">
+                <div className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                  {fmtRate(upgradeCARate)}/hr
+                </div>
+                <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
+                  {fmt(upgradeCARate * mmg)}/mo
+                </div>
               </div>
             </div>
           </div>
@@ -198,19 +203,39 @@ export function StepPayRaise() {
           <span>100%</span>
         </div>
 
-        {dosRaiseMonthly > 0 ? (
-          <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs mb-1" style={{ color: 'var(--text-faint)' }}>
-              At the July 2026 rate, your monthly raise is {fmt(dosRaiseMonthly)}
+        {hasRaisePreview ? (
+          <div className="rounded-lg px-3 py-2.5 space-y-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Your monthly raise steps up through the Bridge TA — here&apos;s what {Math.round(pct * 100)}% looks like at each tier:
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmt(monthlySavings)}/mo
-              </span>
-              <span className="text-xs" style={{ color: 'var(--text-faint)' }}>invested in your brokerage</span>
+            <div className="space-y-2">
+              {savingsTiers.map((tier) => (
+                <div
+                  key={tier.label}
+                  className="flex items-start justify-between gap-3 rounded-lg px-2.5 py-2"
+                  style={{ background: 'var(--bg-elevated)' }}
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                      {tier.label}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                      Raise {fmt(tier.raiseMonthly)}/mo
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-base font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+                      {fmt(tier.monthlySavings)}/mo
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                      to brokerage
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
             {pct === 0 && (
-              <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
                 Slide to model brokerage savings
               </div>
             )}

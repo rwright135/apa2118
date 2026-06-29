@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
 import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
@@ -21,58 +21,6 @@ function fmtAssumptionsFooter(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
 }
 
-const BOTTOM_LINE_HELP = (
-  'These are Pre-JCBA decision window numbers: the present value of all earnings during this period in today\'s dollars. '
-  + 'After the JCBA concludes, all paths converge to the same rates, therefore cancelling out those years for a more simplified estimate.'
-)
-
-function BottomLineHelp() {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-
-  return (
-    <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        aria-label="About this bottom line comparison"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
-        style={{
-          color: 'var(--text-faint)',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        ?
-      </button>
-      {open && (
-        <div
-          className="absolute right-0 top-full mt-2 z-20 w-64 rounded-xl px-3 py-2.5 text-xs leading-relaxed shadow-lg"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          {BOTTOM_LINE_HELP}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
 
 interface RiskCardProps {
@@ -86,7 +34,7 @@ interface RiskCardProps {
 }
 
 function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
   return (
@@ -133,7 +81,9 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
   // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
-  const bPVGap = scenarioB.preJcbaTotal - scenarioA.preJcbaTotal   // + = Vote No wins
+  const bNominalGap =
+    (scenarioB.totalGrossPay + scenarioB.totalProfitSharing + scenarioB.totalRetention) -
+    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.totalRetention)
 
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
@@ -148,9 +98,6 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
 
-  // Full PV gap worst case (includes retention in both; + = Vote Yes leads even after retention)
-  const cPVGap = scenarioA.preJcbaTotal - scenarioC.preJcbaTotal
-
   // ── Retention bonus growth & recovery (Scenario C) ───────────────────────────
   // Find the payout row to get exact timing and discount factor
   const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
@@ -163,24 +110,21 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
     cRetAccrued += row.retentionAccrualNote
   }
 
-  // PV of the probability-weighted payout (retentionCashFlow already × pC in engine)
-  const cRetPV = cRetPayoutRow
-    ? cRetPayoutRow.retentionCashFlow * cRetPayoutRow.discountFactor
-    : 0
+  const cExpectedRetentionPayout = cRetAccrued * pC
+  const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
 
   return (
-    <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" style={{ background: 'var(--bg-elevated)' }}>
+    <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" style={{ background: 'var(--bg-elevated)' }}>
 
           <RiskCard
-            dotColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            dotColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
             title="If the second offer arrives"
-            value={<>{bPVGap >= 0 ? '+' : '−'}{fmt(Math.abs(bPVGap))}</>}
-            valueColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            value={<>{bNominalGap >= 0 ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
+            valueColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
             body={
               <>
                 If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bPVGap))}</strong> in today&apos;s dollars between now and JCBA closing in {jcba} months vs. Voting Yes.
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bNominalGap))}</strong> in pay, profit sharing, and retention between now and JCBA closing in {jcba} months vs. Voting Yes.
                 {bRetPayoutRow && (
                   <> This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.</>
                 )}
@@ -211,33 +155,32 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 
           <div className="md:col-span-2 xl:col-span-1 min-w-0">
           <RiskCard
-            dotColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
+            dotColor={cNetAfterRetention > 0 ? 'var(--warning)' : 'var(--positive)'}
             title="Worth the Risk?"
-            value={<>{cPVGap > 0 ? '−' : '+'}{fmt(Math.abs(cPVGap))} if No Offer</>}
-            valueColor={cPVGap > 0 ? 'var(--warning)' : 'var(--positive)'}
-            accentBg={cPVGap > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
-            accentBorder={`1px solid ${cPVGap > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
+            value={<>{cNetAfterRetention > 0 ? '−' : '+'}{fmt(Math.abs(cNetAfterRetention))} if No Offer</>}
+            valueColor={cNetAfterRetention > 0 ? 'var(--warning)' : 'var(--positive)'}
+            accentBg={cNetAfterRetention > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
+            accentBorder={`1px solid ${cNetAfterRetention > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
             body={
               <>
                 Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
-                At {Math.round(pC * 100)}% payout probability, that lump sum is worth{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetPV)}</strong> in today&apos;s dollars.
-                {cPVGap > 0
+                At {Math.round(pC * 100)}% payout probability, that lump sum is expected to pay{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.
+                {cNetAfterRetention > 0
                   ? <>
                       {' '}So while the retention bonus will make you partially whole, you&apos;d still be roughly{' '}
-                      <strong style={{ color: 'var(--warning)' }}>{fmt(cPVGap)} behind</strong> vs. Voting Yes.
+                      <strong style={{ color: 'var(--warning)' }}>{fmt(cNetAfterRetention)} behind</strong> vs. Voting Yes if no offer arrives.
                       {' '}So, no matter how high you rate the probability of a second offer, is the potential upside worth the risk?
                     </>
                   : <>
-                      {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap — Vote No comes out ahead once accrual is counted.
+                      {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap once accrual is counted.
                     </>}
               </>
             }
           />
           </div>
 
-        </div>
     </div>
   )
 }
@@ -245,57 +188,14 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 // ── Single scenario: verdict card ─────────────────────────────────────────────
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
-  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo    = result.voteNoExpected
-  const aVal      = scenarioA.preJcbaTotal
-  const noVal     = voteNo.preJcbaTotal
-  const diff      = aVal - noVal
-  const aWins     = diff > 0
-  const maxVal    = Math.max(aVal, noVal)
-
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      {/* Verdict */}
-      <div className="px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-            Bottom line
-          </div>
-          <BottomLineHelp />
-        </div>
-        <div className="text-3xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
-          {aWins ? 'Vote Yes' : 'Vote No'} leads
-        </div>
-        <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
-          by {fmt(Math.abs(diff))}
+      <div className="px-5 pt-5 pb-2">
+        <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+          Risk vs. reward
         </div>
       </div>
 
-      {/* Comparison rows */}
-      <div className="px-5 pb-5 space-y-3 border-t" style={{ borderColor: 'var(--border-subtle)', paddingTop: '16px' }}>
-        {[
-          { label: 'Vote Yes', sub: 'Accept the TA', val: aVal, color: VOTE_YES_COLOR },
-          { label: 'Vote No',  sub: 'Probability-weighted expected value', val: noVal, color: VOTE_NO_COLOR },
-        ].map(({ label, sub, val, color }) => (
-          <div key={label}>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-semibold" style={{ color }}>{label}</span>
-                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{sub}</span>
-              </div>
-              <span className="text-base font-bold tabular-nums" style={{ color }}>{fmt(val)}</span>
-            </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${(val / maxVal) * 100}%`, background: color, opacity: label === 'Vote No' ? 0.4 : 1 }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Risk/reward accordion */}
       <RiskRewardBreakdown result={result} />
 
       {/* Assumptions */}

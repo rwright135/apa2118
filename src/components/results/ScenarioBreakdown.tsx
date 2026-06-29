@@ -4,8 +4,6 @@ import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
 interface Props { results: ComparisonResult[] }
 
-const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
-
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
@@ -64,7 +62,7 @@ const STATS: StatDef[] = [
 
 // ── Per-scenario rows inside the shared table body ────────────────────────────
 
-function ScenarioRows({
+function ScenarioStatRows({
   result,
   index,
   showHeader,
@@ -73,18 +71,13 @@ function ScenarioRows({
   index:  number
   showHeader: boolean
 }) {
-  const [open, setOpen] = useState(false)
-
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
   const voteNo    = result.voteNoExpected
   const vns       = result.voteNoScenario
   const p         = vns.probability
 
   return (
     <>
-      {/* Scenario section header */}
       {showHeader && (
         <tr style={{ background: 'var(--bg-elevated)' }}>
           <td
@@ -92,7 +85,7 @@ function ScenarioRows({
             className="px-4 py-2 text-xs font-semibold"
             style={{ color: 'var(--text-muted)', borderTop: index > 0 ? '2px solid var(--border)' : undefined }}
           >
-            {SCENARIO_LABELS[index] ?? `Scenario ${index + 1}`}
+            Scenario {index + 1}
             <span className="ml-2 font-normal" style={{ color: 'var(--text-faint)' }}>
               {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo arrival · +{(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA {vns.jcbaDurationMonths}mo
             </span>
@@ -100,7 +93,6 @@ function ScenarioRows({
         </tr>
       )}
 
-      {/* Stat rows */}
       {STATS.map(stat => {
         const yesVal = stat.getYes(scenarioA)
         const noVal  = stat.getNo(voteNo)
@@ -134,62 +126,133 @@ function ScenarioRows({
           </tr>
         )
       })}
-
-      {/* How Vote No is weighted — toggle row */}
-      <tr
-        style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
-        onClick={() => setOpen(v => !v)}
-      >
-        <td colSpan={3} className="px-4 py-2.5">
-          <span className="text-xs" style={{ color: 'var(--accent)' }}>
-            {open ? '↑ Hide' : '↓ How Vote No expected value is calculated'}
-          </span>
-        </td>
-      </tr>
-
-      {/* Expanded weighting detail */}
-      {open && (
-        <>
-          <tr style={{ background: 'var(--bg-elevated)' }}>
-            <td colSpan={3} className="px-4 pt-3 pb-1">
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-                Vote No = (Outcome B × {Math.round(p * 100)}%) + (Outcome C × {Math.round((1 - p) * 100)}%)
-              </p>
-            </td>
-          </tr>
-          {[
-            { label: 'Outcome B — 2nd bridge offer arrives', weight: p,       pv: scenarioB.preJcbaTotal },
-            { label: 'Outcome C — No offer, stay on CBA until JCBA',   weight: 1 - p, pv: scenarioC.preJcbaTotal },
-          ].map(({ label, weight, pv }) => (
-            <tr key={label} style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-              <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {label}
-                <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--bg-surface)', color: 'var(--text-faint)' }}>
-                  ×{Math.round(weight * 100)}%
-                </span>
-              </td>
-              <td />
-              <td className="px-4 py-2 text-right text-sm font-semibold tabular-nums" style={{ color: 'var(--text-base)' }}>
-                {fmt(pv)}
-              </td>
-            </tr>
-          ))}
-          <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-            <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              Weighted Vote No total
-            </td>
-            <td />
-            <td className="px-4 py-2 text-right text-sm font-bold tabular-nums" style={{ color: 'var(--text-base)' }}>
-              {fmt(voteNo.preJcbaTotal)}
-            </td>
-          </tr>
-        </>
-      )}
     </>
   )
 }
 
+function ScenarioWeightingDetail({ result }: { result: ComparisonResult }) {
+  const [open, setOpen] = useState(true)
+
+  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
+  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+  const voteNo    = result.voteNoExpected
+  const p         = result.voteNoScenario.probability
+
+  return (
+    <div className="border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
+      <div className="px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+          style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+            How Vote No expected value is calculated
+          </span>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="var(--text-faint)"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            style={{
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s',
+              flexShrink: 0,
+            }}
+          >
+            <path d="M2 4l4 4 4-4" />
+          </svg>
+        </button>
+      </div>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-2" style={{ background: 'var(--bg-elevated)' }}>
+          <p className="text-xs leading-relaxed px-1" style={{ color: 'var(--text-faint)' }}>
+            Vote No = (Vote No (Offer) × {Math.round(p * 100)}%) + (Vote No (JCBA) × {Math.round((1 - p) * 100)}%)
+          </p>
+          {[
+            { label: 'Vote No (Offer) — 2nd bridge offer arrives', weight: p, pv: scenarioB.preJcbaTotal },
+            { label: 'Vote No (JCBA) — No offer, stay on CBA until JCBA', weight: 1 - p, pv: scenarioC.preJcbaTotal },
+          ].map(({ label, weight, pv }) => (
+            <div
+              key={label}
+              className="flex items-start justify-between gap-4 rounded-lg px-3 py-2"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+            >
+              <div className="min-w-0 text-xs leading-snug" style={{ color: 'var(--text-muted)' }}>
+                {label}
+                <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--bg-elevated)', color: 'var(--text-faint)' }}>
+                  ×{Math.round(weight * 100)}%
+                </span>
+              </div>
+              <span className="text-sm font-semibold tabular-nums shrink-0" style={{ color: 'var(--text-base)' }}>
+                {fmt(pv)}
+              </span>
+            </div>
+          ))}
+          <div
+            className="flex items-center justify-between gap-4 rounded-lg px-3 py-2"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+          >
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Weighted Vote No total
+            </span>
+            <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: 'var(--text-base)' }}>
+              {fmt(voteNo.preJcbaTotal)}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Export ────────────────────────────────────────────────────────────────────
+
+function BreakdownBlock({
+  result,
+  index,
+  showHeader,
+}: {
+  result: ComparisonResult
+  index: number
+  showHeader: boolean
+}) {
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+      <table className="w-full table-fixed" style={{ background: 'var(--bg-surface)' }}>
+        <colgroup>
+          <col />
+          <col style={{ width: '7.5rem' }} />
+          <col style={{ width: '7.5rem' }} />
+        </colgroup>
+        <thead>
+          <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+            <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
+            <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_YES_CSS }}>
+              Vote Yes
+            </th>
+            <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_CSS }}>
+              Vote No
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <ScenarioStatRows result={result} index={index} showHeader={showHeader} />
+        </tbody>
+      </table>
+
+      <ScenarioWeightingDetail result={result} />
+    </div>
+  )
+}
 
 export function ScenarioBreakdown({ results }: Props) {
   return (
@@ -198,31 +261,13 @@ export function ScenarioBreakdown({ results }: Props) {
         Breakdown
       </h2>
 
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
-        <table className="w-full" style={{ background: 'var(--bg-surface)' }}>
-          <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-              <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
-              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_YES_CSS }}>
-                Vote Yes
-              </th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_CSS }}>
-                Vote No
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result, i) => (
-              <ScenarioRows
-                key={i}
-                result={result}
-                index={i}
-                showHeader={true}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {results.length === 1 ? (
+        <BreakdownBlock result={results[0]} index={0} showHeader={false} />
+      ) : (
+        results.map((result, i) => (
+          <BreakdownBlock key={i} result={result} index={i} showHeader />
+        ))
+      )}
     </div>
   )
 }
