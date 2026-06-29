@@ -31,41 +31,56 @@ const CA_TIERS: Tier[] = [
 
 export function StepProfitSharing() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const ps = inputs.profitSharingLastYear
-  const psAmount = ps ?? 0
+  // The engine expects the annual PS amount; the user enters their per-check amount
+  // (profit sharing is paid twice a year), so we store checkAmount × 2.
+  const annualPs   = inputs.profitSharingLastYear
+  const checkAmount = annualPs !== undefined ? annualPs / 2 : undefined
+  const annualAmount = annualPs ?? 0
   const l  = (inputs.longevityAsOfJul2026 ?? 1) - 1
 
   const cbaRate = inputs.seat === 'FO' ? FO_CBA[l] : inputs.seat === 'CA' ? CA_CBA[l] : null
   const tiers   = inputs.seat === 'FO' ? FO_TIERS  : inputs.seat === 'CA' ? CA_TIERS  : null
-  const hasValue = psAmount > 0
+  const hasValue = annualAmount > 0
 
   return (
     <WizardLayout
       step="profitSharing"
-      title="What was your profit sharing last year?"
-      subtitle={
-        <>
-          Enter your <strong>total</strong> estimated annual profit sharing payment and see how it scales proportionally with new pay rates for <u>your</u> seat and longevity.
-        </>
-      }
+      title="What was your last profit sharing bonus check?"
+      subtitle="Enter the amount of your most recent profit sharing payment. We'll automatically multiply by 2 to get your annual total."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
         <NumberInput
-          value={ps}
-          onChange={(v) => setInput('profitSharingLastYear', Math.max(0, v))}
+          value={checkAmount}
+          onChange={(v) => setInput('profitSharingLastYear', Math.max(0, v) * 2)}
           prefix="$"
           placeholder="0"
           min={0}
           step={100}
         />
 
+        {hasValue && (
+          <div
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+          >
+            <span style={{ color: 'var(--text-muted)' }}>
+              ${checkAmount?.toLocaleString()} check
+            </span>
+            <span style={{ color: 'var(--text-faint)' }}>×&nbsp;2&nbsp;payments/yr</span>
+            <span style={{ color: 'var(--text-faint)'}}>=</span>
+            <span className="font-bold" style={{ color: 'var(--gold)' }}>
+              ${annualAmount.toLocaleString()} annual
+            </span>
+          </div>
+        )}
+
         {cbaRate !== null && tiers !== null && (
           <div
             className="rounded-xl overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
-            {/* Header row — always the same height */}
+            {/* Header row */}
             <div
               className="flex justify-between items-center gap-3 px-4 py-2"
               style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)' }}
@@ -88,7 +103,7 @@ export function StepProfitSharing() {
                 className="font-semibold"
                 style={{ color: hasValue ? 'var(--text-base)' : 'var(--text-faint)' }}
               >
-                {hasValue ? `$${psAmount.toLocaleString()}` : 'TBD'}
+                {hasValue ? `$${annualAmount.toLocaleString()}` : 'TBD'}
               </span>
             </div>
 
@@ -97,7 +112,7 @@ export function StepProfitSharing() {
               const isLast = i === tiers.length - 1
               const multiplier = hasValue ? tier.rates[l] / cbaRate : null
               const psPct      = multiplier !== null ? Math.round((multiplier - 1) * 100) : null
-              const psAmt      = multiplier !== null ? Math.round(psAmount * multiplier) : null
+              const psAmt      = multiplier !== null ? Math.round(annualAmount * multiplier) : null
 
               return (
                 <div
