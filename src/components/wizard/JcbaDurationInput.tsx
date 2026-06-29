@@ -21,18 +21,31 @@ function monthToPercent(months: number, min: number, max: number): number {
   return ((months - min) / (max - min)) * 100
 }
 
-function assignMarkerRows(records: JcbaMergerRecord[], minGapMonths = 2): Map<string, number> {
+const CHIP_SIZE = 32
+const ROW_HEIGHT = CHIP_SIZE + 6
+
+function assignMarkerRows(
+  records: JcbaMergerRecord[],
+  min: number,
+  max: number,
+  sliderWidthPx = 320,
+  chipWidthPx = CHIP_SIZE,
+): Map<string, number> {
+  const toPixels = (months: number) =>
+    ((months - min) / (max - min)) * sliderWidthPx
+
   const sorted = [...records].sort((a, b) => a.months - b.months)
   const rows = new Map<string, number>()
-  const rowEnds: number[] = []
+  const rowEndPx: number[] = []
 
   for (const record of sorted) {
+    const px = toPixels(record.months)
     let row = 0
-    while (rowEnds[row] !== undefined && record.months - rowEnds[row] < minGapMonths) {
+    while (rowEndPx[row] !== undefined && px - rowEndPx[row] < chipWidthPx + 4) {
       row += 1
     }
     rows.set(record.id, row)
-    rowEnds[row] = record.months
+    rowEndPx[row] = px + chipWidthPx / 2
   }
 
   return rows
@@ -149,9 +162,21 @@ function JcbaSliderWithMarkers({
   activeId: string | null
   onSelect: (id: string | null) => void
 }) {
-  const markerRows = assignMarkerRows(JCBA_MERGER_HISTORY)
-  const maxRow = Math.max(...JCBA_MERGER_HISTORY.map((record) => markerRows.get(record.id) ?? 0))
-  const markerAreaHeight = 32 + maxRow * 24
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [sliderWidth, setSliderWidth] = useState(320)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => setSliderWidth(el.offsetWidth))
+    observer.observe(el)
+    setSliderWidth(el.offsetWidth)
+    return () => observer.disconnect()
+  }, [])
+
+  const markerRows = assignMarkerRows(JCBA_MERGER_HISTORY, min, max, sliderWidth, CHIP_SIZE)
+  const maxRow = Math.max(...JCBA_MERGER_HISTORY.map((r) => markerRows.get(r.id) ?? 0))
+  const markerAreaHeight = (maxRow + 1) * ROW_HEIGHT + 8
 
   return (
     <div className="space-y-3">
@@ -162,6 +187,7 @@ function JcbaSliderWithMarkers({
       </div>
 
       <div
+        ref={containerRef}
         className="relative"
         style={{ paddingBottom: `${markerAreaHeight}px` }}
         onMouseLeave={() => onSelect(null)}
@@ -182,15 +208,16 @@ function JcbaSliderWithMarkers({
           const row = markerRows.get(record.id) ?? 0
           const left = monthToPercent(record.months, min, max)
           const isActive = activeId === record.id
+          const topOffset = 12 + row * ROW_HEIGHT
 
           return (
             <div
               key={record.id}
-              className="absolute z-20 -translate-x-1/2 pointer-events-none"
+              className="absolute z-20 pointer-events-none"
               style={{
                 left: `${left}%`,
-                top: 'calc(0.5rem + 8px + 4px)',
-                marginTop: `${row * 24}px`,
+                top: `${topOffset}px`,
+                transform: 'translateX(-50%)',
               }}
             >
               <div className="relative pointer-events-auto">
@@ -199,14 +226,35 @@ function JcbaSliderWithMarkers({
                   type="button"
                   onClick={() => onSelect(isActive ? null : record.id)}
                   onMouseEnter={() => onSelect(record.id)}
-                  className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110 focus:outline-none"
+                  className="flex items-center justify-center rounded-lg transition-all hover:scale-110 focus:outline-none overflow-hidden"
+                  style={{
+                    width: record.logoSrcs.length > 1 ? `${CHIP_SIZE * 2 + 2}px` : `${CHIP_SIZE}px`,
+                    height: `${CHIP_SIZE}px`,
+                    background: '#ffffff',
+                    border: isActive
+                      ? '2px solid var(--gold)'
+                      : '1px solid rgba(0,0,0,0.12)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    padding: record.logoSrcs.length > 1 ? '3px 2px' : '3px',
+                    gap: '2px',
+                  }}
                   aria-label={`${record.label}, ${formatTimelineMonths(record.months)} months`}
                   aria-expanded={isActive}
                 >
-                  <MergerLogoMark record={record} />
-                  <span className="text-[10px] font-medium tabular-nums leading-none" style={{ color: 'var(--text-faint)' }}>
-                    {formatTimelineMonths(record.months)}mo{record.isOutlier ? '*' : ''}
-                  </span>
+                  {record.logoSrcs.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      style={{
+                        height: '100%',
+                        width: record.logoSrcs.length > 1 ? `${CHIP_SIZE - 6}px` : '100%',
+                        objectFit: 'contain',
+                        flexShrink: 0,
+                      }}
+                      draggable={false}
+                    />
+                  ))}
                 </button>
               </div>
             </div>
@@ -219,7 +267,7 @@ function JcbaSliderWithMarkers({
         <span>{max} mo ({(max / 12).toFixed(1)} yrs)</span>
       </div>
       <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-        Hover or tap a logo for historical JCBA timing. * Atlas Air / Southern Air excluded from the {formatTimelineMonths(AVERAGE_JCBA_MONTHS)}-month industry average as an outlier.
+        Tap or hover a logo for historical JCBA timing. * Atlas Air / Southern Air excluded from the {formatTimelineMonths(AVERAGE_JCBA_MONTHS)}-month average as an outlier.
       </p>
     </div>
   )

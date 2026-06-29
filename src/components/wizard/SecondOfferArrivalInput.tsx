@@ -24,18 +24,33 @@ function monthToPercent(months: number, min: number, max: number): number {
   return ((months - min) / (max - min)) * 100
 }
 
-function assignMarkerRows(records: AirlineSecondOfferRecord[], minGapMonths = 2): Map<string, number> {
+/**
+ * Assign stagger rows by pixel proximity rather than raw months,
+ * so the layout adapts gracefully across screen widths.
+ * sliderWidthPx defaults to 320 (conservative mobile estimate).
+ */
+function assignMarkerRows(
+  records: AirlineSecondOfferRecord[],
+  min: number,
+  max: number,
+  sliderWidthPx = 320,
+  chipWidthPx = 36,
+): Map<string, number> {
+  const toPixels = (months: number) =>
+    ((months - min) / (max - min)) * sliderWidthPx
+
   const sorted = [...records].sort((a, b) => a.approximateMonths - b.approximateMonths)
   const rows = new Map<string, number>()
-  const rowEnds: number[] = []
+  const rowEndPx: number[] = []
 
   for (const record of sorted) {
+    const px = toPixels(record.approximateMonths)
     let row = 0
-    while (rowEnds[row] !== undefined && record.approximateMonths - rowEnds[row] < minGapMonths) {
+    while (rowEndPx[row] !== undefined && px - rowEndPx[row] < chipWidthPx + 4) {
       row += 1
     }
     rows.set(record.id, row)
-    rowEnds[row] = record.approximateMonths
+    rowEndPx[row] = px + chipWidthPx / 2
   }
 
   return rows
@@ -124,6 +139,9 @@ function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord;
   )
 }
 
+const CHIP_SIZE = 32   // px — uniform square chip for every logo
+const ROW_HEIGHT = CHIP_SIZE + 6 // gap between stagger rows
+
 function ArrivalSliderWithMarkers({
   value,
   min,
@@ -139,9 +157,21 @@ function ArrivalSliderWithMarkers({
   activeId: string | null
   onSelect: (id: string | null) => void
 }) {
-  const markerRows = assignMarkerRows(AIRLINE_SECOND_OFFER_HISTORY)
-  const maxRow = Math.max(...AIRLINE_SECOND_OFFER_HISTORY.map((record) => markerRows.get(record.id) ?? 0))
-  const markerAreaHeight = 28 + maxRow * 22
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [sliderWidth, setSliderWidth] = useState(320)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => setSliderWidth(el.offsetWidth))
+    observer.observe(el)
+    setSliderWidth(el.offsetWidth)
+    return () => observer.disconnect()
+  }, [])
+
+  const markerRows = assignMarkerRows(AIRLINE_SECOND_OFFER_HISTORY, min, max, sliderWidth, CHIP_SIZE)
+  const maxRow = Math.max(...AIRLINE_SECOND_OFFER_HISTORY.map((r) => markerRows.get(r.id) ?? 0))
+  const markerAreaHeight = (maxRow + 1) * ROW_HEIGHT + 8
 
   return (
     <div className="space-y-3">
@@ -152,6 +182,7 @@ function ArrivalSliderWithMarkers({
       </div>
 
       <div
+        ref={containerRef}
         className="relative"
         style={{ paddingBottom: `${markerAreaHeight}px` }}
         onMouseLeave={() => onSelect(null)}
@@ -172,15 +203,16 @@ function ArrivalSliderWithMarkers({
           const row = markerRows.get(record.id) ?? 0
           const left = monthToPercent(record.approximateMonths, min, max)
           const isActive = activeId === record.id
+          const topOffset = 12 + row * ROW_HEIGHT  // px below the track
 
           return (
             <div
               key={record.id}
-              className="absolute z-20 -translate-x-1/2 pointer-events-none"
+              className="absolute z-20 pointer-events-none"
               style={{
                 left: `${left}%`,
-                top: 'calc(0.5rem + 8px + 4px)',
-                marginTop: `${row * 22}px`,
+                top: `${topOffset}px`,
+                transform: 'translateX(-50%)',
               }}
             >
               <div className="relative pointer-events-auto">
@@ -189,19 +221,26 @@ function ArrivalSliderWithMarkers({
                   type="button"
                   onClick={() => onSelect(isActive ? null : record.id)}
                   onMouseEnter={() => onSelect(record.id)}
-                  className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110 focus:outline-none"
+                  className="flex items-center justify-center rounded-lg transition-all hover:scale-110 focus:outline-none"
+                  style={{
+                    width: `${CHIP_SIZE}px`,
+                    height: `${CHIP_SIZE}px`,
+                    background: '#ffffff',
+                    border: isActive
+                      ? '2px solid var(--gold)'
+                      : '1px solid rgba(0,0,0,0.12)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    padding: '3px',
+                  }}
                   aria-label={`${record.airline}, approximately ${formatArrivalMonths(record.approximateMonths)} months`}
                   aria-expanded={isActive}
                 >
                   <img
                     src={record.logoSrc}
                     alt=""
-                    className="h-6 w-auto max-w-[52px] object-contain drop-shadow-sm"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     draggable={false}
                   />
-                  <span className="text-[10px] font-medium tabular-nums leading-none" style={{ color: 'var(--text-faint)' }}>
-                    {formatArrivalMonths(record.approximateMonths)}mo{record.isArrivalOutlier ? '*' : ''}
-                  </span>
                 </button>
               </div>
             </div>
@@ -214,7 +253,7 @@ function ArrivalSliderWithMarkers({
         <span>{max} months</span>
       </div>
       <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-        Hover or tap an airline logo for historical timing details. * FedEx excluded from the 13.3-month industry average as an outlier.
+        Tap or hover a logo to see historical timing. * FedEx excluded from the 13.3-month average as an outlier.
       </p>
     </div>
   )
