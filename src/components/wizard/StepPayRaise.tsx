@@ -60,14 +60,14 @@ export function StepPayRaise() {
     },
     {
       label: 'Jan 2027',
-      sublabel: `Longevity year ${lonAt2027}`,
+      sublabel: `${lonAt2027} Year ${seat}`,
       rate: jan27Rate,
       monthlyPay: jan27Rate * mmg,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
       label: 'Jan 2028',
-      sublabel: `Longevity year ${lonAt2028} · final tier`,
+      sublabel: `${lonAt2028} Year ${seat} · final tier`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
       raiseMonthly: (jan28Rate - cbaRate) * mmg,
