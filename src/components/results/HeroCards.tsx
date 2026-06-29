@@ -95,41 +95,26 @@ interface RiskCardProps {
 }
 
 function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
-  const [open, setOpen] = useState(false)
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
   return (
     <div className="rounded-xl overflow-hidden min-w-0" style={{ background: bg, border }}>
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="w-full px-4 py-3 text-left"
-        style={{ background: 'transparent' }}
-      >
+      <div className="px-4 py-3">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
           <span className="text-xs font-semibold uppercase tracking-wide leading-snug break-words" style={{ color: 'var(--text-faint)' }}>
             {title}
           </span>
         </div>
-        <div className="flex items-center justify-end gap-1.5 mt-1.5 pl-3.5">
+        <div className="flex items-center justify-end mt-1.5 pl-3.5">
           <span className="text-sm font-black tabular-nums leading-tight text-right" style={{ color: valueColor }}>{value}</span>
-          <svg
-            width="12" height="12" viewBox="0 0 12 12" fill="none"
-            stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
-            style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
-          >
-            <path d="M2 4l4 4 4-4"/>
-          </svg>
         </div>
-      </button>
-      {open && (
-        <div className="px-4 pb-3 pt-0">
-          <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
-          </div>
+      </div>
+      <div className="px-4 pb-4 pt-0">
+        <div className="border-t pt-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{body}</p>
         </div>
-      )}
+      </div>
     </div>
   )
 }
