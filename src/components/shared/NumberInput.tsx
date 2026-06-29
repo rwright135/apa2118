@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useRef, useState, useEffect, type ChangeEvent } from 'react'
 
 interface Props {
   value: number | undefined
@@ -28,26 +28,58 @@ function clamp(n: number, min?: number, max?: number): number {
   return result
 }
 
-function formatDisplayValue(value: number | undefined): string {
-  if (value === undefined) return ''
-  return formatNumber(value)
-}
-
 export function NumberInput({ value, onChange, prefix, suffix, min, max, placeholder, step = 1 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const isFocused = useRef(false)
+
+  // Internal display string — decoupled from the numeric value while focused
+  // so that clearing the field doesn't immediately restore "0"
+  const [displayStr, setDisplayStr] = useState(() =>
+    value !== undefined ? formatNumber(value) : ''
+  )
+
+  // Sync external value changes into the display only when not focused
+  useEffect(() => {
+    if (!isFocused.current) {
+      setDisplayStr(value !== undefined ? formatNumber(value) : '')
+    }
+  }, [value])
+
+  const handleFocus = () => {
+    isFocused.current = true
+    // When the displayed value is "0" treat it like an empty field so the
+    // user can start typing immediately without having to backspace first.
+    if (!value) {
+      setDisplayStr('')
+    }
+  }
+
+  const handleBlur = () => {
+    isFocused.current = false
+    // Restore the committed value (even if display was temporarily empty)
+    setDisplayStr(value !== undefined ? formatNumber(value) : '')
+  }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target
-    const cursorFromEnd = input.value.length - (input.selectionStart ?? input.value.length)
-    const isEmpty = input.value.replace(/\D/g, '') === ''
+    const raw = input.value
+    const cursorFromEnd = raw.length - (input.selectionStart ?? raw.length)
+    const isEmpty = raw.replace(/\D/g, '') === ''
 
-    const num = clamp(parseDigits(input.value), min, max)
+    if (isEmpty) {
+      // Let the field be visually empty while typing — don't force "0" back
+      setDisplayStr('')
+      return
+    }
+
+    const num = clamp(parseDigits(raw), min, max)
+    const formatted = formatNumber(num)
+    setDisplayStr(formatted)
     onChange(num)
 
     requestAnimationFrame(() => {
       const el = inputRef.current
       if (!el) return
-      const formatted = isEmpty ? '' : formatNumber(num)
       const newPos = Math.max(0, formatted.length - cursorFromEnd)
       el.setSelectionRange(newPos, newPos)
     })
@@ -79,8 +111,10 @@ export function NumberInput({ value, onChange, prefix, suffix, min, max, placeho
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        value={formatDisplayValue(value)}
+        value={displayStr}
         placeholder={placeholder ?? '0'}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         onChange={handleChange}
         onKeyDown={(e) => {
           if (e.key === 'Enter') e.currentTarget.blur()

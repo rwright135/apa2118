@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
-import { saveToLocalStorage } from './persistence'
+import { saveToLocalStorage, clearLocalStorage } from './persistence'
 
 export type WizardStep =
   | 'welcome'
@@ -162,10 +162,13 @@ export const useStore = create<AppState>((set, get) => ({
     }, 50)
   },
 
-  reset: () => set({
-    currentStep: 'welcome',
-    inputs: { ...DEFAULT_INPUTS },
-    results: null,
-    isComputing: false,
-  }),
+  reset: () => {
+    clearLocalStorage()
+    set({
+      currentStep: 'welcome',
+      inputs: { ...DEFAULT_INPUTS },
+      results: null,
+      isComputing: false,
+    })
+  },
 }))

@@ -162,10 +162,13 @@ body {
 }
 
 /*
- * When a text field is focused, hide the Continue button so it does not stack
- * under Safari's native keyboard accessory bar (Done/checkmark + field arrows).
+ * On touch devices only: when a text field is focused, hide the Continue button
+ * so it does not stack under Safari's native keyboard accessory bar.
+ * On desktop (hover-capable) devices the button stays visible.
  */
-.wizard-layout:has(.wizard-text-input:focus) .wizard-nav-footer {
-  visibility: hidden;
-  pointer-events: none;
+@media (hover: none) {
+  .wizard-layout:has(.wizard-text-input:focus) .wizard-nav-footer {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
