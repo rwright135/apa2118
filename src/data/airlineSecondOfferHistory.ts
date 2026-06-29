@@ -17,8 +17,9 @@ export interface AirlineSecondOfferRecord {
   articleLinks: AirlineArticleLink[]
 }
 
-function daysToMonths(days: number): number {
-  return Math.round((days / 365) * 12)
+
+export function formatArrivalMonths(months: number): string {
+  return Number.isInteger(months) ? `${months}` : months.toFixed(1)
 }
 
 /** Midpoint of United's 20–26% range, used in the industry average. */
@@ -32,7 +33,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     firstTARejected: 'July 10, 2015',
     secondTARatified: 'December 1, 2016',
     daysBetween: 510,
-    approximateMonths: daysToMonths(510),
+    approximateMonths: 16.7,
     economicIncrease: '~9%',
     economicIncreasePercent: 9,
     articleLinks: [
@@ -53,7 +54,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     firstTARejected: 'November 4, 2015',
     secondTARatified: 'November 7, 2016',
     daysBetween: 369,
-    approximateMonths: daysToMonths(369),
+    approximateMonths: 12.1,
     economicIncrease: '~11.8%',
     economicIncreasePercent: 11.8,
     articleLinks: [
@@ -74,7 +75,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     firstTARejected: 'November 1, 2022',
     secondTARatified: 'September 29, 2023',
     daysBetween: 332,
-    approximateMonths: daysToMonths(332),
+    approximateMonths: 10.9,
     economicIncrease: '~20–26% (varied by longevity)',
     economicIncreasePercent: UNITED_ECONOMIC_INCREASE_MIDPOINT,
     articleLinks: [
@@ -95,7 +96,7 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     firstTARejected: 'July 24, 2023',
     secondTARatified: 'June 9, 2026',
     daysBetween: 1051,
-    approximateMonths: daysToMonths(1051),
+    approximateMonths: 34.6,
     economicIncrease: '~10% (excluding additional value from retroactive pay and future raises)',
     economicIncreasePercent: 10,
     isArrivalOutlier: true,
@@ -130,11 +131,12 @@ const arrivalDaysSum = ARRIVAL_NON_OUTLIERS.reduce((sum, record) => sum + record
 const arrivalCarrierCount = ARRIVAL_NON_OUTLIERS.length
 
 export const AVERAGE_ARRIVAL_DAYS = arrivalDaysSum / arrivalCarrierCount
-export const AVERAGE_ARRIVAL_MONTHS = Math.round((AVERAGE_ARRIVAL_DAYS / 365) * 12)
+export const AVERAGE_ARRIVAL_MONTHS = 13.3
+/** Nearest whole month for the slider default (step = 1). */
+export const AVERAGE_ARRIVAL_MONTHS_ROUNDED = Math.round(AVERAGE_ARRIVAL_MONTHS)
 
 export const ARRIVAL_AVERAGE_MATH = {
   dayValues: ARRIVAL_NON_OUTLIERS.map((record) => record.daysBetween),
-  daySum: arrivalDaysSum,
   carrierCount: arrivalCarrierCount,
   averageDays: AVERAGE_ARRIVAL_DAYS,
   months: AVERAGE_ARRIVAL_MONTHS,

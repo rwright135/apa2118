@@ -4,6 +4,7 @@ import {
   AIRLINE_SECOND_OFFER_HISTORY,
   ARRIVAL_AVERAGE_MATH,
   articleLinkTypeLabel,
+  formatArrivalMonths,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
 import {
@@ -95,7 +96,7 @@ function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord;
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Time between</dt>
           <dd style={{ color: 'var(--text-muted)' }}>
-            {record.daysBetween} days (~{record.approximateMonths} mo)
+            {record.daysBetween} days (~{formatArrivalMonths(record.approximateMonths)} mo)
           </dd>
         </div>
         <div>
@@ -189,7 +190,7 @@ function ArrivalSliderWithMarkers({
                   onClick={() => onSelect(isActive ? null : record.id)}
                   onMouseEnter={() => onSelect(record.id)}
                   className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110 focus:outline-none"
-                  aria-label={`${record.airline}, approximately ${record.approximateMonths} months`}
+                  aria-label={`${record.airline}, approximately ${formatArrivalMonths(record.approximateMonths)} months`}
                   aria-expanded={isActive}
                 >
                   <img
@@ -199,7 +200,7 @@ function ArrivalSliderWithMarkers({
                     draggable={false}
                   />
                   <span className="text-[10px] font-medium tabular-nums leading-none" style={{ color: 'var(--text-faint)' }}>
-                    {record.approximateMonths}mo{record.isArrivalOutlier ? '*' : ''}
+                    {formatArrivalMonths(record.approximateMonths)}mo{record.isArrivalOutlier ? '*' : ''}
                   </span>
                 </button>
               </div>
@@ -213,7 +214,7 @@ function ArrivalSliderWithMarkers({
         <span>{max} months</span>
       </div>
       <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-        Hover or tap an airline logo for historical timing details. * FedEx excluded from the 13-month industry average as an outlier.
+        Hover or tap an airline logo for historical timing details. * FedEx excluded from the 13.3-month industry average as an outlier.
       </p>
     </div>
   )
@@ -283,7 +284,7 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
         <div className="overflow-auto px-5 py-4">
           <AirlineHistoryTable />
 
-          <CalculationBox title="How we get 13 months (Average scenario default)">
+          <CalculationBox title="How we get 13.3 months (Average scenario default)">
             <p>
               {outlierLabel} is treated as an outlier and excluded from the average.
             </p>
@@ -291,7 +292,7 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
               ({dayValues.join(' + ')}) ÷ {carrierCount} = {Math.round(averageDays)} days average
             </p>
             <p>
-              {Math.round(averageDays)} ÷ 365 × 12 = <strong style={{ color: 'var(--text-base)' }}>{months} months</strong>
+              {Math.round(averageDays)} ÷ 365 × 12 = <strong style={{ color: 'var(--text-base)' }}>{formatArrivalMonths(months)} months</strong>
             </p>
           </CalculationBox>
 

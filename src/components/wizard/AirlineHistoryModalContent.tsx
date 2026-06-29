@@ -2,6 +2,7 @@ import {
   AIRLINE_SECOND_OFFER_HISTORY,
   ECONOMIC_INCREASE_FOOTNOTE,
   articleLinkTypeLabel,
+  formatArrivalMonths,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
 
@@ -87,7 +88,7 @@ export function AirlineHistoryTable() {
             <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</td>
             <td className="py-3 pr-3 align-top tabular-nums" style={{ color: 'var(--text-muted)' }}>
               {record.daysBetween} days
-              <div style={{ color: 'var(--text-faint)' }}>~{record.approximateMonths} mo</div>
+              <div style={{ color: 'var(--text-faint)' }}>~{formatArrivalMonths(record.approximateMonths)} mo</div>
             </td>
             <td className="py-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.economicIncrease}</td>
           </tr>
