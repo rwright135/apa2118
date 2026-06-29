@@ -257,7 +257,7 @@ export function StepVoteNo() {
         >
           <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Explain: </span>
           <span style={{ color: 'var(--text-muted)' }}>
-            Customize your own assumptions below, then compare your results against our fixed Average and Worst Case scenarios side by side.
+            Customize your own assumptions below, then compare your results against industry-backed historical average and worst-case scenarios.
           </span>
         </div>
 
