@@ -86,9 +86,13 @@ export function StepPayRaise() {
     ? getRate('CA', upgradeLon, 'TA_DOS_EOY2026')
     : null
 
-  // For the slider preview, use the DOS raise as the reference
-  const dosRaiseMonthly = tiers[1].raiseMonthly
-  const monthlySavings  = Math.max(0, dosRaiseMonthly) * pct
+  // For the slider preview, show savings at each Bridge TA tier
+  const savingsTiers = tiers.slice(1).map((tier) => ({
+    label: tier.label,
+    raiseMonthly: tier.raiseMonthly,
+    monthlySavings: Math.max(0, tier.raiseMonthly) * pct,
+  }))
+  const hasRaisePreview = savingsTiers.some((tier) => tier.raiseMonthly > 0)
 
   function handleSlider(e: React.ChangeEvent<HTMLInputElement>) {
     setInput('brokerageSavingsPct', Number(e.target.value) / 100)
@@ -192,19 +196,39 @@ export function StepPayRaise() {
           <span>100%</span>
         </div>
 
-        {dosRaiseMonthly > 0 ? (
-          <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs mb-1" style={{ color: 'var(--text-faint)' }}>
-              At the July 2026 rate, your monthly raise is {fmt(dosRaiseMonthly)}
+        {hasRaisePreview ? (
+          <div className="rounded-lg px-3 py-2.5 space-y-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+              Your monthly raise steps up through the Bridge TA — here&apos;s what {Math.round(pct * 100)}% looks like at each tier:
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmt(monthlySavings)}/mo
-              </span>
-              <span className="text-xs" style={{ color: 'var(--text-faint)' }}>invested in your brokerage</span>
+            <div className="space-y-2">
+              {savingsTiers.map((tier) => (
+                <div
+                  key={tier.label}
+                  className="flex items-start justify-between gap-3 rounded-lg px-2.5 py-2"
+                  style={{ background: 'var(--bg-elevated)' }}
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                      {tier.label}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                      Raise {fmt(tier.raiseMonthly)}/mo
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-base font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+                      {fmt(tier.monthlySavings)}/mo
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                      to brokerage
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
             {pct === 0 && (
-              <div className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
                 Slide to model brokerage savings
               </div>
             )}
