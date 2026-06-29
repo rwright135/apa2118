@@ -106,48 +106,104 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
   )
 }
 
-function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
+function computeRiskRewardMetrics(result: ComparisonResult) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
   const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
-  // ── Best case: Outcome B (offer arrives) ─────────────────────────────────────
-  const bPVGap = scenarioB.preJcbaTotal - scenarioA.preJcbaTotal   // + = Vote No wins
+  const bPVGap = scenarioB.preJcbaTotal - scenarioA.preJcbaTotal
 
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
-  // ── Worst case: Outcome C (no offer, stay on CBA) ────────────────────────────
-  // Nominal wages + PS you give up compared to accepting the TA today
   const cWagesShortfall =
     (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)   // + = Vote No earns less
+    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
 
-  // Vote Yes pays current retention balance at ratification; Scenario C delays it
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
-
-  // Full PV gap worst case (includes retention in both; + = Vote Yes leads even after retention)
   const cPVGap = scenarioA.preJcbaTotal - scenarioC.preJcbaTotal
 
-  // ── Retention bonus growth & recovery (Scenario C) ───────────────────────────
-  // Find the payout row to get exact timing and discount factor
   const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
   const cRetPayoutMonths = cRetPayoutRow?.monthIndex ?? (jcba + 2)
 
-  // Nominal accrued balance at payout — sum of starting balance + monthly accruals
   let cRetAccrued = retentionCurrentBalance
   for (const row of scenarioC.rows) {
     if (row.monthIndex >= cRetPayoutMonths) break
     cRetAccrued += row.retentionAccrualNote
   }
 
-  // PV of the probability-weighted payout (retentionCashFlow already × pC in engine)
   const cRetPV = cRetPayoutRow
     ? cRetPayoutRow.retentionCashFlow * cRetPayoutRow.discountFactor
     : 0
+
+  return {
+    jcba,
+    arrivalMonths,
+    percentAboveTA,
+    retentionCurrentBalance,
+    pB,
+    pC,
+    bPVGap,
+    bRetPayoutRow,
+    bRetPayoutMonths,
+    cWagesShortfall,
+    cHeadlineLoss,
+    cPVGap,
+    cRetAccrued,
+    cRetPV,
+  }
+}
+
+function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
+  const { bPVGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
+  const upsideIsGain = bPVGap >= 0
+  const upsideAmount = fmt(Math.abs(bPVGap))
+  const riskAmount = fmt(Math.abs(cHeadlineLoss))
+
+  return (
+    <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
+      If a second offer arrives, you stand to{' '}
+      <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
+        {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
+      </strong>
+      {' '}vs. Voting Yes
+      {cHeadlineLoss > 0 ? (
+        <>
+          {' '}— but you&apos;re risking{' '}
+          <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
+          {' '}if no offer arrives.
+        </>
+      ) : (
+        <>
+          {' '}— and if no offer arrives, you still come out{' '}
+          <strong style={{ color: 'var(--positive)' }}>{riskAmount} ahead</strong>
+          {' '}on nominal pay vs. Voting Yes.
+        </>
+      )}
+    </p>
+  )
+}
+
+function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
+  const {
+    jcba,
+    arrivalMonths,
+    percentAboveTA,
+    retentionCurrentBalance,
+    pB,
+    pC,
+    bPVGap,
+    bRetPayoutRow,
+    bRetPayoutMonths,
+    cWagesShortfall,
+    cHeadlineLoss,
+    cPVGap,
+    cRetAccrued,
+    cRetPV,
+  } = computeRiskRewardMetrics(result)
 
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
@@ -235,9 +291,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
           </div>
           <RiskRewardHelp />
         </div>
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          What you stand to gain if a second offer arrives, what you risk if it doesn&apos;t, and whether Vote No is worth the bet.
-        </p>
+        <RiskRewardHeadline result={result} />
       </div>
 
       <RiskRewardBreakdown result={result} />
