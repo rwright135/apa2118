@@ -6,6 +6,7 @@ import { saveToLocalStorage } from './persistence'
 export type WizardStep =
   | 'welcome'
   | 'seat'
+  | 'upgrade'
   | 'longevity'
   | 'anniversary'
   | 'dob'
@@ -21,6 +22,7 @@ export type WizardStep =
 export const WIZARD_STEPS: WizardStep[] = [
   'welcome',
   'seat',
+  'upgrade',
   'longevity',
   'anniversary',
   'dob',

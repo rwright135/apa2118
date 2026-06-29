@@ -1,6 +1,7 @@
 import {
   getRate,
 } from '../data/payScales'
+import type { Seat } from '../data/payScales'
 import { CONTRACT_PARAMS } from '../data/contractParams'
 import type { UserInputs, MonthlyRow, ScenarioSummary, ScenarioId, VoteNoScenario } from './types'
 
@@ -133,16 +134,17 @@ export function getProfitSharingForYear(
   inputs: UserInputs,
   date: Date,
   scenarioId: ScenarioId,
-  longevityAtDate: number
+  longevityAtDate: number,
+  effectiveSeat: Seat = inputs.seat
 ): number {
   const baseRate = getRate(inputs.seat, inputs.longevityAsOfJul2026, 'CBA')
 
   let scenarioRate: number
   if (scenarioId === 'C') {
-    scenarioRate = getRate(inputs.seat, longevityAtDate, 'CBA')
+    scenarioRate = getRate(effectiveSeat, longevityAtDate, 'CBA')
   } else {
     const tier = getTATier(date)
-    scenarioRate = getRate(inputs.seat, longevityAtDate, tier)
+    scenarioRate = getRate(effectiveSeat, longevityAtDate, tier)
   }
 
   return (inputs.profitSharingLastYear ?? 0) * (scenarioRate / baseRate)
@@ -199,6 +201,11 @@ export function buildMonthlyStream(
 
   let retentionAccruedBalance = inputs.retentionCurrentBalance ?? 0
 
+  // Month index at which an FO upgrades to CA (Infinity = no upgrade)
+  const upgradeMonthIndex = (inputs.seat === 'FO' && inputs.upgradeToCAInYears != null)
+    ? inputs.upgradeToCAInYears * 12
+    : Infinity
+
   for (let m = 0; m < totalMonths; m++) {
     const date = addMonths(startDate, m)
     const year = date.getFullYear()
@@ -211,6 +218,9 @@ export function buildMonthlyStream(
       date
     )
 
+    // Effective seat switches from FO to CA at the upgrade month
+    const effectiveSeat: Seat = m >= upgradeMonthIndex ? 'CA' : inputs.seat
+
     let hourlyRate: number
     let isTA: boolean
     let k401Rate: number
@@ -219,32 +229,32 @@ export function buildMonthlyStream(
     // Only the pre-JCBA window drives the comparison; the tail cancels.
     if (m >= jcbaMonth) {
       isTA = true
-      hourlyRate = getRate(inputs.seat, longevity, 'TA_JAN2028')
+      hourlyRate = getRate(effectiveSeat, longevity, 'TA_JAN2028')
       k401Rate = CONTRACT_PARAMS.K401_TA_PHASE2
     } else if (scenarioId === 'A') {
       // Vote Yes: TA rates from day one through each effective-date tier
       isTA = true
       const tier = getTATier(date)
-      hourlyRate = getRate(inputs.seat, longevity, tier)
+      hourlyRate = getRate(effectiveSeat, longevity, tier)
       k401Rate = get401kRate('A', date)
     } else if (scenarioId === 'B') {
       // Vote No + 2nd offer: CBA until offer arrives, then uplifted TA until JCBA
       if (m < offerArrivalMonth) {
         isTA = false
-        hourlyRate = getRate(inputs.seat, longevity, 'CBA')
+        hourlyRate = getRate(effectiveSeat, longevity, 'CBA')
         k401Rate = CONTRACT_PARAMS.K401_CURRENT
       } else {
         // Offer arrived, between offer and JCBA: TA + uplift
         isTA = true
         const tier = getTATier(date)
-        const taRate = getRate(inputs.seat, longevity, tier)
+        const taRate = getRate(effectiveSeat, longevity, tier)
         hourlyRate = taRate * (1 + vns.percentAboveTA)
         k401Rate = get401kRate('A', date)
       }
     } else {
       // Scenario C: CBA until JCBA (handled by post-JCBA guard above)
       isTA = false
-      hourlyRate = getRate(inputs.seat, longevity, 'CBA')
+      hourlyRate = getRate(effectiveSeat, longevity, 'CBA')
       k401Rate = CONTRACT_PARAMS.K401_CURRENT
     }
 
@@ -255,7 +265,7 @@ export function buildMonthlyStream(
 
     let profitSharingCash = 0
     if (month === 5 || month === 10) {
-      const annualPS = getProfitSharingForYear(inputs, date, scenarioId, longevity)
+      const annualPS = getProfitSharingForYear(inputs, date, scenarioId, longevity, effectiveSeat)
       profitSharingCash = annualPS / 2
     }
 
@@ -267,7 +277,7 @@ export function buildMonthlyStream(
         retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
     } else {
-      const currentRate = getRate(inputs.seat, longevity, 'CBA')
+      const currentRate = getRate(effectiveSeat, longevity, 'CBA')
       const monthlyAccrual = getMonthlyRetentionAccrual(currentRate)
       retentionAccruedBalance += monthlyAccrual
       retentionAccrualNote = monthlyAccrual
@@ -295,6 +305,8 @@ export function buildMonthlyStream(
       year,
       month,
       scenarioId,
+      effectiveSeat,
+      longevity,
       hourlyRate,
       totalHours,
       grossPay,

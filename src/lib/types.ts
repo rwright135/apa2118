@@ -26,6 +26,7 @@ export interface UserInputs {
   // Identity
   seat: Seat
   longevityAsOfJul2026: number           // 1–12
+  upgradeToCAInYears?: number            // FO only: years from Jul 2026 until upgrade (undefined = no upgrade)
   anniversaryMonth: number               // 0=January, 11=December
   lineType: LineType
   extraHoursAboveMMG: number            // additional hours above MMG, default 0
@@ -60,6 +61,10 @@ export interface MonthlyRow {
 
   // Scenario
   scenarioId: ScenarioId
+
+  // Seat & longevity at this point in time
+  effectiveSeat: Seat
+  longevity: number
 
   // Pay
   hourlyRate: number

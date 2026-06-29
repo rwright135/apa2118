@@ -53,8 +53,18 @@ function SeatCard({ selected, onClick, icon, title, description }: SeatCardProps
 }
 
 export function StepSeat() {
-  const { inputs, setInput, nextStep, prevStep } = useStore()
+  const { inputs, setInput, prevStep, goToStep } = useStore()
   const seat = inputs.seat
+
+  function handleContinue() {
+    if (!seat) return
+    if (seat === 'FO') {
+      goToStep('upgrade')
+    } else {
+      setInput('upgradeToCAInYears', undefined)
+      goToStep('longevity')
+    }
+  }
 
   return (
     <WizardLayout
@@ -90,7 +100,7 @@ export function StepSeat() {
           description="A320 | B737"
         />
       </div>
-      <NavButton onClick={nextStep} disabled={!seat}>
+      <NavButton onClick={handleContinue} disabled={!seat}>
         Continue
       </NavButton>
     </WizardLayout>

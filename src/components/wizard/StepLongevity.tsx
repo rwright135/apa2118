@@ -1,13 +1,18 @@
 import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
+import type { WizardStep } from '../../state/store'
 
 const FO_RATES = [57.67,103.07,110.73,116.99,123.56,129.24,135.13,139.19,144.80,148.39,151.35,155.61]
 const CA_RATES = [163.29,171.42,178.27,185.36,192.76,198.54,204.49,210.60,215.85,221.24,225.65,232.00]
 
 export function StepLongevity() {
-  const { inputs, setInput, nextStep, prevStep } = useStore()
+  const { inputs, setInput, nextStep, goToStep } = useStore()
   const longevity = inputs.longevityAsOfJul2026
+
+  // CAs jumped here directly from 'seat' (skipping 'upgrade'), so back goes to 'seat'.
+  // FOs passed through 'upgrade', so back goes there.
+  const backStep: WizardStep = inputs.seat === 'CA' ? 'seat' : 'upgrade'
 
   const currentRate = inputs.seat && longevity
     ? inputs.seat === 'FO'
@@ -19,7 +24,7 @@ export function StepLongevity() {
     <WizardLayout
       step="longevity"
       title="What's your longevity as of July 1, 2026?"
-      onBack={prevStep}
+      onBack={() => goToStep(backStep)}
     >
       <div className="mb-8">
         <div className="grid grid-cols-4 gap-2 mb-6">

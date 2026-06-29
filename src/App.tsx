@@ -4,6 +4,7 @@ import { loadFromLocalStorage, decodeFromURL } from './state/persistence'
 
 import { StepWelcome } from './components/wizard/StepWelcome'
 import { StepSeat } from './components/wizard/StepSeat'
+import { StepUpgrade } from './components/wizard/StepUpgrade'
 import { StepLongevity } from './components/wizard/StepLongevity'
 import { StepAnniversary } from './components/wizard/StepAnniversary'
 import { StepLineType } from './components/wizard/StepLineType'
@@ -38,6 +39,7 @@ function App() {
   switch (currentStep) {
     case 'welcome':      return <StepWelcome />
     case 'seat':         return <StepSeat />
+    case 'upgrade':      return <StepUpgrade />
     case 'longevity':    return <StepLongevity />
     case 'anniversary':  return <StepAnniversary />
     case 'lineType':     return <StepLineType />
