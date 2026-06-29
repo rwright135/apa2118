@@ -36,9 +36,23 @@ export const WIZARD_STEPS: WizardStep[] = [
 
 export const DEFAULT_VOTE_NO_SCENARIO = {
   probability: 0.50,
-  arrivalMonths: 6,
+  arrivalMonths: 11,
+  percentAboveTA: 0.15,
+  jcbaDurationMonths: 36,
+}
+
+export const AVERAGE_SCENARIO = {
+  probability: 0.50,
+  arrivalMonths: 11,
+  percentAboveTA: 0.15,
+  jcbaDurationMonths: 36,
+}
+
+export const WORST_CASE_SCENARIO = {
+  probability: 0.25,
+  arrivalMonths: 18,
   percentAboveTA: 0.10,
-  jcbaDurationMonths: 30,
+  jcbaDurationMonths: 60,
 }
 
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
@@ -152,8 +166,12 @@ export const useStore = create<AppState>((set, get) => ({
     setTimeout(() => {
       try {
         const fullInputs = inputs as UserInputs
-        const scenarios = fullInputs.voteNoScenarios ?? [{ ...DEFAULT_VOTE_NO_SCENARIO }]
-        const multiResults = scenarios.map(vns => buildAllScenarios(fullInputs, vns))
+        const userScenario = (fullInputs.voteNoScenarios ?? [])[0] ?? { ...DEFAULT_VOTE_NO_SCENARIO }
+        const multiResults = [
+          buildAllScenarios(fullInputs, userScenario),
+          buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
+          buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
+        ]
         set({ results: multiResults, isComputing: false, currentStep: 'results' })
       } catch (e) {
         console.error('Computation error', e)

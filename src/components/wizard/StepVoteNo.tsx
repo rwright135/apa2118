@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useStore, DEFAULT_VOTE_NO_SCENARIO } from '../../state/store'
+import { useStore, DEFAULT_VOTE_NO_SCENARIO, AVERAGE_SCENARIO, WORST_CASE_SCENARIO } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
@@ -12,29 +12,23 @@ const JCBA_PRESETS = [
   { label: 'Conservative', months: 48, desc: '4 yrs' },
 ]
 
-const SCENARIO_COLORS = ['var(--gold)', '#a855f7', '#22c55e']
-const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
+// ── Your Scenario (user-editable) ────────────────────────────────────────────
 
 function ScenarioCard({
-  index,
   scenario,
   onChange,
-  onRemove,
   jcbaMonths,
   retentionProbabilityB,
   retentionProbabilityC,
 }: {
-  index: number
   scenario: VoteNoScenario
   onChange: (patch: Partial<VoteNoScenario>) => void
-  onRemove?: () => void
   jcbaMonths: number
   retentionProbabilityB?: number
   retentionProbabilityC?: number
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const color = SCENARIO_COLORS[index]
-  const label = SCENARIO_LABELS[index]
+  const [expanded, setExpanded] = useState(true)
+  const color = 'var(--gold)'
   const summary = `${Math.round(scenario.probability * 100)}% · ${scenario.arrivalMonths}mo · +${(scenario.percentAboveTA * 100).toFixed(0)}% · JCBA ${scenario.jcbaDurationMonths}mo`
 
   return (
@@ -47,17 +41,8 @@ function ScenarioCard({
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-              <span className="font-bold text-sm" style={{ color }}>{label}</span>
+              <span className="font-bold text-sm" style={{ color }}>Your Scenario</span>
             </div>
-            {onRemove && (
-              <button
-                onClick={onRemove}
-                className="text-xs px-2 py-1 rounded-lg transition-colors shrink-0"
-                style={{ color: 'var(--negative)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-              >
-                Remove
-              </button>
-            )}
           </div>
           <div className="text-xs mb-4" style={{ color: 'var(--text-faint)' }}>
             {summary}
@@ -82,26 +67,15 @@ function ScenarioCard({
           >
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-              <span className="font-bold text-sm" style={{ color }}>{label}</span>
+              <span className="font-bold text-sm" style={{ color }}>Your Scenario</span>
             </div>
-            <div className="flex items-center gap-2">
-              {onRemove && (
-                <button
-                  onClick={onRemove}
-                  className="text-xs px-2 py-1 rounded-lg transition-colors"
-                  style={{ color: 'var(--negative)', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-                >
-                  Remove
-                </button>
-              )}
-              <button
-                onClick={() => setExpanded(false)}
-                className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
-                style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
-              >
-                Collapse
-              </button>
-            </div>
+            <button
+              onClick={() => setExpanded(false)}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+              style={{ color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
+            >
+              Collapse
+            </button>
           </div>
 
           <div className="px-4 py-5 space-y-8">
@@ -131,8 +105,8 @@ function ScenarioCard({
             </label>
             <SliderInput
               value={scenario.arrivalMonths}
-              min={3}
-              max={12}
+              min={6}
+              max={60}
               step={1}
               onChange={(v) => onChange({ arrivalMonths: v })}
               formatValue={(v) => `${v} months`}
@@ -169,7 +143,7 @@ function ScenarioCard({
             </p>
             <SliderInput
               value={scenario.jcbaDurationMonths}
-              min={18}
+              min={6}
               max={60}
               step={3}
               onChange={(v) => onChange({ jcbaDurationMonths: v })}
@@ -213,23 +187,77 @@ function ScenarioCard({
   )
 }
 
+// ── Locked scenario card (Average / Worst Case) ───────────────────────────────
+
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{label}</span>
+      <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--text-muted)' }}>{value}</span>
+    </div>
+  )
+}
+
+function LockedScenarioCard({
+  label,
+  color,
+  scenario,
+}: {
+  label: string
+  color: string
+  scenario: typeof AVERAGE_SCENARIO
+}) {
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-3"
+        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+          <span className="font-bold text-sm" style={{ color }}>{label}</span>
+        </div>
+        <span
+          className="text-xs px-2 py-1 rounded-lg font-medium"
+          style={{ color: 'var(--text-faint)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
+        >
+          Fixed
+        </span>
+      </div>
+
+      <div className="px-4 py-4 divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+        <StatRow
+          label="Probability of second offer"
+          value={`${Math.round(scenario.probability * 100)}%`}
+        />
+        <StatRow
+          label="Second offer arrives"
+          value={`${scenario.arrivalMonths} months`}
+        />
+        <StatRow
+          label="Offer improvement vs. TA"
+          value={`+${(scenario.percentAboveTA * 100).toFixed(0)}%`}
+        />
+        <StatRow
+          label="JCBA concluded"
+          value={`${scenario.jcbaDurationMonths} mo (${(scenario.jcbaDurationMonths / 12).toFixed(1)} yrs)`}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── Step ──────────────────────────────────────────────────────────────────────
+
 export function StepVoteNo() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
-  const scenarios: VoteNoScenario[] = inputs.voteNoScenarios ?? [{ ...DEFAULT_VOTE_NO_SCENARIO }]
+  const scenario: VoteNoScenario = (inputs.voteNoScenarios ?? [])[0] ?? { ...DEFAULT_VOTE_NO_SCENARIO }
 
-  const updateScenario = (index: number, patch: Partial<VoteNoScenario>) => {
-    const updated = scenarios.map((s, i) => i === index ? { ...s, ...patch } : s)
-    setInput('voteNoScenarios', updated)
-  }
-
-  const addScenario = () => {
-    if (scenarios.length >= 3) return
-    setInput('voteNoScenarios', [...scenarios, { ...DEFAULT_VOTE_NO_SCENARIO }])
-  }
-
-  const removeScenario = (index: number) => {
-    if (scenarios.length <= 1) return
-    setInput('voteNoScenarios', scenarios.filter((_, i) => i !== index))
+  const updateScenario = (patch: Partial<VoteNoScenario>) => {
+    setInput('voteNoScenarios', [{ ...scenario, ...patch }])
   }
 
   return (
@@ -245,39 +273,33 @@ export function StepVoteNo() {
         >
           <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Explain: </span>
           <span style={{ color: 'var(--text-muted)' }}>
-            Set your own probability assumptions to evaluate the value of a potential second offer, and a no-offer outcome, across different timelines. Add up to 3 scenarios to compare them side by side.
+            Customize your own assumptions below, then compare your results against our fixed Average and Worst Case scenarios side by side.
           </span>
         </div>
 
         <div className="space-y-5">
-          {scenarios.map((s, i) => (
-            <ScenarioCard
-              key={i}
-              index={i}
-              scenario={s}
-              onChange={(patch) => updateScenario(i, patch)}
-              onRemove={scenarios.length > 1 ? () => removeScenario(i) : undefined}
-              jcbaMonths={s.jcbaDurationMonths}
-              retentionProbabilityB={inputs.retentionPayoutProbabilityB}
-              retentionProbabilityC={inputs.retentionPayoutProbabilityC}
-            />
-          ))}
+          <ScenarioCard
+            scenario={scenario}
+            onChange={updateScenario}
+            jcbaMonths={scenario.jcbaDurationMonths}
+            retentionProbabilityB={inputs.retentionPayoutProbabilityB}
+            retentionProbabilityC={inputs.retentionPayoutProbabilityC}
+          />
+
+          <LockedScenarioCard
+            label="Average"
+            color="#3b82f6"
+            scenario={AVERAGE_SCENARIO}
+          />
+
+          <LockedScenarioCard
+            label="Worst Case"
+            color="var(--negative)"
+            scenario={WORST_CASE_SCENARIO}
+          />
         </div>
-
-        {scenarios.length < 3 && (
-          <button
-            onClick={addScenario}
-            className="w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
-            style={{ background: 'var(--bg-elevated)', border: '1.5px dashed var(--border)', color: 'var(--text-muted)' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
-          >
-            <span style={{ fontSize: '1.1rem' }}>+</span>
-            Add Scenario {scenarios.length + 1} of 3
-          </button>
-        )}
-
       </div>
+
       <NavButton onClick={nextStep}>Continue</NavButton>
     </WizardLayout>
   )
