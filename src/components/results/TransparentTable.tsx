@@ -12,8 +12,8 @@ function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
-const SCENARIO_COLORS = ['#a855f7', '#22c55e', '#f59e0b']
-const SCENARIO_LABELS = ['Scenario 1', 'Scenario 2', 'Scenario 3']
+const SCENARIO_COLORS = ['#c9a84c', '#3b82f6', '#ef4444']
+const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
   YES: { label: 'Vote Yes',         active: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)',     color: 'var(--gold)'     }, inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' } },

@@ -30,12 +30,7 @@ async function seedPage(page) {
         percentAboveTA: 0.1,
         jcbaDurationMonths: 30,
       }],
-      advancedPostJCBA: {
-        enabled: false,
-        scenarioA: { direction: 'SAME', magnitude: 0, probability: 1 },
-        scenarioB: { direction: 'SAME', magnitude: 0, probability: 1 },
-        scenarioC: { direction: 'SAME', magnitude: 0, probability: 1 },
-      },
+      advancedPostJCBA: { scenarioCPenalty: 0.15 },
     }
     localStorage.setItem('apa2118_inputs', JSON.stringify(inputs))
   })

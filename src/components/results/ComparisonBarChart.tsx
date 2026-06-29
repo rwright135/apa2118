@@ -4,6 +4,8 @@ import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
 
+const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
+
 interface ChartDatum {
   name: string
   value: number
@@ -37,7 +39,7 @@ export function ComparisonBarChart({ results }: Props) {
   const data: ChartDatum[] = results.flatMap((result, i) => {
     const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
     const voteNoExpected = result.voteNoExpected
-    const prefix = results.length > 1 ? `Scenario ${i + 1} · ` : ''
+    const prefix = results.length > 1 ? `${SCENARIO_LABELS[i] ?? `Scenario ${i + 1}`} · ` : ''
 
     return [
       { name: `${prefix}Vote Yes`, value: scenarioA.preJcbaTotal, fill: voteYes },
@@ -45,7 +47,7 @@ export function ComparisonBarChart({ results }: Props) {
     ]
   })
 
-  const categoryGap = results.length === 1 ? '62%' : '38%'
+  const categoryGap = '38%'
 
   return (
     <div>
@@ -73,7 +75,7 @@ export function ComparisonBarChart({ results }: Props) {
             axisLine={false}
             tickLine={false}
             interval={0}
-            tickFormatter={(value: string) => (results.length === 1 ? '' : value)}
+            tickFormatter={(value: string) => value}
           />
           <YAxis
             tickFormatter={fmtAxis}

@@ -11,6 +11,7 @@ function fmtAxis(n: number) {
 }
 
 const SCENARIO_DETAIL_COLORS = ['#a855f7', '#ef4444']
+const SCENARIO_ABBREVS = ['Your', 'Avg', 'WC']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -56,7 +57,8 @@ export function CumulativeLineChart({ results }: Props) {
       const rB        = scenarioB.rows[Math.min(i, scenarioB.rows.length - 1)]
       const rC        = scenarioC.rows[Math.min(i, scenarioC.rows.length - 1)]
 
-      const suffix = results.length > 1 ? ` (S${ri + 1})` : ''
+      const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
+      const suffix = results.length > 1 ? ` (${abbrev})` : ''
       point[`Vote Yes${suffix}`]  = Math.round(rResultA?.cumulativePV ?? 0)
       point[`Vote No${suffix}`]   = Math.round(rVN?.cumulativePV ?? 0)
       point[`Scen B${suffix}`]    = Math.round(rB?.cumulativePV ?? 0)
@@ -76,7 +78,8 @@ export function CumulativeLineChart({ results }: Props) {
           <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
 
           {results.map((_, ri) => {
-            const suffix = results.length > 1 ? ` (S${ri + 1})` : ''
+            const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
+            const suffix = results.length > 1 ? ` (${abbrev})` : ''
             return [
               <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
               <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
