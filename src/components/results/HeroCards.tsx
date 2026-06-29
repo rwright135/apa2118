@@ -34,7 +34,7 @@ interface RiskCardProps {
 }
 
 function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder }: RiskCardProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
   return (
