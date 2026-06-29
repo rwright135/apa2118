@@ -1,3 +1,8 @@
+export interface AirlineArticleLink {
+  label: string
+  url: string
+}
+
 export interface AirlineSecondOfferRecord {
   id: string
   airline: string
@@ -9,6 +14,7 @@ export interface AirlineSecondOfferRecord {
   economicIncrease: string
   economicIncreasePercent: number
   isArrivalOutlier?: boolean
+  articleLinks: AirlineArticleLink[]
 }
 
 function daysToMonths(days: number): number {
@@ -29,6 +35,16 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     approximateMonths: daysToMonths(510),
     economicIncrease: '~9%',
     economicIncreasePercent: 9,
+    articleLinks: [
+      {
+        label: 'Delta pilots say contract proposal',
+        url: 'https://www.ajc.com/business/delta-pilots-say-contract-proposal/3kBUMrU3oYnMHHafMr6T7H/',
+      },
+      {
+        label: 'Delta pilots ratify contract with 30% pay increase',
+        url: 'https://www.startribune.com/delta-pilots-ratify-contract-that-yields-30-percent-pay-increase-over-four-years/404130436/',
+      },
+    ],
   },
   {
     id: 'southwest',
@@ -40,6 +56,16 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     approximateMonths: daysToMonths(369),
     economicIncrease: '~11.8%',
     economicIncreasePercent: 11.8,
+    articleLinks: [
+      {
+        label: 'Southwest Airlines pilots reject tentative agreement',
+        url: 'https://www.prnewswire.com/news-releases/southwest-airlines-pilots-reject-tentative-agreement-300172619.html',
+      },
+      {
+        label: 'Southwest Airlines pilots approve new contract',
+        url: 'https://www.airlinepilotcentral.com/articles/news/southwest-airlines-pilots-approve-new-contract.html',
+      },
+    ],
   },
   {
     id: 'united',
@@ -51,6 +77,16 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     approximateMonths: daysToMonths(332),
     economicIncrease: '~20–26% (varied by longevity)',
     economicIncreasePercent: UNITED_ECONOMIC_INCREASE_MIDPOINT,
+    articleLinks: [
+      {
+        label: 'United Airlines pilots vote to reject contract offer',
+        url: 'https://www.reuters.com/business/aerospace-defense/united-airlines-pilots-vote-reject-contract-offer-2022-11-01/',
+      },
+      {
+        label: 'United Airlines pilots accept new labor contract',
+        url: 'https://www.reuters.com/business/aerospace-defense/united-airlines-pilots-accept-new-labor-contract-2023-09-29/',
+      },
+    ],
   },
   {
     id: 'fedex',
@@ -63,11 +99,28 @@ export const AIRLINE_SECOND_OFFER_HISTORY: AirlineSecondOfferRecord[] = [
     economicIncrease: '~10% (excluding additional value from retroactive pay and future raises)',
     economicIncreasePercent: 10,
     isArrivalOutlier: true,
+    articleLinks: [
+      {
+        label: 'FedEx pilots reject tentative deal',
+        url: 'https://www.reuters.com/business/fedex-pilots-reject-tentative-deal-supervised-talks-likely-2023-07-24/',
+      },
+      {
+        label: 'FedEx reaches tentative wage deal with pilots',
+        url: 'https://www.reuters.com/business/world-at-work/fedex-reaches-tentative-wage-deal-with-pilots-after-years-talks-2026-04-09/',
+      },
+      {
+        label: 'FedEx pilots ratify new wage deal',
+        url: 'https://www.reuters.com/business/world-at-work/fedex-pilots-ratify-new-wage-deal-union-says-2026-06-09/',
+      },
+    ],
   },
 ]
 
 export const AIRLINE_HISTORY_INTRO =
   'These carriers rejected an initial tentative agreement and later ratified a second offer. Use their timelines as historical context when setting your own second-offer arrival assumption.'
+
+export const ECONOMIC_INCREASE_FOOTNOTE =
+  'Approximate Increase in Total Economic Value is based on publicly reported comparisons of the overall economic improvements between the rejected and subsequently ratified agreements. Figures reflect reported wage package improvements and may also incorporate other economic enhancements such as retirement contributions, retroactive pay, or contract structure. They are not intended to represent a direct comparison of individual hourly pay rates.'
 
 export const ARRIVAL_OUTLIER = AIRLINE_SECOND_OFFER_HISTORY.find((record) => record.isArrivalOutlier)!
 
@@ -103,3 +156,13 @@ export const ECONOMIC_AVERAGE_MATH = {
 
 export const ECONOMIC_INCREASE_INTRO =
   'Historical second-offer improvements across these carriers. The industry average below uses all four data points.'
+
+
+export function articleLinkTypeLabel(record: AirlineSecondOfferRecord, index: number): string {
+  if (record.id === 'fedex') {
+    if (index === 0) return 'Rejection'
+    if (index === 1) return 'Improved Offer'
+    return 'Ratification'
+  }
+  return index === 0 ? 'Rejection' : 'Ratification'
+}

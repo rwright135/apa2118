@@ -121,26 +121,6 @@ function ScenarioCard({
               formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
               showMinMax
             />
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {JCBA_PRESETS.map(({ label: pl, months, desc }) => {
-                const active = scenario.jcbaDurationMonths === months
-                return (
-                  <button
-                    key={pl}
-                    onClick={() => onChange({ jcbaDurationMonths: months })}
-                    className="py-2 px-2 rounded-xl text-center transition-all duration-200"
-                    style={
-                      active
-                        ? { background: 'var(--sel-bg)', border: `2px solid ${color}`, color: 'var(--text-base)' }
-                        : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-                    }
-                  >
-                    <div className="font-bold text-xs">{desc}</div>
-                    <div className="text-xs mt-0.5" style={{ color: active ? color : 'var(--text-faint)' }}>{pl}</div>
-                  </button>
-                )
-              })}
-            </div>
           </div>
           </div>
         </>

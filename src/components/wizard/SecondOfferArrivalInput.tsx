@@ -4,8 +4,14 @@ import {
   AIRLINE_HISTORY_INTRO,
   AIRLINE_SECOND_OFFER_HISTORY,
   ARRIVAL_AVERAGE_MATH,
+  articleLinkTypeLabel,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
+import {
+  AirlineHistoryFootnote,
+  AirlineHistorySources,
+  AirlineHistoryTable,
+} from './AirlineHistoryModalContent'
 
 interface Props {
   value: number
@@ -61,7 +67,7 @@ function CalculationBox({ title, children }: { title: string; children: React.Re
 function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord; onClose: () => void }) {
   return (
     <div
-      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-xl p-3 shadow-lg z-20"
+      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-xl p-3 shadow-lg z-20"
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
       role="tooltip"
     >
@@ -98,6 +104,22 @@ function AirlineTooltip({ record, onClose }: { record: AirlineSecondOfferRecord;
           <dd style={{ color: 'var(--text-muted)' }}>{record.economicIncrease}</dd>
         </div>
       </dl>
+      <ul className="space-y-1 mt-2 pt-2 border-t text-xs" style={{ borderColor: 'var(--border-subtle)' }}>
+        {record.articleLinks.map((link, index) => (
+          <li key={link.url}>
+            <span style={{ color: 'var(--text-faint)' }}>{articleLinkTypeLabel(record, index)}: </span>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+              style={{ color: 'var(--accent)' }}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -236,36 +258,7 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
         </div>
 
         <div className="overflow-auto px-5 py-4">
-          <table className="w-full min-w-[640px] text-xs border-collapse">
-            <thead>
-              <tr style={{ color: 'var(--text-faint)' }}>
-                <th className="text-left font-semibold pb-3 pr-3">Airline</th>
-                <th className="text-left font-semibold pb-3 pr-3">First TA Rejected</th>
-                <th className="text-left font-semibold pb-3 pr-3">Second TA Ratified</th>
-                <th className="text-left font-semibold pb-3 pr-3">Time Between</th>
-                <th className="text-left font-semibold pb-3">Approx. Increase*</th>
-              </tr>
-            </thead>
-            <tbody>
-              {AIRLINE_SECOND_OFFER_HISTORY.map((record) => (
-                <tr key={record.id} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <td className="py-3 pr-3 align-top">
-                    <div className="flex items-center gap-2">
-                      <img src={record.logoSrc} alt="" className="w-8 h-8 rounded-lg object-contain bg-white p-0.5" />
-                      <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{record.airline}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</td>
-                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</td>
-                  <td className="py-3 pr-3 align-top tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                    {record.daysBetween} days
-                    <div style={{ color: 'var(--text-faint)' }}>~{record.approximateMonths} mo</div>
-                  </td>
-                  <td className="py-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.economicIncrease}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <AirlineHistoryTable />
 
           <CalculationBox title="How we get 13 months (Average scenario default)">
             <p>
@@ -279,9 +272,8 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
             </p>
           </CalculationBox>
 
-          <p className="text-[11px] mt-4 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            * Approximate increase in total economic value between first and second offers.
-          </p>
+          <AirlineHistorySources />
+          <AirlineHistoryFootnote />
         </div>
       </div>
     </div>
