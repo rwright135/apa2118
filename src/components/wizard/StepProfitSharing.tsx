@@ -59,21 +59,22 @@ export function StepProfitSharing() {
           step={100}
         />
 
-        {hasValue && (
-          <div
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        <div
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: hasValue ? 'var(--text-muted)' : 'var(--text-faint)' }}>
+            {hasValue ? `$${checkAmount?.toLocaleString()} check` : 'TBD check'}
+          </span>
+          <span style={{ color: 'var(--text-faint)' }}>×&nbsp;2&nbsp;payments/yr</span>
+          <span style={{ color: 'var(--text-faint)' }}>=</span>
+          <span
+            className="font-bold"
+            style={{ color: hasValue ? 'var(--gold)' : 'var(--text-faint)' }}
           >
-            <span style={{ color: 'var(--text-muted)' }}>
-              ${checkAmount?.toLocaleString()} check
-            </span>
-            <span style={{ color: 'var(--text-faint)' }}>×&nbsp;2&nbsp;payments/yr</span>
-            <span style={{ color: 'var(--text-faint)'}}>=</span>
-            <span className="font-bold" style={{ color: 'var(--gold)' }}>
-              ${annualAmount.toLocaleString()} annual
-            </span>
-          </div>
-        )}
+            {hasValue ? `$${annualAmount.toLocaleString()} annual` : 'TBD annual'}
+          </span>
+        </div>
 
         {cbaRate !== null && tiers !== null && (
           <div
