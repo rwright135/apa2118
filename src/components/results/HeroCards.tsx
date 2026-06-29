@@ -157,31 +157,67 @@ function computeRiskRewardMetrics(result: ComparisonResult) {
   }
 }
 
+/** Convert a probability to American moneyline odds string (e.g. "+150", "−110", "EVEN"). */
+function toAmericanOdds(p: number): string {
+  if (Math.abs(p - 0.5) < 0.001) return 'EVEN'
+  if (p > 0.5) return `−${Math.round((p / (1 - p)) * 100)}`
+  return `+${Math.round(((1 - p) / p) * 100)}`
+}
+
+function OddsChip({ p, label, color, bg }: { p: number; label: string; color: string; bg: string }) {
+  const odds = toAmericanOdds(p)
+  const pct  = Math.round(p * 100)
+  return (
+    <div
+      className="inline-flex flex-col items-center justify-center rounded-lg px-3 py-1.5 shrink-0"
+      style={{ background: bg, border: `1px solid ${color}22` }}
+    >
+      <span className="text-lg font-black tabular-nums leading-none" style={{ color, letterSpacing: '-0.01em' }}>
+        {odds}
+      </span>
+      <span className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{ color, opacity: 0.7 }}>
+        {pct}% chance
+      </span>
+      <span className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: 'var(--text-faint)' }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
 function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
   const { bPVGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
+  const p = result.voteNoScenario.probability
+  const pNo = 1 - p
+
   const upsideIsGain = bPVGap >= 0
   const upsideAmount = fmt(Math.abs(bPVGap))
-  const riskAmount = fmt(Math.abs(cHeadlineLoss))
-  const upsideColor = upsideIsGain ? 'var(--positive)' : 'var(--negative)'
-  const upsideBg = upsideIsGain ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)'
+  const riskAmount   = fmt(Math.abs(cHeadlineLoss))
+  const upsideColor  = upsideIsGain ? 'var(--positive)' : 'var(--negative)'
+  const upsideBg     = upsideIsGain ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)'
   const upsideBorder = upsideIsGain ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'
-  const riskColor = cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'
-  const riskBg = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.10)' : 'rgba(34,197,94,0.10)'
-  const riskBorder = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.35)' : 'rgba(34,197,94,0.35)'
+  const riskColor    = cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'
+  const riskBg       = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.10)' : 'rgba(34,197,94,0.10)'
+  const riskBorder   = cHeadlineLoss > 0 ? 'rgba(239,68,68,0.35)' : 'rgba(34,197,94,0.35)'
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-stretch">
         {/* Reward */}
         <div
-          className="rounded-xl px-4 py-4 text-center sm:text-left"
+          className="rounded-xl px-4 py-4"
           style={{ background: upsideBg, border: `1.5px solid ${upsideBorder}` }}
         >
-          <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: upsideColor }}>
-            If 2nd offer arrives
-          </div>
-          <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-faint)' }}>
-            You stand to {upsideIsGain ? 'gain' : 'lose'}
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: upsideColor }}>
+                If 2nd offer arrives
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                You stand to {upsideIsGain ? 'gain' : 'lose'}
+              </div>
+            </div>
+            <OddsChip p={p} label="offer" color={upsideColor} bg={upsideBg} />
           </div>
           <div className="text-3xl font-black tabular-nums leading-none" style={{ color: upsideColor }}>
             {upsideIsGain ? '+' : '−'}{upsideAmount}
@@ -191,7 +227,7 @@ function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
           </div>
         </div>
 
-        {/* VS divider */}
+        {/* divider */}
         <div className="hidden sm:flex flex-col items-center justify-center px-1">
           <span className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>but</span>
         </div>
@@ -201,14 +237,19 @@ function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
 
         {/* Risk */}
         <div
-          className="rounded-xl px-4 py-4 text-center sm:text-left"
+          className="rounded-xl px-4 py-4"
           style={{ background: riskBg, border: `1.5px solid ${riskBorder}` }}
         >
-          <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: riskColor }}>
-            If no offer arrives
-          </div>
-          <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-faint)' }}>
-            {cHeadlineLoss > 0 ? "You're risking" : 'You still come out'}
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: riskColor }}>
+                If no offer arrives
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                {cHeadlineLoss > 0 ? "You're risking" : 'You still come out'}
+              </div>
+            </div>
+            <OddsChip p={pNo} label="no offer" color={riskColor} bg={riskBg} />
           </div>
           <div className="text-3xl font-black tabular-nums leading-none" style={{ color: riskColor }}>
             {cHeadlineLoss > 0 ? '−' : '+'}{riskAmount}
