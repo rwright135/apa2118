@@ -168,7 +168,7 @@ export function StepPayRaise() {
               {hasRaise && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-start justify-between gap-3">
-                    <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Raise vs. today</span>
+                    <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Monthly Raise</span>
                     <div className="text-right">
                       <div className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
                         +{fmt(tier.raiseMonthly)}/mo
