@@ -13,6 +13,8 @@ interface Props {
 export function SliderInput({ value, min, max, step, onChange, formatValue, label, showMinMax, accentColor }: Props) {
   const fmt = formatValue ?? ((v: number) => v.toString())
   const accent = accentColor ?? 'var(--gold)'
+  const fillPct = ((value - min) / (max - min)) * 100
+  const trackBg = `linear-gradient(to right, ${accent} 0%, ${accent} ${fillPct}%, var(--border) ${fillPct}%, var(--border) 100%)`
   return (
     <div className="space-y-3">
       {label && (
@@ -34,7 +36,7 @@ export function SliderInput({ value, min, max, step, onChange, formatValue, labe
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full h-2 rounded-full appearance-none cursor-pointer"
-        style={{ background: 'var(--bg-elevated)', accentColor: accent }}
+        style={{ background: trackBg, accentColor: accent }}
       />
       {showMinMax && (
         <div className="flex justify-between text-xs" style={{ color: 'var(--text-faint)' }}>
