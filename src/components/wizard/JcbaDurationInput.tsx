@@ -161,7 +161,7 @@ export function JcbaDurationInput({ value, min, max, step, onChange }: Props) {
     months: record.months,
     logoSrcs: record.logoSrcs,
     label: record.label,
-    tooltipContent: <MergerTooltipBody record={record} />,
+    modalContent: <MergerTooltipBody record={record} />,
   }))
 
   return (

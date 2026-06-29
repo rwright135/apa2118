@@ -1,6 +1,6 @@
 /**
  * Generic slider with logo markers that cluster when they'd overlap.
- * Clusters expand on hover/click to show all entries.
+ * Click a chip to open a centered modal with details.
  */
 import { useEffect, useRef, useState } from 'react'
 
@@ -9,7 +9,7 @@ export interface MarkerRecord {
   months: number
   logoSrcs: string[]
   label: string
-  tooltipContent: React.ReactNode
+  modalContent: React.ReactNode
 }
 
 interface Props {
@@ -23,15 +23,14 @@ interface Props {
   footnote?: string
 }
 
-const CHIP = 32          // px — square chip side
-const GAP  = 4           // min px between chip edges
-const ROW_H = CHIP + 6   // row height including spacing
+const CHIP = 32
+const GAP  = 4
+const ROW_H = CHIP + 6
 
 function monthToPct(months: number, min: number, max: number) {
   return ((months - min) / (max - min)) * 100
 }
 
-/** Build pixel-aware clusters from a flat list of markers. */
 function buildClusters(
   markers: MarkerRecord[],
   min: number,
@@ -42,7 +41,6 @@ function buildClusters(
 
   const toPixels = (mo: number) => ((mo - min) / (max - min)) * sliderPx
   const sorted = [...markers].sort((a, b) => a.months - b.months)
-
   const clusters: { members: MarkerRecord[]; avgMonths: number }[] = []
 
   for (const marker of sorted) {
@@ -50,12 +48,10 @@ function buildClusters(
     const last = clusters[clusters.length - 1]
     const lastCenter = last ? toPixels(last.avgMonths) : -Infinity
     const lastHalfWidth = last ? (last.members.length * CHIP + (last.members.length - 1) * 2) / 2 : 0
-    const thisHalfWidth = CHIP / 2
 
-    if (last && px - (lastCenter + lastHalfWidth) < thisHalfWidth + GAP) {
+    if (last && px - (lastCenter + lastHalfWidth) < CHIP / 2 + GAP) {
       last.members.push(marker)
-      last.avgMonths =
-        last.members.reduce((s, m) => s + m.months, 0) / last.members.length
+      last.avgMonths = last.members.reduce((s, m) => s + m.months, 0) / last.members.length
     } else {
       clusters.push({ members: [marker], avgMonths: marker.months })
     }
@@ -64,52 +60,80 @@ function buildClusters(
   return clusters
 }
 
-function ClusterTooltip({
+function ClusterModal({
   cluster,
   onClose,
 }: {
   cluster: { members: MarkerRecord[] }
   onClose: () => void
 }) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
   return (
     <div
-      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 rounded-xl shadow-lg z-30"
-      style={{
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border)',
-        width: cluster.members.length === 1 ? '15rem' : '18rem',
-      }}
-      role="tooltip"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.55)' }}
+      onClick={onClose}
+      role="presentation"
     >
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs z-10"
-        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)' }}
-        aria-label="Close"
+      <div
+        className="w-full max-w-sm max-h-[80vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col"
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
-        ×
-      </button>
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-5 py-3 border-b shrink-0"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
+          <div className="flex items-center gap-2">
+            {cluster.members.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center justify-center rounded overflow-hidden"
+                style={{ width: 40, height: 28, background: '#fff', border: '1px solid rgba(0,0,0,0.1)' }}
+              >
+                <img src={m.logoSrcs[0]} alt={m.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} draggable={false} />
+              </div>
+            ))}
+            <span className="font-semibold text-sm" style={{ color: 'var(--text-base)' }}>
+              {cluster.members.map((m) => m.label).join(' & ')}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-base"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
 
-      {cluster.members.length === 1 ? (
-        <div className="p-3 pr-6">{cluster.members[0].tooltipContent}</div>
-      ) : (
-        <div>
+        {/* Body */}
+        <div className="overflow-auto">
           {cluster.members.map((m, i) => (
             <div
               key={m.id}
-              className="p-3 pr-6"
-              style={
-                i < cluster.members.length - 1
-                  ? { borderBottom: '1px solid var(--border-subtle)' }
-                  : undefined
-              }
+              className="px-5 py-4"
+              style={i < cluster.members.length - 1 ? { borderBottom: '1px solid var(--border-subtle)' } : undefined}
             >
-              {m.tooltipContent}
+              {m.modalContent}
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -119,13 +143,13 @@ function ClusterChip({
   min,
   max,
   isActive,
-  onSelect,
+  onOpen,
 }: {
   cluster: { members: MarkerRecord[]; avgMonths: number }
   min: number
   max: number
   isActive: boolean
-  onSelect: (id: string | null) => void
+  onOpen: (id: string) => void
 }) {
   const multi = cluster.members.length > 1
   const chipW = multi ? cluster.members.length * (CHIP - 4) + (cluster.members.length - 1) * 2 + 8 : CHIP
@@ -137,15 +161,11 @@ function ClusterChip({
       className="absolute z-20 pointer-events-none"
       style={{ left: `${left}%`, top: `${CHIP / 2 + 4}px`, transform: 'translateX(-50%)' }}
     >
-      <div className="relative pointer-events-auto">
-        {isActive && (
-          <ClusterTooltip cluster={cluster} onClose={() => onSelect(null)} />
-        )}
+      <div className="pointer-events-auto">
         <button
           type="button"
-          onClick={() => onSelect(isActive ? null : clusterId)}
-          onMouseEnter={() => onSelect(clusterId)}
-          className="flex items-center justify-center gap-0.5 rounded-lg transition-all hover:scale-105 focus:outline-none"
+          onClick={() => onOpen(clusterId)}
+          className="flex items-center justify-center gap-0.5 rounded-lg transition-all hover:scale-110 hover:shadow-md focus:outline-none"
           style={{
             width: `${chipW}px`,
             height: `${CHIP}px`,
@@ -154,8 +174,7 @@ function ClusterChip({
             boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
             padding: '3px',
           }}
-          aria-label={cluster.members.map((m) => m.label).join(' & ')}
-          aria-expanded={isActive}
+          aria-label={`${cluster.members.map((m) => m.label).join(' & ')} — click for details`}
         >
           {cluster.members.map((m) => (
             <img
@@ -209,6 +228,9 @@ export function SliderWithMarkers({
   }, [])
 
   const clusters = buildClusters(markers, min, max, sliderWidth)
+  const activeCluster = activeClusterId
+    ? clusters.find((c) => c.members.map((m) => m.id).join('+') === activeClusterId) ?? null
+    : null
 
   return (
     <div className="space-y-3">
@@ -222,7 +244,6 @@ export function SliderWithMarkers({
         ref={containerRef}
         className="relative"
         style={{ paddingBottom: `${CHIP + ROW_H}px` }}
-        onMouseLeave={() => setActiveClusterId(null)}
       >
         <input
           type="range"
@@ -245,7 +266,7 @@ export function SliderWithMarkers({
               min={min}
               max={max}
               isActive={activeClusterId === clusterId}
-              onSelect={setActiveClusterId}
+              onOpen={setActiveClusterId}
             />
           )
         })}
@@ -259,6 +280,13 @@ export function SliderWithMarkers({
         <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
           {footnote}
         </p>
+      )}
+
+      {activeCluster && (
+        <ClusterModal
+          cluster={activeCluster}
+          onClose={() => setActiveClusterId(null)}
+        />
       )}
     </div>
   )

@@ -132,7 +132,7 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
     months: record.approximateMonths,
     logoSrcs: [record.logoSrc],
     label: record.airline,
-    tooltipContent: <AirlineTooltipBody record={record} />,
+    modalContent: <AirlineTooltipBody record={record} />,
   }))
 
   return (
