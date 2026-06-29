@@ -134,18 +134,13 @@ export function StepPayRaise() {
                 </div>
               </div>
               {hasRaise && (
-                <div className="mt-2 pt-2 flex flex-col gap-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full self-start" style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--positive)' }}>
-                    +{fmtRate(tier.raiseDollarsPerHr)}/hr vs. today
+                <div className="mt-2 pt-2 flex items-center gap-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                    +{fmt(tier.raiseMonthly)}/mo
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
-                      +{fmt(tier.raiseMonthly)}/mo
-                    </span>
-                    <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
-                      +{fmt(tier.raiseMonthly * 12)}/yr
-                    </span>
-                  </div>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                    +{fmt(tier.raiseMonthly * 12)}/yr
+                  </span>
                 </div>
               )}
             </div>
