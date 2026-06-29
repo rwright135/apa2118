@@ -17,7 +17,7 @@ export const CONTRACT_PARAMS = {
   // Minimum Monthly Guarantee (hours)
   MMG_FLYING: 70,
   MMG_RESERVE_CBA: 72,
-  MMG_RESERVE_TA: 75,
+  MMG_RESERVE_TA: 72,
 
   // Retention bonus accrual: rate × 85 hours × 35%
   RETENTION_ACCRUAL_HOURS: 85,
