@@ -247,7 +247,6 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   const noVal     = voteNo.preJcbaTotal
   const diff      = aVal - noVal
   const aWins     = diff > 0
-  const maxVal    = Math.max(aVal, noVal)
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
@@ -265,30 +264,6 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
         <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
           by {fmt(Math.abs(diff))}
         </div>
-      </div>
-
-      {/* Comparison rows */}
-      <div className="px-5 pb-5 space-y-3 border-t" style={{ borderColor: 'var(--border-subtle)', paddingTop: '16px' }}>
-        {[
-          { label: 'Vote Yes', sub: 'Accept the TA', val: aVal, color: VOTE_YES_COLOR },
-          { label: 'Vote No',  sub: 'Probability-weighted expected value', val: noVal, color: VOTE_NO_COLOR },
-        ].map(({ label, sub, val, color }) => (
-          <div key={label}>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-semibold" style={{ color }}>{label}</span>
-                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{sub}</span>
-              </div>
-              <span className="text-base font-bold tabular-nums" style={{ color }}>{fmt(val)}</span>
-            </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${(val / maxVal) * 100}%`, background: color, opacity: label === 'Vote No' ? 0.4 : 1 }}
-              />
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Risk/reward accordion */}
