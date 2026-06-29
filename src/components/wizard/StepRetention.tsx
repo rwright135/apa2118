@@ -149,7 +149,7 @@ export function StepRetention() {
                     value={Math.round(
                       (outcome.inputKey === 'retentionPayoutProbabilityB' ? probB : probC) * 100,
                     )}
-                    min={50}
+                    min={outcome.inputKey === 'retentionPayoutProbabilityC' ? 0 : 50}
                     max={100}
                     step={5}
                     onChange={(v) => setInput(outcome.inputKey, v / 100)}
