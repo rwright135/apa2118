@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
-import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
-
-const VOTE_YES_COLOR = VOTE_YES_CSS
-const VOTE_NO_COLOR = VOTE_NO_CSS
 
 interface Props { results: ComparisonResult[] }
 
@@ -16,11 +12,6 @@ function fmt(n: number) {
 function fmtAssumptionsFooter(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
 }
-
-const BOTTOM_LINE_HELP = (
-  'These are Pre-JCBA decision window numbers: the present value of all earnings during this period in today\'s dollars. '
-  + 'After the JCBA concludes, all paths converge to the same rates, therefore cancelling out those years for a more simplified estimate.'
-)
 
 const RISK_REWARD_HELP = (
   'Instead of a single expected-value number, these cards show the upside if a second offer arrives, '
@@ -72,10 +63,6 @@ function HelpButton({ label, helpText }: { label: string; helpText: string }) {
       )}
     </div>
   )
-}
-
-function BottomLineHelp() {
-  return <HelpButton label="About this bottom line comparison" helpText={BOTTOM_LINE_HELP} />
 }
 
 function RiskRewardHelp() {
@@ -273,57 +260,20 @@ const BENCHMARK_SCENARIOS = [
 ] as const
 
 function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
-  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo    = result.voteNoExpected
-  const aVal      = scenarioA.preJcbaTotal
-  const noVal     = voteNo.preJcbaTotal
-  const diff      = aVal - noVal
-  const aWins     = diff > 0
-  const maxVal    = Math.max(aVal, noVal)
-
   return (
     <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
       <div
-        className="flex items-center justify-between px-5 py-3"
-        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+        className="flex items-center justify-between px-5 py-3 border-b"
+        style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: scenarioColor }} />
           <span className="font-bold text-sm" style={{ color: scenarioColor }}>{label}</span>
         </div>
-        <BottomLineHelp />
+        <RiskRewardHelp />
       </div>
 
-      <div className="px-5 pt-4 pb-4">
-        <div className="mb-3">
-          <div className="text-xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
-            {aWins ? 'Vote Yes' : 'Vote No'} leads
-          </div>
-          <div className="text-base font-bold" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
-            by {fmt(Math.abs(diff))}
-          </div>
-        </div>
-
-        <div className="space-y-2.5">
-          {[
-            { label: 'Vote Yes', val: aVal, rowColor: VOTE_YES_COLOR },
-            { label: 'Vote No',  val: noVal, rowColor: VOTE_NO_COLOR },
-          ].map(({ label: rowLabel, val, rowColor }) => (
-            <div key={rowLabel}>
-              <div className="flex items-baseline justify-between mb-1">
-                <span className="text-xs font-semibold" style={{ color: rowColor }}>{rowLabel}</span>
-                <span className="text-sm font-bold tabular-nums" style={{ color: rowColor }}>{fmt(val)}</span>
-              </div>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${(val / maxVal) * 100}%`, background: rowColor, opacity: rowLabel === 'Vote No' ? 0.4 : 1 }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <RiskRewardBreakdown result={result} />
 
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
