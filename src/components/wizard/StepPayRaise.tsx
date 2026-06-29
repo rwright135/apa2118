@@ -53,7 +53,7 @@ export function StepPayRaise() {
     },
     {
       label: 'Jul 2026 (DOS)',
-      sublabel: 'Effective July 1 · includes back pay',
+      sublabel: 'Back Pay Effective July 1st',
       rate: dosRate,
       monthlyPay: dosRate * mmg,
       raiseMonthly: (dosRate - cbaRate) * mmg,
