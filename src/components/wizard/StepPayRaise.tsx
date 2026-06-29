@@ -148,15 +148,22 @@ export function StepPayRaise() {
         {/* CA upgrade preview for FO pilots */}
         {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
           <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--gold)' }}>
-              After upgrade to Captain ({formatUpgradeDate(inputs.upgradeToCAInYears)})
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                Captain rate at longevity {upgradeLon} · DOS tier
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
+                  After upgrade to Captain ({formatUpgradeDate(inputs.upgradeToCAInYears)})
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                  Captain rate at longevity {upgradeLon} · DOS tier
+                </div>
               </div>
-              <div className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmtRate(upgradeCARate)}/hr · {fmt(upgradeCARate * mmg)}/mo
+              <div className="text-right shrink-0">
+                <div className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                  {fmtRate(upgradeCARate)}/hr
+                </div>
+                <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
+                  {fmt(upgradeCARate * mmg)}/mo
+                </div>
               </div>
             </div>
           </div>
