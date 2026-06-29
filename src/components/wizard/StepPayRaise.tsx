@@ -166,30 +166,25 @@ export function StepPayRaise() {
 
               {/* Raise + investment rows */}
               {hasRaise && (
-                <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  {/* Raise row */}
-                  <div className="flex items-center justify-between">
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-start justify-between gap-3">
                     <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Raise vs. today</span>
-                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                      +{fmt(tier.raiseMonthly)}/mo
-                    </span>
-                  </div>
-                  {/* Investment row */}
-                  {pct > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                        {Math.round(pct * 100)}% invested / mo
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                          {fmt(invested)}/mo
-                        </span>
-                        <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                          {fmt(invested * 12)}/yr
-                        </span>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                        +{fmt(tier.raiseMonthly)}/mo
                       </div>
+                      {pct > 0 && (
+                        <div className="mt-1.5">
+                          <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                            {fmt(invested)}/mo
+                          </span>
+                          <span className="text-xs ml-1" style={{ color: 'var(--text-faint)' }}>
+                            invested ({Math.round(pct * 100)}%)
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
