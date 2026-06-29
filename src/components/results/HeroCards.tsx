@@ -22,7 +22,12 @@ const BOTTOM_LINE_HELP = (
   + 'After the JCBA concludes, all paths converge to the same rates, therefore cancelling out those years for a more simplified estimate.'
 )
 
-function BottomLineHelp() {
+const RISK_REWARD_HELP = (
+  'Instead of a single expected-value number, these cards show the upside if a second offer arrives, '
+  + 'the downside if it doesn\'t, and whether the potential reward is worth the risk of voting No.'
+)
+
+function HelpButton({ label, helpText }: { label: string; helpText: string }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -41,7 +46,7 @@ function BottomLineHelp() {
     <div ref={rootRef} className="relative shrink-0">
       <button
         type="button"
-        aria-label="About this bottom line comparison"
+        aria-label={label}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
@@ -62,11 +67,19 @@ function BottomLineHelp() {
             color: 'var(--text-muted)',
           }}
         >
-          {BOTTOM_LINE_HELP}
+          {helpText}
         </div>
       )}
     </div>
   )
+}
+
+function BottomLineHelp() {
+  return <HelpButton label="About this bottom line comparison" helpText={BOTTOM_LINE_HELP} />
+}
+
+function RiskRewardHelp() {
+  return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
 }
 
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
@@ -165,8 +178,8 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
     : 0
 
   return (
-    <div className="border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" style={{ background: 'var(--bg-elevated)' }}>
+    <div style={{ background: 'var(--bg-elevated)' }}>
+      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 
           <RiskCard
             dotColor={bPVGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
@@ -241,32 +254,20 @@ function RiskRewardBreakdown({ result }: { result: ComparisonResult }) {
 // ── Single scenario: verdict card ─────────────────────────────────────────────
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
-  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const voteNo    = result.voteNoExpected
-  const aVal      = scenarioA.preJcbaTotal
-  const noVal     = voteNo.preJcbaTotal
-  const diff      = aVal - noVal
-  const aWins     = diff > 0
-
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      {/* Verdict */}
-      <div className="px-5 pt-5 pb-4">
+      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-            Bottom line
+            Risk vs Reward
           </div>
-          <BottomLineHelp />
+          <RiskRewardHelp />
         </div>
-        <div className="text-3xl font-black leading-tight" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
-          {aWins ? 'Vote Yes' : 'Vote No'} leads
-        </div>
-        <div className="text-xl font-bold mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
-          by {fmt(Math.abs(diff))}
-        </div>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          What you stand to gain if a second offer arrives, what you risk if it doesn&apos;t, and whether Vote No is worth the bet.
+        </p>
       </div>
 
-      {/* Risk/reward accordion */}
       <RiskRewardBreakdown result={result} />
 
       {/* Assumptions */}
