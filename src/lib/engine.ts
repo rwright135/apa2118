@@ -311,7 +311,7 @@ export function buildMonthlyStream(
     const fv401kAtRetirement = k401Contribution * Math.pow(1 + rate, (totalMonths - m) / 12)
     const pv401kFromRetirement = fv401kAtRetirement * discountFactor(rate, totalMonths)
 
-    cumulativePV += pv
+    cumulativePV += pv + pv401kFromRetirement + brokerageSavingsPV
     cumulativePV401k += pv401kFromRetirement
 
     rows.push({

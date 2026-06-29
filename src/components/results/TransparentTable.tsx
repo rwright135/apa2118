@@ -192,12 +192,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
     { key: 'grossPay',             label: 'Gross Pay' },
-    { key: 'k401Contribution',     label: '401(k)' },
+    { key: 'k401Contribution',     label: '401(k) contrib' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionCashFlow',    label: 'Retention' },
     { key: 'brokerageSavingsCash', label: 'Brokerage', gold: true, voteYesOnly: false },
     { key: 'presentValue',         label: 'PV', gold: true },
-    { key: 'cumulativePV',         label: 'Cum. PV', gold: true },
+    { key: 'cumulativePV',         label: 'Cum. Total PV', gold: true },
   ]
 
   return (
@@ -345,6 +345,35 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         {postJcbaRetentionRows.length > 0 && activeTab === 'C' && (
           <> · Retention accrual & payout rows after JCBA are shown for Scenario C</>
         )}
+      </div>
+
+      {/* Summary row: ties table totals to breakdown headline numbers */}
+      <div
+        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-2"
+        style={{ background: 'var(--bg-elevated)', borderTop: '2px solid var(--border)' }}
+      >
+        <div>
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            Pre-JCBA Total PV
+            <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
+              (pay + PS + retention + 401k + brokerage)
+            </span>
+          </div>
+          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+            {fmt(summary.preJcbaTotal)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            401(k) projected @ retirement
+          </div>
+          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
+            {fmt(summary.retirementBalanceAt65)}
+          </div>
+        </div>
+        <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
+          Matches Breakdown table above ↑
+        </div>
       </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
