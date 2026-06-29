@@ -44,8 +44,8 @@ export const DEFAULT_VOTE_NO_SCENARIO = {
 export const DEFAULT_INPUTS: Partial<UserInputs> = {
   lineType: 'FLYING',
   investmentRate: 0.08,
-  retentionPayoutProbabilityB: 0.95,
-  retentionPayoutProbabilityC: 0.75,
+  retentionPayoutProbabilityB: 0.90,
+  retentionPayoutProbabilityC: 0.50,
   voteNoScenarios: [{ ...DEFAULT_VOTE_NO_SCENARIO }],
   advancedPostJCBA: {
     enabled: false,
