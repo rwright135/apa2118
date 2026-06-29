@@ -306,10 +306,12 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
 // ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
 
-const REFERENCE_LABELS = ['Average', 'Worst Case']
-const REFERENCE_SCENARIO_COLORS = ['#3b82f6', 'var(--negative)']
+const BENCHMARK_SCENARIOS = [
+  { label: 'Average', color: '#3b82f6' },
+  { label: 'Worst Case', color: '#ef4444' },
+] as const
 
-function CompactScenarioCard({ result, label, color }: { result: ComparisonResult; label: string; color: string }) {
+function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const voteNo    = result.voteNoExpected
   const aVal      = scenarioA.preJcbaTotal
@@ -319,14 +321,14 @@ function CompactScenarioCard({ result, label, color }: { result: ComparisonResul
   const maxVal    = Math.max(aVal, noVal)
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
       <div
         className="flex items-center justify-between px-5 py-3"
         style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
       >
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-          <span className="font-bold text-sm" style={{ color }}>{label}</span>
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: scenarioColor }} />
+          <span className="font-bold text-sm" style={{ color: scenarioColor }}>{label}</span>
         </div>
         <BottomLineHelp />
       </div>
@@ -343,18 +345,18 @@ function CompactScenarioCard({ result, label, color }: { result: ComparisonResul
 
         <div className="space-y-2.5">
           {[
-            { label: 'Vote Yes', val: aVal, color: VOTE_YES_COLOR },
-            { label: 'Vote No',  val: noVal, color: VOTE_NO_COLOR },
-          ].map(({ label: rowLabel, val, color }) => (
+            { label: 'Vote Yes', val: aVal, rowColor: VOTE_YES_COLOR },
+            { label: 'Vote No',  val: noVal, rowColor: VOTE_NO_COLOR },
+          ].map(({ label: rowLabel, val, rowColor }) => (
             <div key={rowLabel}>
               <div className="flex items-baseline justify-between mb-1">
-                <span className="text-xs font-semibold" style={{ color }}>{rowLabel}</span>
-                <span className="text-sm font-bold tabular-nums" style={{ color }}>{fmt(val)}</span>
+                <span className="text-xs font-semibold" style={{ color: rowColor }}>{rowLabel}</span>
+                <span className="text-sm font-bold tabular-nums" style={{ color: rowColor }}>{fmt(val)}</span>
               </div>
               <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
                 <div
                   className="h-full rounded-full"
-                  style={{ width: `${(val / maxVal) * 100}%`, background: color, opacity: rowLabel === 'Vote No' ? 0.4 : 1 }}
+                  style={{ width: `${(val / maxVal) * 100}%`, background: rowColor, opacity: rowLabel === 'Vote No' ? 0.4 : 1 }}
                 />
               </div>
             </div>
@@ -388,14 +390,17 @@ export function HeroCards({ results }: Props) {
           <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
             Industry benchmarks
           </div>
-          {referenceResults.map((result, i) => (
-            <CompactScenarioCard
-              key={i}
-              result={result}
-              label={REFERENCE_LABELS[i] ?? `Scenario ${i + 2}`}
-              color={REFERENCE_SCENARIO_COLORS[i] ?? 'var(--text-muted)'}
-            />
-          ))}
+          {referenceResults.map((result, i) => {
+            const benchmark = BENCHMARK_SCENARIOS[i]
+            return (
+              <CompactScenarioCard
+                key={i}
+                result={result}
+                label={benchmark?.label ?? `Scenario ${i + 2}`}
+                scenarioColor={benchmark?.color ?? 'var(--text-muted)'}
+              />
+            )
+          })}
         </div>
       )}
 
