@@ -13,10 +13,6 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function fmtAssumptionsCompact(vns: VoteNoScenario) {
-  return `${Math.round(vns.probability * 100)}% offer probability · ${vns.arrivalMonths}mo arrival · +${(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA ${vns.jcbaDurationMonths}mo`
-}
-
 function fmtAssumptionsFooter(vns: VoteNoScenario) {
   return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
 }
@@ -308,79 +304,61 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   )
 }
 
-// ── Multiple scenarios: comparison table ──────────────────────────────────────
+// ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
 
-function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
+const REFERENCE_LABELS = ['Average', 'Worst Case']
+
+function CompactScenarioCard({ result, label }: { result: ComparisonResult; label: string }) {
+  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+  const voteNo    = result.voteNoExpected
+  const aVal      = scenarioA.preJcbaTotal
+  const noVal     = voteNo.preJcbaTotal
+  const diff      = aVal - noVal
+  const aWins     = diff > 0
+  const maxVal    = Math.max(aVal, noVal)
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                Assumptions
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--gold)' }}>
-                Vote Yes
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_COLOR }}>
-                Vote No
-              </th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                Difference
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result, i) => {
-              const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-              const voteNo    = result.voteNoExpected
-              const aVal      = scenarioA.preJcbaTotal
-              const noVal     = voteNo.preJcbaTotal
-              const diff      = aVal - noVal
-              const aWins     = diff > 0
-              const vns       = result.voteNoScenario
-              const diffColor = aWins ? 'var(--positive)' : VOTE_NO_COLOR
+      <div className="px-5 pt-4 pb-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+              {label}
+            </div>
+            <div className="text-xl font-black leading-tight mt-0.5" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR }}>
+              {aWins ? 'Vote Yes' : 'Vote No'} leads
+            </div>
+            <div className="text-base font-bold" style={{ color: aWins ? VOTE_YES_COLOR : VOTE_NO_COLOR, opacity: 0.85 }}>
+              by {fmt(Math.abs(diff))}
+            </div>
+          </div>
+          <BottomLineHelp />
+        </div>
 
-              return (
-                <tr
-                  key={i}
-                  className="border-b last:border-b-0"
-                  style={{ borderColor: 'var(--border-subtle)' }}
-                >
-                  <td className="px-5 py-4">
-                    <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-muted)' }}>
-                      Scenario {i + 1}
-                    </div>
-                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                      {fmtAssumptionsCompact(vns)}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-base font-bold tabular-nums" style={{ color: 'var(--gold)' }}>{fmt(aVal)}</span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <span className="text-base font-semibold tabular-nums" style={{ color: VOTE_NO_COLOR }}>{fmt(noVal)}</span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="text-base font-black tabular-nums" style={{ color: diffColor }}>
-                      {aWins ? '+' : '−'}{fmt(Math.abs(diff))}
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: diffColor, opacity: 0.75 }}>
-                      {aWins ? 'Vote Yes' : 'Vote No'} leads
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="space-y-2.5">
+          {[
+            { label: 'Vote Yes', val: aVal, color: VOTE_YES_COLOR },
+            { label: 'Vote No',  val: noVal, color: VOTE_NO_COLOR },
+          ].map(({ label: rowLabel, val, color }) => (
+            <div key={rowLabel}>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-xs font-semibold" style={{ color }}>{rowLabel}</span>
+                <span className="text-sm font-bold tabular-nums" style={{ color }}>{fmt(val)}</span>
+              </div>
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${(val / maxVal) * 100}%`, background: color, opacity: rowLabel === 'Vote No' ? 0.4 : 1 }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Footer */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Pre-JCBA decision window only · present value in today's dollars
+        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+          Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
         </span>
       </div>
     </div>
@@ -390,13 +368,30 @@ function MultiScenarioTable({ results }: { results: ComparisonResult[] }) {
 // ── Export ────────────────────────────────────────────────────────────────────
 
 export function HeroCards({ results }: Props) {
-  if (results.length === 1) {
-    return <SingleScenarioVerdict result={results[0]} />
-  }
+  const userResult       = results[0]
+  const referenceResults = results.slice(1)
 
   return (
-    <div className="space-y-2">
-      <MultiScenarioTable results={results} />
+    <div className="space-y-4">
+      {/* User's scenario — full risk/reward breakdown */}
+      <SingleScenarioVerdict result={userResult} />
+
+      {/* Industry benchmarks (Average, Worst Case) */}
+      {referenceResults.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
+            Industry benchmarks
+          </div>
+          {referenceResults.map((result, i) => (
+            <CompactScenarioCard
+              key={i}
+              result={result}
+              label={REFERENCE_LABELS[i] ?? `Scenario ${i + 2}`}
+            />
+          ))}
+        </div>
+      )}
+
       <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
         After the JCBA concludes, all paths converge to the same rates — those years cancel out.
       </p>
