@@ -160,7 +160,7 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
         onChange={onChange}
         formatValue={(v) => `${v} months`}
         markers={markers}
-        footnote="Tap or hover a logo for historical timing. * FedEx excluded from the 13.3-month average as an outlier."
+        footnote="Click a logo for historical timing details. * FedEx excluded from the 13.3-month industry average as an outlier."
       />
 
       <AirlineHistoryModal open={modalOpen} onClose={() => setModalOpen(false)} />

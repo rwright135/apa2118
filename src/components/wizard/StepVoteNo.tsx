@@ -92,7 +92,7 @@ function ScenarioCard({
           <SecondOfferArrivalInput
             value={scenario.arrivalMonths}
             min={6}
-            max={60}
+            max={36}
             onChange={(v) => onChange({ arrivalMonths: v })}
           />
 
