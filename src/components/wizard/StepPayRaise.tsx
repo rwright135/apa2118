@@ -63,14 +63,14 @@ export function StepPayRaise() {
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2027',
+      label: 'Jan 2027 (DOS+1)',
       sublabel: `${lonAt2027} Year ${seat}`,
       rate: jan27Rate,
       monthlyPay: jan27Rate * mmg,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2028',
+      label: 'Jan 2028 (DOS+2)',
       sublabel: `${lonAt2028} Year ${seat}`,
       rate: jan28Rate,
       monthlyPay: jan28Rate * mmg,
@@ -97,7 +97,7 @@ export function StepPayRaise() {
   return (
     <WizardLayout
       step="payRaise"
-      title="Your pay raise"
+      title="Your Pay Raise on the Bridge TA"
       subtitle="See how your hourly rate changes with the new contract — and decide how much of your raise to invest."
       onBack={prevStep}
     >
