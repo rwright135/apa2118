@@ -71,6 +71,19 @@ function RiskRewardHelp() {
   return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
 }
 
+function Assumption({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="underline underline-offset-2 decoration-dotted"
+      style={{ textDecorationColor: 'var(--text-muted)' }}
+    >
+      {children}
+    </span>
+  )
+}
+
+const ASSUMPTIONS_FOOTNOTE = '* Underlined values are your assumptions.'
+
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
 
 interface RiskCardProps {
@@ -258,10 +271,19 @@ function RiskRewardBreakdown({
             defaultExpanded={defaultExpanded}
             body={
               <>
-                If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bNominalGap))}</strong> in pay, profit sharing, and retention between now and JCBA closing in {jcba} months vs. Voting Yes.
+                If the second offer arrives in{' '}
+                <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                at{' '}
+                <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, then you will make an additional{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bNominalGap))}</strong> in pay, profit sharing, and retention between now and JCBA closing in{' '}
+                <Assumption>{jcba} months</Assumption> vs. Voting Yes.
                 {bRetPayoutRow && (
-                  <> This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.</>
+                  <>
+                    {' '}This number also includes your Retention Bonus payment in{' '}
+                    <Assumption>{bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    from now at{' '}
+                    <Assumption>{Math.round(pB * 100)}% payout probability</Assumption>.
+                  </>
                 )}
               </>
             }
@@ -277,15 +299,17 @@ function RiskRewardBreakdown({
             body={
               cWagesShortfall > 0
                 ? <>
-                    If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in {jcba} months, you&apos;d be missing out on{' '}
+                    If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in{' '}
+                    <Assumption>{jcba} months</Assumption>, you&apos;d be missing out on{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
                     You&apos;d be delaying your guaranteed retention bonus payment of{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong>.
+                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption>.
                   </>
                 : <>
                     If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
                     You&apos;d still be delaying your guaranteed retention bonus payment of{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> until JCBA closes in {jcba} months.
+                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption> until JCBA closes in{' '}
+                    <Assumption>{jcba} months</Assumption>.
                   </>
             }
           />
@@ -302,9 +326,11 @@ function RiskRewardBreakdown({
             defaultExpanded={defaultExpanded}
             body={
               <>
-                Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
-                At {Math.round(pC * 100)}% payout probability, that lump sum is expected to pay{' '}
+                Your current Retention Bonus of{' '}
+                <Assumption>{fmt(retentionCurrentBalance)}</Assumption> will accrue to{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the{' '}
+                <Assumption>{jcba}-month</Assumption> JCBA period.
+                At <Assumption>{Math.round(pC * 100)}% payout probability</Assumption>, that lump sum is expected to pay{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.
                 {cNetAfterRetention > 0
                   ? <>
@@ -319,6 +345,10 @@ function RiskRewardBreakdown({
             }
           />
           </div>
+
+        <p className="md:col-span-2 xl:col-span-3 px-1 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+          {ASSUMPTIONS_FOOTNOTE}
+        </p>
 
         </div>
     </div>
