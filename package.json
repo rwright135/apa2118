@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:export": "node e2e/export-check.mjs"
+    "test:export": "node e2e/export-check.mjs",
+    "test:reset": "node e2e/reset-check.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
-import { saveToLocalStorage, clearLocalStorage } from './persistence'
+import { saveToLocalStorage, clearAllStoredData } from './persistence'
 import {
   AVERAGE_ARRIVAL_MONTHS_ROUNDED,
   AVERAGE_ECONOMIC_INCREASE_PERCENT,
@@ -198,7 +198,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   reset: () => {
-    clearLocalStorage()
+    clearAllStoredData()
     set({
       currentStep: 'welcome',
       inputs: { ...DEFAULT_INPUTS },
