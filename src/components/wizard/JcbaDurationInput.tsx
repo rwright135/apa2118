@@ -8,6 +8,7 @@ import {
   formatTimelineMonths,
   type JcbaMergerRecord,
 } from '../../data/jcbaMergerHistory'
+import { formatDateAbbrevMonth } from '../../lib/inputDisplay'
 import { SliderWithMarkers, type MarkerRecord } from './SliderWithMarkers'
 
 interface Props {
@@ -54,12 +55,12 @@ function MergerTooltipBody({ record }: { record: JcbaMergerRecord }) {
       <dl className="space-y-1.5 text-xs">
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Merger close</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.mergerClose}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.mergerClose)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>JCBA completion</dt>
           <dd style={{ color: 'var(--text-muted)' }}>
-            {record.jcbaCompletion}
+            {formatDateAbbrevMonth(record.jcbaCompletion)}
             {record.completionNote ? <span style={{ color: 'var(--text-faint)' }}> ({record.completionNote})</span> : null}
           </dd>
         </div>
@@ -119,9 +120,9 @@ function JcbaHistoryModal({ open, onClose }: { open: boolean; onClose: () => voi
                       <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{record.label}</span>
                     </div>
                   </td>
-                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.mergerClose}</td>
+                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.mergerClose)}</td>
                   <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>
-                    {record.jcbaCompletion}
+                    {formatDateAbbrevMonth(record.jcbaCompletion)}
                     {record.completionNote && <div style={{ color: 'var(--text-faint)' }}>{record.completionNote}</div>}
                   </td>
                   <td className="py-3 align-top tabular-nums font-semibold" style={{ color: 'var(--text-base)' }}>{formatTimelineMonths(record.months)}</td>

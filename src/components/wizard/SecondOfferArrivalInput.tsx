@@ -7,6 +7,7 @@ import {
   formatArrivalMonths,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
+import { formatDateAbbrevMonth } from '../../lib/inputDisplay'
 import {
   AirlineHistorySources,
   AirlineHistoryTable,
@@ -55,11 +56,11 @@ function AirlineTooltipBody({ record }: { record: AirlineSecondOfferRecord }) {
       <dl className="space-y-1.5 text-xs">
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>First TA rejected</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.firstTARejected)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Second TA ratified</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.secondTARatified)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Time between</dt>

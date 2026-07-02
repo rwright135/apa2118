@@ -5,6 +5,7 @@ import {
   formatArrivalMonths,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
+import { formatDateAbbrevMonth } from '../../lib/inputDisplay'
 
 function ArticleLink({ label, url }: { label: string; url: string }) {
   return (
@@ -96,8 +97,8 @@ export function AirlineHistoryTable({
                 <img src={record.logoSrc} alt={record.airline} className="h-full w-full object-contain" />
               </div>
             </td>
-            <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</td>
-            <td className={`py-3 align-top ${lastColumn === 'secondTA' ? '' : 'pr-3'}`} style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</td>
+            <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.firstTARejected)}</td>
+            <td className={`py-3 align-top ${lastColumn === 'secondTA' ? '' : 'pr-3'}`} style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.secondTARatified)}</td>
             {showTimeBetweenColumn && (
               <td className={`py-3 align-top tabular-nums ${lastColumn === 'timeBetween' ? '' : 'pr-3'}`} style={{ color: 'var(--text-muted)' }}>
                 {record.daysBetween} days
