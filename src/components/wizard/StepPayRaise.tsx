@@ -1,6 +1,7 @@
 import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
+import { SliderInput } from '../shared/SliderInput'
 import { getRate } from '../../data/payScales'
 import { CONTRACT_PARAMS } from '../../data/contractParams'
 import { getLongevityAt } from '../../lib/engine'
@@ -82,53 +83,25 @@ export function StepPayRaise() {
     ? getRate('CA', upgradeLon, 'TA_DOS_EOY2026')
     : null
 
-  function handleSlider(e: React.ChangeEvent<HTMLInputElement>) {
-    setInput('brokerageSavingsPct', Number(e.target.value) / 100)
-  }
-
   return (
     <WizardLayout
       step="payRaise"
       title="Investing your Bridge Agreement Pay Raise"
-      subtitle="Set how much of your raise to invest, then see the impact across each contract tier."
+      subtitle="How much of your raise will you invest? Saved to a brokerage account and compounded to retirement."
       onBack={prevStep}
     >
-      {/* Investment slider — top */}
-      <div className="rounded-xl px-4 py-4 mb-5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
-              How much of your raise will you invest?
-            </div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-              Saved to a brokerage account and compounded to retirement
-            </div>
-          </div>
-          <div className="text-2xl font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {Math.round(pct * 100)}%
-          </div>
-        </div>
-
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={Math.round(pct * 100)}
-          onChange={handleSlider}
-          className="w-full"
-          style={{ accentColor: 'var(--gold)' }}
-        />
-
-        <div className="flex justify-between text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
-          <span>0%</span>
-          <span>50%</span>
-          <span>100%</span>
-        </div>
-      </div>
+      <SliderInput
+        value={Math.round(pct * 100)}
+        min={0}
+        max={100}
+        step={1}
+        onChange={(v) => setInput('brokerageSavingsPct', v / 100)}
+        formatValue={(v) => `${v}%`}
+        showMinMax
+      />
 
       {/* Tier cards */}
-      <div className="mb-6 space-y-3">
+      <div className="mb-6 mt-8 space-y-3">
         {tiers.map((tier, i) => {
           const isCurrent = i === 0
           const hasRaise  = tier.raiseMonthly > 0
