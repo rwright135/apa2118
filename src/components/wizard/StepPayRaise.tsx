@@ -150,7 +150,7 @@ export function StepPayRaise() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-lg font-bold tabular-nums" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--gold)' }}>
+                  <div className="text-lg font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
                     {fmtRate(tier.rate)}/hr
                   </div>
                 </div>
