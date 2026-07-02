@@ -103,12 +103,28 @@ function RiskRewardHeadline({
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
   const assumptionLabel = assumptionScope === 'your' ? 'your' : 'these'
 
+  if (!upsideIsGain) {
+    // Voting No doesn't pay off even if the 2nd offer arrives
+    return (
+      <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
+        Based on {assumptionLabel} assumptions, Voting No doesn&apos;t pay off either way:{' '}
+        even with a 2nd offer you&apos;d be{' '}
+        <strong style={{ color: 'var(--negative)' }}>down {upsideAmount}</strong>
+        {cHeadlineLoss > 0 && (
+          <>
+            , and with no offer the loss grows to{' '}
+            <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
+          </>
+        )}
+        .
+      </p>
+    )
+  }
+
   return (
     <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
       Based on {assumptionLabel} assumptions, if a second offer arrives, you stand to{' '}
-      <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
-        {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
-      </strong>
+      <strong style={{ color: 'var(--positive)' }}>gain {upsideAmount}</strong>
       {cHeadlineLoss > 0 ? (
         <>
           , but you&apos;re risking{' '}
@@ -123,6 +139,40 @@ function RiskRewardHeadline({
         </>
       )}
     </p>
+  )
+}
+
+// ── Mini breakdown tables inside each risk card ───────────────────────────────
+
+function BreakdownRow({ label, value, color, bold }: { label: string; value: string; color?: string; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{label}</span>
+      <span className="text-xs tabular-nums font-semibold" style={{ color: color ?? 'var(--text-base)', fontWeight: bold ? 700 : 600 }}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function CollapsibleBreakdown({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mt-2.5">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 text-xs font-semibold transition-colors"
+        style={{ color: 'var(--accent)' }}
+      >
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3"/>
+        </svg>
+        {open ? 'Hide breakdown' : title}
+      </button>
+      {open && <div className="mt-1.5">{children}</div>}
+    </div>
   )
 }
 
@@ -144,9 +194,14 @@ function RiskRewardBreakdown({
     retentionCurrentBalance,
     pB,
     pC,
+    bPayDiff,
+    bPSDiff,
+    bRetDiff,
     bNominalGap,
     bRetPayoutRow,
     bRetPayoutMonths,
+    cPayDiff,
+    cRetentionForegone,
     cWagesShortfall,
     cHeadlineLoss,
     cNetAfterRetention,
@@ -154,33 +209,55 @@ function RiskRewardBreakdown({
     cExpectedRetentionPayout,
   } = computeRiskRewardMetrics(result)
 
+  const bIsPositive = bNominalGap >= 0
+
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
       <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 
           <RiskCard
-            dotColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            dotColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             title="If the second offer arrives"
-            value={<>{bNominalGap >= 0 ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
-            valueColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            value={<>{bIsPositive ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
+            valueColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             collapsible={collapsible}
             defaultExpanded={defaultExpanded}
             body={
               <>
-                If the second offer arrives in{' '}
-                <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
-                at{' '}
-                <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, then you will make an additional{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bNominalGap))}</strong> in pay, profit sharing, and retention between now and JCBA closing in{' '}
-                <Assumption>{jcba} months</Assumption> vs. Voting Yes.
-                {bRetPayoutRow && (
+                {bIsPositive ? (
                   <>
-                    {' '}This number also includes your Retention Bonus payment in{' '}
-                    <Assumption>{bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''}</Assumption>{' '}
-                    from now at{' '}
-                    <Assumption>{Math.round(pB * 100)}% payout probability</Assumption>.
+                    If the second offer arrives in{' '}
+                    <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, you&apos;d collect{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(bNominalGap)} more</strong> in total pay,
+                    profit sharing, and retention through JCBA closing in{' '}
+                    <Assumption>{jcba} months</Assumption> versus Voting Yes.
+                  </>
+                ) : (
+                  <>
+                    Even if the second offer arrives in{' '}
+                    <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, you&apos;d still be{' '}
+                    <strong style={{ color: 'var(--negative)' }}>{fmt(Math.abs(bNominalGap))} behind</strong>{' '}
+                    Voting Yes through JCBA closing in <Assumption>{jcba} months</Assumption>.
+                    The delayed start on a higher rate doesn&apos;t fully overcome the CBA gap in this window.
                   </>
                 )}
+                {bRetPayoutRow && (
+                  <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                    {' '}Includes your Retention Bonus at <Assumption>{bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{Math.round(pB * 100)}% payout probability</Assumption>.
+                  </span>
+                )}
+                <CollapsibleBreakdown title="Show how this is calculated (nominal)">
+                  <BreakdownRow label="Pay difference (nominal)" value={`${bPayDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPayDiff))}`} color={bPayDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Profit sharing difference (nominal)" value={`${bPSDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPSDiff))}`} color={bPSDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Retention timing difference (nominal)" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Total (nominal, not discounted)" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
+                  <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
+                    All figures are nominal (not present-value discounted). Verify in the month-by-month detail table below.
+                  </p>
+                </CollapsibleBreakdown>
               </>
             }
           />
@@ -195,17 +272,26 @@ function RiskRewardBreakdown({
             body={
               cWagesShortfall > 0
                 ? <>
-                    If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in{' '}
-                    <Assumption>{jcba} months</Assumption>, you&apos;d be missing out on{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
-                    You&apos;d be delaying your guaranteed retention bonus payment of{' '}
-                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption>.
+                    Staying on CBA rates through JCBA in{' '}
+                    <Assumption>{jcba} months</Assumption> costs{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal pay and profit sharing,
+                    plus the loss of the Voting Yes retention timing (worth{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong> nominally).
+                    The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
+                    <CollapsibleBreakdown title="Show how this is calculated (nominal)">
+                      <BreakdownRow label="Pay + profit sharing shortfall (nominal)" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                      <BreakdownRow label="Vote Yes retention you forgo (nominal)" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
+                      <BreakdownRow label="Gross nominal loss vs. Voting Yes" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
+                      <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
+                        Nominal, not discounted. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card. Verify in the month-by-month detail table.
+                      </p>
+                    </CollapsibleBreakdown>
                   </>
                 : <>
-                    If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
-                    You&apos;d still be delaying your guaranteed retention bonus payment of{' '}
-                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption> until JCBA closes in{' '}
+                    CBA pay rates in this scenario keep your earnings competitive through JCBA in{' '}
                     <Assumption>{jcba} months</Assumption>.
+                    The main cost is delaying your guaranteed retention bonus payment of{' '}
+                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption>.
                   </>
             }
           />

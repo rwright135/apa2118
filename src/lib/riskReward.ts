@@ -12,17 +12,18 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
 
-  const bNominalGap =
-    (scenarioB.totalGrossPay + scenarioB.totalProfitSharing + scenarioB.totalRetention) -
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.totalRetention)
+  const bPayDiff  = scenarioB.totalGrossPay     - scenarioA.totalGrossPay
+  const bPSDiff   = scenarioB.totalProfitSharing - scenarioA.totalProfitSharing
+  const bRetDiff  = scenarioB.totalRetention     - scenarioA.totalRetention
+  const bNominalGap = bPayDiff + bPSDiff + bRetDiff
 
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
-  const cWagesShortfall =
+  const cPayDiff =
     (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
     (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
-
+  const cWagesShortfall = cPayDiff // alias kept for backwards compatibility
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
 
@@ -45,10 +46,17 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     retentionCurrentBalance,
     pB,
     pC,
+    // Scenario B vs A breakdown (all nominal)
+    bPayDiff,
+    bPSDiff,
+    bRetDiff,
     bNominalGap,
     bRetPayoutRow,
     bRetPayoutMonths,
+    // Scenario C vs A breakdown (all nominal)
+    cPayDiff,
     cWagesShortfall,
+    cRetentionForegone,
     cHeadlineLoss,
     cNetAfterRetention,
     cRetAccrued,
