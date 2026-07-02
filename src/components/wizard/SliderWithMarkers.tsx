@@ -26,7 +26,12 @@ interface Props {
 const CHIP = 32
 const GAP  = 4
 const ROW_H = CHIP + 6
-const TRACK_GAP = 16   // px clearance between slider thumb and first chip row
+// Clearance between the slider track/thumb and the first chip row. Native
+// range-input thumbs render at very different sizes across browsers (Chrome
+// desktop's is compact, but iOS Safari and Android Chrome render noticeably
+// taller thumbs) — this needs enough headroom that the thumb never overlaps
+// the logo chips on any of them, including on narrow mobile widths.
+const TRACK_GAP = 30
 
 function monthToPct(months: number, min: number, max: number) {
   return ((months - min) / (max - min)) * 100
