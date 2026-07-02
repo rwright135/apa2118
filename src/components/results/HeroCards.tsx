@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
+import { useState } from 'react'
+import type { ComparisonResult } from '../../lib/types'
 import { SCENARIO_LABELS } from '../../lib/resultColors'
+import { computeRiskRewardMetrics } from '../../lib/riskReward'
+import { HelpButton } from '../shared/HelpButton'
+import { Assumption, AssumptionsFooter, ASSUMPTIONS_FOOTNOTE, BENCHMARK_ASSUMPTIONS_FOOTNOTE } from './Assumption'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
@@ -11,86 +14,10 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function Assumption({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="underline underline-offset-2 decoration-dotted"
-      style={{ textDecorationColor: 'var(--text-muted)' }}
-    >
-      {children}
-    </span>
-  )
-}
-
-function AssumptionsFooter({ vns }: { vns: VoteNoScenario }) {
-  return (
-    <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-      Assumptions:{' '}
-      <Assumption>
-        {Math.round(vns.probability * 100)}% 2nd Offer Probability in {vns.arrivalMonths} months
-      </Assumption>
-      {' | '}
-      <Assumption>{(vns.percentAboveTA * 100).toFixed(0)}% Higher</Assumption>
-      {' | '}
-      <Assumption>JCBA in {vns.jcbaDurationMonths} months</Assumption>
-    </span>
-  )
-}
-
-const ASSUMPTIONS_FOOTNOTE = '* Underlined values are your assumptions.'
-const BENCHMARK_ASSUMPTIONS_FOOTNOTE = '* Underlined values are these assumptions.'
-
 const RISK_REWARD_HELP = (
   'Instead of a single cumulative expected value number, these cards show the Risk vs. Reward of this binary outcome: '
   + 'the upside if a second offer arrives vs. the downside if it doesn\'t.'
 )
-
-function HelpButton({ label, helpText }: { label: string; helpText: string }) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-
-  return (
-    <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        aria-label={label}
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
-        style={{
-          color: 'var(--text-faint)',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        ?
-      </button>
-      {open && (
-        <div
-          className="absolute right-0 top-full mt-2 z-20 w-64 rounded-xl px-3 py-2.5 text-xs leading-relaxed shadow-lg"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          {helpText}
-        </div>
-      )}
-    </div>
-  )
-}
 
 function RiskRewardHelp() {
   return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
@@ -161,57 +88,6 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
       )}
     </div>
   )
-}
-
-function computeRiskRewardMetrics(result: ComparisonResult) {
-  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
-  const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
-  const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
-
-  const bNominalGap =
-    (scenarioB.totalGrossPay + scenarioB.totalProfitSharing + scenarioB.totalRetention) -
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.totalRetention)
-
-  const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
-  const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
-
-  const cWagesShortfall =
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
-
-  const cRetentionForegone = scenarioA.totalRetention
-  const cHeadlineLoss = cWagesShortfall + cRetentionForegone
-
-  const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
-  const cRetPayoutMonths = cRetPayoutRow?.monthIndex ?? (jcba + 2)
-
-  let cRetAccrued = retentionCurrentBalance
-  for (const row of scenarioC.rows) {
-    if (row.monthIndex >= cRetPayoutMonths) break
-    cRetAccrued += row.retentionAccrualNote
-  }
-
-  const cExpectedRetentionPayout = cRetAccrued * pC
-  const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
-
-  return {
-    jcba,
-    arrivalMonths,
-    percentAboveTA,
-    retentionCurrentBalance,
-    pB,
-    pC,
-    bNominalGap,
-    bRetPayoutRow,
-    bRetPayoutMonths,
-    cWagesShortfall,
-    cHeadlineLoss,
-    cNetAfterRetention,
-    cRetAccrued,
-    cExpectedRetentionPayout,
-  }
 }
 
 function RiskRewardHeadline({

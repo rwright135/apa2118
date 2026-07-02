@@ -2,8 +2,8 @@
 import { useStore } from '../../state/store'
 import { BaselineInputCards } from './BaselineInputCards'
 import { HeroCards } from './HeroCards'
+import { BettingOddsCard } from './BettingOddsCard'
 import { ScenarioBreakdown } from './ScenarioBreakdown'
-import { ComparisonBarChart } from './ComparisonBarChart'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
 import { ShareSheet } from './ShareSheet'
@@ -64,15 +64,7 @@ export function ResultsScreen() {
         <BaselineInputCards inputs={results[0].inputs} />
         <HeroCards results={results} />
 
-        <div
-          className="rounded-2xl p-4"
-          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-        >
-          <h2 className="font-semibold mb-4 text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-            Total Compensation Comparison
-          </h2>
-          <ComparisonBarChart results={results} />
-        </div>
+        <BettingOddsCard results={results} />
 
         <ScenarioBreakdown results={results} />
 
