@@ -3,7 +3,7 @@ import type { ComparisonResult } from '../../lib/types'
 import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { computeBettingOdds, type BettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption, AssumptionsFooter, AssumptionsFootnote, BenchmarkAssumptionsFootnote } from './Assumption'
+import { Assumption, AssumptionsFooter, AssumptionsFootnote } from './Assumption'
 
 interface Props { results: ComparisonResult[] }
 
@@ -192,8 +192,7 @@ function CompactOddsRow({ result, label }: { result: ComparisonResult; label: st
           <div className="border-t pt-3" style={{ borderColor: 'var(--border-subtle)' }}>
             <BettingOddsMatchup result={result} showTeamCrests={false} />
           </div>
-          <AssumptionsFooter vns={result.voteNoScenario} />
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}><BenchmarkAssumptionsFootnote /></p>
+          <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
         </div>
       )}
     </div>

@@ -327,15 +327,12 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
             assumptionsFootnote={<BenchmarkAssumptionsFootnote />}
           />
           <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-            <AssumptionsFooter vns={result.voteNoScenario} />
+            <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
           </div>
         </>
       ) : (
         <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-          <AssumptionsFooter vns={result.voteNoScenario} />
-          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            <BenchmarkAssumptionsFootnote />
-          </p>
+          <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
         </div>
       )}
     </div>
