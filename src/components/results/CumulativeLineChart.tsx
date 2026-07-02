@@ -1,6 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
-import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
@@ -28,12 +27,26 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 /**
- * Your own scenario shows the two unblended vote-no paths (2nd offer /
- * no offer) instead of a single probability-weighted line, since you can
- * weigh the odds yourself. Average and Worst Case are each a single,
- * already-fixed scenario — there's no probability weighting to unblend,
- * so they're plotted as one line apiece.
+ * Chart lines — 5 total:
+ *
+ * Your scenario (3 solid lines):
+ *   • Vote Yes
+ *   • Vote No — 2nd Offer (upper bound of voting no)
+ *   • Vote No — No Offer  (lower bound of voting no)
+ *
+ * Benchmarks (1 dashed line each, blended Vote No):
+ *   • Average
+ *   • Worst Case
+ *
+ * Average and Worst Case are fixed scenarios with set assumptions.
+ * They each show a single blended Vote No line — no B/C split.
  */
+
+const BENCHMARK_LABELS: Record<number, string> = {
+  1: 'Vote No (Avg)',
+  2: 'Vote No (Worst)',
+}
+
 export function CumulativeLineChart({ results }: Props) {
   const { voteYes, voteNo, textMuted, textFaint, scenarioOffer, scenarioAverage, scenarioWorst } = useResultChartColors()
 
@@ -44,35 +57,37 @@ export function CumulativeLineChart({ results }: Props) {
   const maxLen = Math.min(maxJcba + 1, refA.rows.length)
   const step = Math.max(1, Math.floor(maxLen / 120))
 
-  // Build chart data keyed by month index
+  // Build chart data: one data key per line
+  const KEY_YES   = 'Vote Yes'
+  const KEY_B     = 'Vote No — 2nd Offer'
+  const KEY_C     = 'Vote No — No Offer'
+
   const chartData: Record<string, number | string>[] = []
   for (let i = 0; i < maxLen; i += step) {
     const rA = refA.rows[i]
     if (!rA) continue
     const point: Record<string, number | string> = { month: `${rA.year}` }
 
-    results.forEach((result, ri) => {
-      const label = SCENARIO_LABELS[ri] ?? `Scenario ${ri + 1}`
+    // Your scenario: 3 lines
+    const sA = refResult.scenarios.find(s => s.scenarioId === 'A')!
+    const sB = refResult.scenarios.find(s => s.scenarioId === 'B')!
+    const sC = refResult.scenarios.find(s => s.scenarioId === 'C')!
+    point[KEY_YES] = Math.round(sA.rows[Math.min(i, sA.rows.length - 1)]?.cumulativePV ?? 0)
+    point[KEY_B]   = Math.round(sB.rows[Math.min(i, sB.rows.length - 1)]?.cumulativePV ?? 0)
+    point[KEY_C]   = Math.round(sC.rows[Math.min(i, sC.rows.length - 1)]?.cumulativePV ?? 0)
 
-      if (ri === 0) {
-        const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-        const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-        const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
-        const rResultA = scenarioA.rows[Math.min(i, scenarioA.rows.length - 1)]
-        const rB       = scenarioB.rows[Math.min(i, scenarioB.rows.length - 1)]
-        const rC       = scenarioC.rows[Math.min(i, scenarioC.rows.length - 1)]
-        point['Vote Yes'] = Math.round(rResultA?.cumulativePV ?? 0)
-        point['If 2nd Offer Arrives'] = Math.round(rB?.cumulativePV ?? 0)
-        point['If No Offer Arrives'] = Math.round(rC?.cumulativePV ?? 0)
-      } else {
-        const voteNoBenchmark = result.voteNoExpected
-        const rVN = voteNoBenchmark.rows[Math.min(i, voteNoBenchmark.rows.length - 1)]
-        point[label] = Math.round(rVN?.cumulativePV ?? 0)
-      }
+    // Benchmarks: 1 blended Vote No line each
+    results.slice(1).forEach((result, j) => {
+      const key = BENCHMARK_LABELS[j + 1] ?? `Vote No (Scen ${j + 2})`
+      const vn  = result.voteNoExpected
+      point[key] = Math.round(vn.rows[Math.min(i, vn.rows.length - 1)]?.cumulativePV ?? 0)
     })
 
     chartData.push(point)
   }
+
+  const benchmarkKeys = results.slice(1).map((_, j) => BENCHMARK_LABELS[j + 1] ?? `Vote No (Scen ${j + 2})`)
+  const benchmarkColors = [scenarioAverage, scenarioWorst]
 
   return (
     <div>
@@ -83,27 +98,24 @@ export function CumulativeLineChart({ results }: Props) {
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
-          <Line type="monotone" dataKey="Vote Yes" stroke={voteYes} strokeWidth={2.5} dot={false} />
-          <Line type="monotone" dataKey="If 2nd Offer Arrives" stroke={scenarioOffer} strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="If No Offer Arrives" stroke={voteNo} strokeWidth={2} dot={false} />
+          {/* Your scenario — 3 solid lines */}
+          <Line type="monotone" dataKey={KEY_YES} stroke={voteYes}      strokeWidth={2.5} dot={false} />
+          <Line type="monotone" dataKey={KEY_B}   stroke={scenarioOffer} strokeWidth={2}   dot={false} />
+          <Line type="monotone" dataKey={KEY_C}   stroke={voteNo}       strokeWidth={2}   dot={false} />
 
-          {results.slice(1).map((_, i) => {
-            const ri = i + 1
-            const label = SCENARIO_LABELS[ri] ?? `Scenario ${ri + 1}`
-            const color = ri === 1 ? scenarioAverage : scenarioWorst
-            return (
-              <Line
-                key={label}
-                type="monotone"
-                dataKey={label}
-                stroke={color}
-                strokeWidth={1.5}
-                strokeDasharray="4 3"
-                dot={false}
-                opacity={0.8}
-              />
-            )
-          })}
+          {/* Benchmarks — 1 dashed line each */}
+          {benchmarkKeys.map((key, j) => (
+            <Line
+              key={key}
+              type="monotone"
+              dataKey={key}
+              stroke={benchmarkColors[j] ?? scenarioAverage}
+              strokeWidth={1.5}
+              strokeDasharray="4 3"
+              dot={false}
+              opacity={0.75}
+            />
+          ))}
         </LineChart>
       </ResponsiveContainer>
     </div>
