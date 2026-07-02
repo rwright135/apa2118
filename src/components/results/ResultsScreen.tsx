@@ -1,7 +1,7 @@
 // useState no longer needed here — moved to ShareSheet
 import { useStore } from '../../state/store'
 import { BaselineInputCards } from './BaselineInputCards'
-import { HeroCards } from './HeroCards'
+import { UserRiskRewardCard, IndustryBenchmarkCards } from './HeroCards'
 import { BettingOddsCard } from './BettingOddsCard'
 import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { CumulativeLineChart } from './CumulativeLineChart'
@@ -62,9 +62,12 @@ export function ResultsScreen() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         <BaselineInputCards inputs={results[0].inputs} />
-        <HeroCards results={results} />
 
-        <BettingOddsCard results={results} />
+        <div className="space-y-4">
+          <UserRiskRewardCard results={results} />
+          <BettingOddsCard results={results} />
+          <IndustryBenchmarkCards results={results} />
+        </div>
 
         <ScenarioBreakdown results={results} />
 

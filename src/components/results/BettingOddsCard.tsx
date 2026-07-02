@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import type { ComparisonResult } from '../../lib/types'
-import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { computeBettingOdds, type BettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption, AssumptionsFooter, AssumptionsFootnote } from './Assumption'
+import { Assumption } from './Assumption'
 
 interface Props { results: ComparisonResult[] }
 
@@ -16,9 +15,9 @@ function fmt(n: number) {
 }
 
 const ODDS_HELP = (
-  'These are American-style betting odds. The moneyline reflects the probability of each outcome ' +
-  '(from your assumptions), while "Break-even" is the win probability that would make Voting No a wash. ' +
-  'If your assumed probability clears break-even, Vegas would call this a value bet.'
+  'These are American-style betting odds, priced off the dollar risk and reward — not off how likely you ' +
+  'think the outcome is. "Break-even" is the win probability that would make Voting No a wash. If your ' +
+  'assumed probability clears break-even, Vegas would call this a value bet.'
 )
 
 // ── Team crest ──────────────────────────────────────────────────────────────
@@ -84,6 +83,26 @@ const VERDICT_COPY: Record<BettingOdds['verdict'], { label: string; text: (o: Be
     color: 'var(--text-muted)',
     bg: 'var(--bg-elevated)',
   },
+}
+
+// ── Explanation callout ───────────────────────────────────────────────────────
+
+function HowToReadThis() {
+  return (
+    <div
+      className="rounded-xl p-4 text-sm leading-relaxed"
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+    >
+      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
+      <span style={{ color: 'var(--text-muted)' }}>
+        The moneyline below is just a different way of showing the dollar risk and reward above — like a
+        sportsbook price, it&apos;s set by the payout, not by how likely you think a second offer is. A big
+        negative number means you&apos;d be risking a lot to win a little, a bad price no matter how
+        confident you feel. Compare your own assumed probability to the break-even line: if you think a
+        second offer is more likely than break-even, the math says the bet is worth taking.
+      </span>
+    </div>
+  )
 }
 
 function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResult; showTeamCrests: boolean }) {
@@ -159,78 +178,28 @@ function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResu
   )
 }
 
-function CompactOddsRow({ result, label }: { result: ComparisonResult; label: string }) {
-  const [expanded, setExpanded] = useState(false)
-  const odds = computeBettingOdds(result)
-  const verdict = VERDICT_COPY[odds.verdict]
+// ── Export ────────────────────────────────────────────────────────────────────
 
-  return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
-      <button
-        type="button"
-        onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
-        style={{ background: 'transparent' }}
-      >
-        <span className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>{label}</span>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs font-bold uppercase tracking-wide" style={{ color: verdict.color }}>{verdict.label}</span>
-          <span className="text-sm font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
-            No {odds.moneylineNo}
-          </span>
-          <svg
-            width="12" height="12" viewBox="0 0 12 12" fill="none"
-            stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
-            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-          >
-            <path d="M2 4l4 4 4-4"/>
-          </svg>
-        </div>
-      </button>
-      {expanded && (
-        <div className="px-4 pb-4 pt-0 space-y-3">
-          <div className="border-t pt-3" style={{ borderColor: 'var(--border-subtle)' }}>
-            <BettingOddsMatchup result={result} showTeamCrests={false} />
-          </div>
-          <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
-        </div>
-      )}
-    </div>
-  )
-}
-
+/** Vegas Odds card for the user's own scenario. Belongs directly under the
+ *  user's Risk vs Reward card — no need to repeat the assumptions footer
+ *  since it's already shown there. */
 export function BettingOddsCard({ results }: Props) {
   const userResult = results[0]
-  const referenceResults = results.slice(1)
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="px-5 pt-5 pb-4 space-y-4">
+        <div className="flex items-start justify-between gap-3">
           <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
             Vegas Odds — Is Voting No Worth the Bet?
           </div>
           <HelpButton label="About these betting odds" helpText={ODDS_HELP} />
         </div>
 
+        <HowToReadThis />
+
         <BettingOddsMatchup result={userResult} showTeamCrests />
       </div>
-
-      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter vns={userResult.voteNoScenario} />
-        <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}><AssumptionsFootnote /></p>
-      </div>
-
-      {referenceResults.length > 0 && (
-        <div className="px-5 pb-5 pt-4 space-y-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-            Benchmark odds
-          </div>
-          {referenceResults.map((result, i) => (
-            <CompactOddsRow key={i} result={result} label={SCENARIO_LABELS[i + 1] ?? `Scenario ${i + 2}`} />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

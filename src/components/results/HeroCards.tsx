@@ -341,33 +341,33 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
-export function HeroCards({ results }: Props) {
-  const userResult       = results[0]
+/** Your scenario's full risk/reward breakdown. */
+export function UserRiskRewardCard({ results }: Props) {
+  return <SingleScenarioVerdict result={results[0]} />
+}
+
+/** Industry benchmarks (Average, Worst Case) — rendered separately so callers
+ *  can place other cards (e.g. Vegas Odds) between this and the user's card. */
+export function IndustryBenchmarkCards({ results }: Props) {
   const referenceResults = results.slice(1)
   const { scenarioAverage, scenarioWorst } = useResultChartColors()
   const benchmarkColors = [scenarioAverage, scenarioWorst]
 
-  return (
-    <div className="space-y-4">
-      {/* User's scenario — full risk/reward breakdown */}
-      <SingleScenarioVerdict result={userResult} />
+  if (referenceResults.length === 0) return null
 
-      {/* Industry benchmarks (Average, Worst Case) */}
-      {referenceResults.length > 0 && (
-        <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
-            Industry benchmarks
-          </div>
-          {referenceResults.map((result, i) => (
-              <CompactScenarioCard
-                key={i}
-                result={result}
-                label={SCENARIO_LABELS[i + 1] ?? `Scenario ${i + 2}`}
-                scenarioColor={benchmarkColors[i] ?? scenarioAverage}
-              />
-          ))}
-        </div>
-      )}
+  return (
+    <div className="space-y-3">
+      <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
+        Industry benchmarks
+      </div>
+      {referenceResults.map((result, i) => (
+          <CompactScenarioCard
+            key={i}
+            result={result}
+            label={SCENARIO_LABELS[i + 1] ?? `Scenario ${i + 2}`}
+            scenarioColor={benchmarkColors[i] ?? scenarioAverage}
+          />
+      ))}
     </div>
   )
 }

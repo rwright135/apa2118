@@ -10,10 +10,11 @@ export interface BettingOdds {
   reward: number
   /** $ downside vs Voting Yes if no offer arrives (can be negative, i.e. still ahead). */
   risk: number
-  /** Probability "Vote No" ends up ahead of "Vote Yes" (0–1). */
-  probNoWins: number
-  probYesWins: number
-  /** American moneyline for each side, e.g. "-150" or "+240". */
+  /** American moneyline for each side, priced directly off the risk/reward dollar ratio
+   *  — NOT off the user's assumed probability. This is "the price of the bet": how much
+   *  you'd have to risk to win $100 (or how much $100 would win), same as a real sportsbook
+   *  line. A side needing you to risk far more than you could win prices out very negative,
+   *  regardless of how likely you think it is. */
   moneylineNo: string
   moneylineYes: string
   favorite: 'voteNo' | 'voteYes' | 'even'
@@ -24,13 +25,27 @@ export interface BettingOdds {
   verdict: BetVerdict
 }
 
-/** Converts a win probability (0–1) into an American moneyline string. */
-export function toAmericanOdds(prob: number): string {
-  const p = Math.min(Math.max(prob, 0.001), 0.999)
+/** Converts a fraction (0–1) into an American moneyline string. */
+export function toAmericanOdds(fraction: number): string {
+  const p = Math.min(Math.max(fraction, 0.001), 0.999)
   if (p >= 0.5) {
     return `${Math.round(-100 * p / (1 - p))}`
   }
   return `+${Math.round(100 * (1 - p) / p)}`
+}
+
+/**
+ * The fraction used to price the moneyline is exactly the break-even win
+ * probability implied by the risk/reward dollar amounts (risk / (risk + reward))
+ * — the same ratio a sportsbook would use to set a fair, no-vig line for a bet
+ * with this payout structure. Degenerate cases (no real risk, or no real
+ * reward) are priced at the extremes.
+ */
+function pricingFraction(risk: number, reward: number): number {
+  if (risk > 0 && reward > 0) return risk / (risk + reward)
+  if (risk <= 0 && reward > 0) return 0.01
+  if (reward <= 0 && risk > 0) return 0.99
+  return 0.5
 }
 
 export function computeBettingOdds(result: ComparisonResult): BettingOdds {
@@ -43,20 +58,12 @@ export function computeBettingOdds(result: ComparisonResult): BettingOdds {
   const reward = bNominalGap
   const risk = cNetAfterRetention
 
-  // Probability "Vote No" outright beats "Vote Yes": if there's no real downside
-  // (risk <= 0) Vote No always wins regardless of whether the offer arrives; if
-  // there's no real upside (reward <= 0) Vote No never wins. Otherwise it wins
-  // exactly when the 2nd offer arrives.
-  let probNoWins: number
-  if (risk <= 0 && reward <= 0) probNoWins = 0.5
-  else if (risk <= 0) probNoWins = 1
-  else if (reward <= 0) probNoWins = 0
-  else probNoWins = probability
-
-  const probYesWins = 1 - probNoWins
+  const pricing = pricingFraction(risk, reward)
+  const moneylineNo = toAmericanOdds(pricing)
+  const moneylineYes = toAmericanOdds(1 - pricing)
 
   const favorite: BettingOdds['favorite'] =
-    Math.abs(probNoWins - probYesWins) < 0.01 ? 'even' : probNoWins > probYesWins ? 'voteNo' : 'voteYes'
+    Math.abs(pricing - 0.5) < 0.01 ? 'even' : pricing > 0.5 ? 'voteNo' : 'voteYes'
 
   const breakeven = risk > 0 && reward > 0 ? risk / (risk + reward) : null
   const edgePoints = breakeven !== null ? (probability - breakeven) * 100 : null
@@ -73,10 +80,8 @@ export function computeBettingOdds(result: ComparisonResult): BettingOdds {
     probability,
     reward,
     risk,
-    probNoWins,
-    probYesWins,
-    moneylineNo: toAmericanOdds(probNoWins),
-    moneylineYes: toAmericanOdds(probYesWins),
+    moneylineNo,
+    moneylineYes,
     favorite,
     breakeven,
     edgePoints,
