@@ -104,6 +104,13 @@ export function StepPayRaise() {
   const upgradeCARate = (seat === 'FO' && upgradeLon != null && upgradeTier != null)
     ? getRate('CA', upgradeLon, upgradeTier)
     : null
+  // How much more per month the CA rate pays vs. staying FO at that same date/tier
+  const upgradeFORate = (upgradeLon != null && upgradeTier != null)
+    ? getRate('FO', upgradeLon, upgradeTier)
+    : null
+  const upgradeRaiseMonthly = (upgradeCARate != null && upgradeFORate != null)
+    ? (upgradeCARate - upgradeFORate) * mmg
+    : null
 
   return (
     <WizardLayout
@@ -175,17 +182,36 @@ export function StepPayRaise() {
         })}
 
         {/* CA upgrade preview for FO pilots */}
-        {seat === 'FO' && upgradeCARate != null && inputs.upgradeToCAInYears != null && (
+        {seat === 'FO' && upgradeCARate != null && upgradeRaiseMonthly != null && inputs.upgradeToCAInYears != null && (
           <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--gold)' }}>
-              After upgrade to Captain (year {inputs.upgradeToCAInYears})
+            <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--gold)' }}>
+              After upgrade to Captain (Year {inputs.upgradeToCAInYears})
             </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                Captain rate at longevity {upgradeLon} · {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
+
+            {/* Header row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
+                  Captain rate at longevity {upgradeLon}
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                  {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
+                </div>
               </div>
-              <div className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                {fmtRate(upgradeCARate)}/hr · {fmt(upgradeCARate * mmg)}/mo
+              <div className="text-right shrink-0">
+                <div className="text-lg font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                  {fmtRate(upgradeCARate)}/hr
+                </div>
+              </div>
+            </div>
+
+            {/* Raise row */}
+            <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>More per Month vs. Staying FO</span>
+                <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                  +{fmt(upgradeRaiseMonthly)}/mo
+                </span>
               </div>
             </div>
           </div>
