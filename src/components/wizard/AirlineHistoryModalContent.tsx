@@ -58,7 +58,7 @@ export function AirlineHistorySources() {
 export function AirlineHistoryFootnote() {
   return (
     <p className="text-[11px] mt-4 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-      * {ECONOMIC_INCREASE_FOOTNOTE}
+      *{ECONOMIC_INCREASE_FOOTNOTE}
     </p>
   )
 }
