@@ -154,7 +154,7 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
-  const [applyWeight, setApplyWeight]     = useState(false)
+  const [applyWeight, setApplyWeight]     = useState(true)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
