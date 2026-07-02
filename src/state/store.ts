@@ -21,6 +21,7 @@ export type WizardStep =
   | 'extraHours'
   | 'profitSharing'
   | 'investmentRate'
+  | 'scenariosIntro'
   | 'voteNo'
   | 'retention'
   | 'payRaise'
@@ -38,6 +39,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   'extraHours',
   'profitSharing',
   'investmentRate',
+  'scenariosIntro',
   'retention',
   'voteNo',
   'payRaise',

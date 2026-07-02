@@ -11,6 +11,7 @@ import { StepLineType } from './components/wizard/StepLineType'
 import { StepExtraHours } from './components/wizard/StepExtraHours'
 import { StepDOB } from './components/wizard/StepDOB'
 import { StepProfitSharing } from './components/wizard/StepProfitSharing'
+import { StepScenariosIntro } from './components/wizard/StepScenariosIntro'
 import { StepRetention } from './components/wizard/StepRetention'
 import { StepInvestmentRate } from './components/wizard/StepInvestmentRate'
 import { StepVoteNo } from './components/wizard/StepVoteNo'
@@ -47,8 +48,9 @@ function App() {
     case 'extraHours':   return <StepExtraHours />
     case 'dob':          return <StepDOB />
     case 'profitSharing':return <StepProfitSharing />
-    case 'retention':    return <StepRetention />
     case 'investmentRate':return <StepInvestmentRate />
+    case 'scenariosIntro': return <StepScenariosIntro />
+    case 'retention':    return <StepRetention />
     case 'voteNo':       return <StepVoteNo />
     case 'payRaise':     return <StepPayRaise />
     case 'advanced':     return <StepAdvanced />
