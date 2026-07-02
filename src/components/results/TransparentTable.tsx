@@ -154,7 +154,6 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
-  const [showRetention, setShowRetention] = useState(false)
   const [applyWeight, setApplyWeight]     = useState(false)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
@@ -438,22 +437,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <button
-          onClick={() => setShowRetention(v => !v)}
-          className="mt-3 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-          style={{ color: 'var(--accent)' }}
-        >
-          <span>{showRetention ? '▲' : '▼'}</span>
-          {showRetention ? 'Hide retention bonus detail' : '💰 Show retention bonus accrual & payout detail'}
-        </button>
-        {showRetention && (
-          <RetentionDetail
-            rows={rows}
-            startingBalance={result.inputs.retentionCurrentBalance}
-            probability={prob}
-            isVoteYes={isVoteYes}
-          />
-        )}
+        <RetentionDetail
+          rows={rows}
+          startingBalance={result.inputs.retentionCurrentBalance}
+          probability={prob}
+          isVoteYes={isVoteYes}
+        />
       </div>
     </div>
   )
