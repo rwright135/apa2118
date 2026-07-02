@@ -109,18 +109,17 @@ function RiskRewardHeadline({
       <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
         {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
       </strong>
-      {' '}vs. Voting Yes
       {cHeadlineLoss > 0 ? (
         <>
-          {' '}— but you&apos;re risking{' '}
+          , but you&apos;re risking{' '}
           <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
           {' '}if no offer arrives.
         </>
       ) : (
         <>
-          {' '}— and if no offer arrives, you still come out{' '}
+          , and if no offer arrives, you still come out{' '}
           <strong style={{ color: 'var(--positive)' }}>{riskAmount} ahead</strong>
-          {' '}on nominal pay vs. Voting Yes.
+          {' '}on nominal pay.
         </>
       )}
     </p>
