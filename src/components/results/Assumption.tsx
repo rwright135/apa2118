@@ -26,5 +26,18 @@ export function AssumptionsFooter({ vns }: { vns: VoteNoScenario }) {
   )
 }
 
-export const ASSUMPTIONS_FOOTNOTE = '* Underlined values are your assumptions.'
-export const BENCHMARK_ASSUMPTIONS_FOOTNOTE = '* Underlined values are these assumptions.'
+export function AssumptionsFootnote() {
+  return (
+    <>
+      <Assumption>Underlined</Assumption> values are your assumptions.
+    </>
+  )
+}
+
+export function BenchmarkAssumptionsFootnote() {
+  return (
+    <>
+      <Assumption>Underlined</Assumption> values are these assumptions.
+    </>
+  )
+}

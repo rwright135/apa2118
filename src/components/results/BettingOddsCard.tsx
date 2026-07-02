@@ -3,7 +3,7 @@ import type { ComparisonResult } from '../../lib/types'
 import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { computeBettingOdds, type BettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption, AssumptionsFooter, ASSUMPTIONS_FOOTNOTE, BENCHMARK_ASSUMPTIONS_FOOTNOTE } from './Assumption'
+import { Assumption, AssumptionsFooter, AssumptionsFootnote, BenchmarkAssumptionsFootnote } from './Assumption'
 
 interface Props { results: ComparisonResult[] }
 
@@ -193,7 +193,7 @@ function CompactOddsRow({ result, label }: { result: ComparisonResult; label: st
             <BettingOddsMatchup result={result} showTeamCrests={false} />
           </div>
           <AssumptionsFooter vns={result.voteNoScenario} />
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{BENCHMARK_ASSUMPTIONS_FOOTNOTE}</p>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}><BenchmarkAssumptionsFootnote /></p>
         </div>
       )}
     </div>
@@ -219,7 +219,7 @@ export function BettingOddsCard({ results }: Props) {
 
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         <AssumptionsFooter vns={userResult.voteNoScenario} />
-        <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>{ASSUMPTIONS_FOOTNOTE}</p>
+        <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}><AssumptionsFootnote /></p>
       </div>
 
       {referenceResults.length > 0 && (

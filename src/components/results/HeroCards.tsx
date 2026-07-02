@@ -3,7 +3,7 @@ import type { ComparisonResult } from '../../lib/types'
 import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { computeRiskRewardMetrics } from '../../lib/riskReward'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption, AssumptionsFooter, ASSUMPTIONS_FOOTNOTE, BENCHMARK_ASSUMPTIONS_FOOTNOTE } from './Assumption'
+import { Assumption, AssumptionsFooter, AssumptionsFootnote, BenchmarkAssumptionsFootnote } from './Assumption'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
@@ -130,12 +130,12 @@ function RiskRewardBreakdown({
   result,
   collapsible = false,
   defaultExpanded = true,
-  assumptionsFootnote = ASSUMPTIONS_FOOTNOTE,
+  assumptionsFootnote = <AssumptionsFootnote />,
 }: {
   result: ComparisonResult
   collapsible?: boolean
   defaultExpanded?: boolean
-  assumptionsFootnote?: string
+  assumptionsFootnote?: React.ReactNode
 }) {
   const {
     jcba,
@@ -324,7 +324,7 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
             result={result}
             collapsible
             defaultExpanded={false}
-            assumptionsFootnote={BENCHMARK_ASSUMPTIONS_FOOTNOTE}
+            assumptionsFootnote={<BenchmarkAssumptionsFootnote />}
           />
           <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
             <AssumptionsFooter vns={result.voteNoScenario} />
@@ -334,7 +334,7 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
         <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
           <AssumptionsFooter vns={result.voteNoScenario} />
           <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            {BENCHMARK_ASSUMPTIONS_FOOTNOTE}
+            <BenchmarkAssumptionsFootnote />
           </p>
         </div>
       )}
