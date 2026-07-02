@@ -193,7 +193,7 @@ function ClusterChip({
           ))}
           {multi && (
             <span
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+              className="absolute -bottom-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
               style={{ background: 'var(--gold)', color: '#000' }}
             >
               {cluster.members.length}
