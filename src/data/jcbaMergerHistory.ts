@@ -25,7 +25,7 @@ export const JCBA_MERGER_HISTORY: JcbaMergerRecord[] = [
   {
     id: 'american-usairways',
     label: 'American / US Airways',
-    logoSrcs: ['/airlines/american.svg'],
+    logoSrcs: ['/airlines/american.svg', '/airlines/us-airways.svg'],
     mergerClose: 'December 9, 2013',
     jcbaCompletion: 'January 30, 2015',
     months: 13.7,
