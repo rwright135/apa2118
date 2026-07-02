@@ -16,8 +16,8 @@ function fmtAssumptionsFooter(vns: VoteNoScenario) {
 }
 
 const RISK_REWARD_HELP = (
-  'Instead of a single expected-value number, these cards show the upside if a second offer arrives, '
-  + 'the downside if it doesn\'t, and whether the potential reward is worth the risk of voting No.'
+  'Instead of a single cumulative expected value number, these cards show the Risk vs. Reward of this binary outcome: '
+  + 'the upside if a second offer arrives vs. the downside if it doesn\'t.'
 )
 
 function HelpButton({ label, helpText }: { label: string; helpText: string }) {
