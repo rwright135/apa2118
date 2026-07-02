@@ -33,20 +33,6 @@ export function StepAdvanced() {
       onBack={prevStep}
     >
       <div className="mb-8 space-y-5">
-
-        {/* Intro */}
-        <div
-          className="rounded-xl p-4 text-sm leading-relaxed"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-        >
-          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Key insight: </span>
-          <span style={{ color: 'var(--text-muted)' }}>
-            Unequivocally, the resulting pay rates and benefits under the JCBA will be different depending on
-            which contract we are negotiating from. A higher starting point today means a stronger foundation
-            for the next agreement — and that difference compounds over your entire career.
-          </span>
-        </div>
-
         <div className="space-y-4">
           <ScenarioColorCard scenarioId="A">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -85,6 +71,17 @@ export function StepAdvanced() {
           </ScenarioColorCard>
         </div>
 
+        <div
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>Key insight: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            Unequivocally, the resulting pay rates and benefits under the JCBA will be different depending on
+            which contract we are negotiating from. A higher starting point today means a stronger foundation
+            for the next agreement — and that difference compounds over your entire career.
+          </span>
+        </div>
       </div>
 
       <NavButton onClick={compute} disabled={isComputing}>
