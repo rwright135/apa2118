@@ -35,6 +35,14 @@ export function StepAdvanced() {
     <WizardLayout
       step="advanced"
       title="Post-JCBA Pay Assumptions"
+      subtitle={
+        <>
+          Ratifying any bridge agreement — this offer or a future one — gives the negotiating
+          committee a stronger position: JCBA rates land {upliftPct}% above whatever deal you
+          ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead —
+          you estimate how much lower that outcome lands below Vote Yes.
+        </>
+      }
       onBack={prevStep}
     >
       <div className="mb-8 space-y-5">
@@ -58,15 +66,9 @@ export function StepAdvanced() {
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
         >
           <div>
-            <div className="font-semibold text-sm mb-1" style={{ color: 'var(--text-base)' }}>
+            <div className="font-semibold text-sm" style={{ color: 'var(--text-base)' }}>
               Built-in assumption: +{upliftPct}% at JCBA for any deal
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Ratifying any bridge agreement — this offer or a future one — gives the negotiating
-              committee a stronger position: JCBA rates land {upliftPct}% above whatever deal you
-              ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead —
-              you estimate how much lower that outcome lands below Vote Yes.
-            </p>
           </div>
 
           <div className="space-y-2">
