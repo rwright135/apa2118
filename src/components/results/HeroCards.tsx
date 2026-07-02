@@ -197,7 +197,7 @@ function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
 
   return (
     <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-      If a second offer arrives, you stand to{' '}
+      Based on your assumptions, if a second offer arrives, you stand to{' '}
       <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
         {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
       </strong>
