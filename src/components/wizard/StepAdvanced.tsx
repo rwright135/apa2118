@@ -6,6 +6,21 @@ import { POST_JCBA_UPLIFT } from '../../lib/scenarios'
 
 const DEFAULT_PENALTY = 0.15
 
+function OutcomeRow({ letter, label, children }: { letter: string; label: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
+      style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
+    >
+      <span className="mt-0.5 font-bold" style={{ color: 'var(--gold)' }}>{letter}</span>
+      <div>
+        <span className="font-semibold" style={{ color: 'var(--gold)' }}>{label} — </span>
+        <span style={{ color: 'var(--text-muted)' }}>{children}</span>
+      </div>
+    </div>
+  )
+}
+
 export function StepAdvanced() {
   const { inputs, setInput, compute, prevStep, isComputing } = useStore()
   const adv = inputs.advancedPostJCBA ?? { scenarioCPenalty: DEFAULT_PENALTY }
@@ -37,97 +52,50 @@ export function StepAdvanced() {
           </span>
         </div>
 
-        {/* Fixed +20% assumption for A and B */}
+        {/* Post-JCBA outcomes — one consolidated block */}
         <div
-          className="rounded-xl p-4 space-y-3"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-        >
-          <div className="font-semibold text-sm" style={{ color: 'var(--text-base)' }}>
-            Built-in assumption: +{upliftPct}% at JCBA for any deal
-          </div>
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            For this calculator we assume that ratifying any bridge agreement — whether this offer or a future one —
-            means the JCBA contracted pay and benefits will be <strong style={{ color: 'var(--text-base)' }}>{upliftPct}% higher</strong> than
-            what would be achieved starting from current TA rates. Having a deal on the table gives the
-            negotiating committee a materially stronger position going into JCBA talks.
-          </p>
-
-          <div className="space-y-2 pt-1">
-            <div
-              className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
-              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
-            >
-              <span className="mt-0.5 font-bold" style={{ color: 'var(--positive)' }}>A</span>
-              <div>
-                <span className="font-semibold" style={{ color: 'var(--positive)' }}>Vote Yes — </span>
-                <span style={{ color: 'var(--text-muted)' }}>
-                  JCBA rates = current TA rates + {upliftPct}%. You negotiated from the existing offer.
-                </span>
-              </div>
-            </div>
-            <div
-              className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
-              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
-            >
-              <span className="mt-0.5 font-bold" style={{ color: 'var(--positive)' }}>B</span>
-              <div>
-                <span className="font-semibold" style={{ color: 'var(--positive)' }}>2nd Offer — </span>
-                <span style={{ color: 'var(--text-muted)' }}>
-                  JCBA rates = bridge offer rates + {upliftPct}%. Because the bridge offer is already above TA,
-                  the JCBA starting point is even higher — compounding the advantage.
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* User input: Scenario C penalty */}
-        <div
-          className="rounded-xl p-4 space-y-5"
+          className="rounded-xl p-4 space-y-4"
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
         >
           <div>
-            <div className="font-semibold text-sm mb-2" style={{ color: 'var(--negative)' }}>
-              No Offer (Outcome C) — Your Estimate
+            <div className="font-semibold text-sm mb-1" style={{ color: 'var(--text-base)' }}>
+              Built-in assumption: +{upliftPct}% at JCBA for any deal
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              If we vote no and no second offer comes, we head into JCBA negotiations starting from
-              the current CBA (DOS+5, 2016 contract). How much <em>lower</em> do you believe the final
-              JCBA pay and benefits will be compared to negotiating from a ratified deal?
-            </p>
-            <p className="text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              This percentage is measured against the Vote Yes JCBA outcome — not the 2nd-offer
-              outcome — so extreme assumptions in your other scenario cannot inflate this figure.
+              Ratifying any bridge agreement — this offer or a future one — gives the negotiating
+              committee a stronger position: JCBA rates land {upliftPct}% above whatever deal you
+              ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead —
+              you estimate how much lower that outcome lands below Vote Yes.
             </p>
           </div>
 
-          <SliderInput
-            value={penaltyPct}
-            min={0}
-            max={30}
-            step={1}
-            onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
-            formatValue={(v) => v === 0 ? 'No difference' : `${v}% lower`}
-            accentColor="var(--negative)"
-            showMinMax
-          />
+          <div className="space-y-2">
+            <OutcomeRow letter="A" label="Vote Yes">
+              JCBA rates = current TA rates + {upliftPct}%. You negotiated from the existing offer.
+            </OutcomeRow>
+            <OutcomeRow letter="B" label="2nd Offer">
+              JCBA rates = bridge offer rates + {upliftPct}%. Since the bridge offer already beats TA,
+              the JCBA starting point is even higher — compounding the advantage.
+            </OutcomeRow>
+            <OutcomeRow letter="C" label="No Offer">
+              JCBA rates = {cJcbaRelativePct}% of current TA rates
+              {penaltyPct > 0 && ` (${penaltyPct}% below the Vote Yes JCBA outcome)`}. Negotiating
+              from DOS+5 CBA (2016) without a deal.
+            </OutcomeRow>
+          </div>
 
-          {/* Live summary row */}
-          <div
-            className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
-            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-          >
-            <span className="mt-0.5 font-bold" style={{ color: 'var(--negative)' }}>C</span>
-            <div>
-              <span className="font-semibold" style={{ color: 'var(--negative)' }}>No Offer — </span>
-              <span style={{ color: 'var(--text-muted)' }}>
-                JCBA rates = {cJcbaRelativePct}% of current TA rates
-                {penaltyPct > 0 && (
-                  <span> ({penaltyPct}% below the Vote Yes JCBA outcome)</span>
-                )}
-                . Negotiating from DOS+5 CBA (2016) without a deal.
-              </span>
-            </div>
+          <div className="pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            <SliderInput
+              value={penaltyPct}
+              min={0}
+              max={30}
+              step={1}
+              onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
+              formatValue={(v) => v === 0 ? 'No difference' : `${v}% lower`}
+              label="What's your estimate on the amount of impact?"
+              accentColor="var(--gold)"
+              showMinMax
+            />
           </div>
         </div>
 
