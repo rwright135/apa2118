@@ -11,9 +11,34 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function fmtAssumptionsFooter(vns: VoteNoScenario) {
-  return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths} months | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths} months`
+function Assumption({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="underline underline-offset-2 decoration-dotted"
+      style={{ textDecorationColor: 'var(--text-muted)' }}
+    >
+      {children}
+    </span>
+  )
 }
+
+function AssumptionsFooter({ vns }: { vns: VoteNoScenario }) {
+  return (
+    <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+      Assumptions:{' '}
+      <Assumption>
+        {Math.round(vns.probability * 100)}% 2nd Offer Probability in {vns.arrivalMonths} months
+      </Assumption>
+      {' | '}
+      <Assumption>{(vns.percentAboveTA * 100).toFixed(0)}% Higher</Assumption>
+      {' | '}
+      <Assumption>JCBA in {vns.jcbaDurationMonths} months</Assumption>
+    </span>
+  )
+}
+
+const ASSUMPTIONS_FOOTNOTE = '* Underlined values are your assumptions.'
+const BENCHMARK_ASSUMPTIONS_FOOTNOTE = '* Underlined values are these assumptions.'
 
 const RISK_REWARD_HELP = (
   'Instead of a single cumulative expected value number, these cards show the Risk vs. Reward of this binary outcome: '
@@ -70,19 +95,6 @@ function HelpButton({ label, helpText }: { label: string; helpText: string }) {
 function RiskRewardHelp() {
   return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
 }
-
-function Assumption({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="underline underline-offset-2 decoration-dotted"
-      style={{ textDecorationColor: 'var(--text-muted)' }}
-    >
-      {children}
-    </span>
-  )
-}
-
-const ASSUMPTIONS_FOOTNOTE = '* Underlined values are your assumptions.'
 
 // ── Risk/reward breakdown ──────────────────────────────────────────────────────
 
@@ -202,15 +214,22 @@ function computeRiskRewardMetrics(result: ComparisonResult) {
   }
 }
 
-function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
+function RiskRewardHeadline({
+  result,
+  assumptionScope = 'your',
+}: {
+  result: ComparisonResult
+  assumptionScope?: 'your' | 'these'
+}) {
   const { bNominalGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
   const upsideIsGain = bNominalGap >= 0
   const upsideAmount = fmt(Math.abs(bNominalGap))
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
+  const assumptionLabel = assumptionScope === 'your' ? 'your' : 'these'
 
   return (
     <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-      Based on your assumptions, if a second offer arrives, you stand to{' '}
+      Based on {assumptionLabel} assumptions, if a second offer arrives, you stand to{' '}
       <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
         {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
       </strong>
@@ -236,10 +255,12 @@ function RiskRewardBreakdown({
   result,
   collapsible = false,
   defaultExpanded = true,
+  assumptionsFootnote = ASSUMPTIONS_FOOTNOTE,
 }: {
   result: ComparisonResult
   collapsible?: boolean
   defaultExpanded?: boolean
+  assumptionsFootnote?: string
 }) {
   const {
     jcba,
@@ -347,7 +368,7 @@ function RiskRewardBreakdown({
           </div>
 
         <p className="md:col-span-2 xl:col-span-3 px-1 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          {ASSUMPTIONS_FOOTNOTE}
+          {assumptionsFootnote}
         </p>
 
         </div>
@@ -374,9 +395,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-        </span>
+        <AssumptionsFooter vns={result.voteNoScenario} />
       </div>
     </div>
   )
@@ -423,18 +442,25 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
 
       {expanded ? (
         <>
-          <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+          <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+            <RiskRewardHeadline result={result} assumptionScope="these" />
+          </div>
+          <RiskRewardBreakdown
+            result={result}
+            collapsible
+            defaultExpanded={false}
+            assumptionsFootnote={BENCHMARK_ASSUMPTIONS_FOOTNOTE}
+          />
           <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-            <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-            </span>
+            <AssumptionsFooter vns={result.voteNoScenario} />
           </div>
         </>
       ) : (
         <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-          </span>
+          <AssumptionsFooter vns={result.voteNoScenario} />
+          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+            {BENCHMARK_ASSUMPTIONS_FOOTNOTE}
+          </p>
         </div>
       )}
     </div>
