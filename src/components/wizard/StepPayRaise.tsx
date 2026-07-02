@@ -9,6 +9,23 @@ import { getLongevityAt } from '../../lib/engine'
 const START_DATE = CONTRACT_PARAMS.TA_EFFECTIVE_DATE // July 1, 2026
 const MMG_FLYING  = CONTRACT_PARAMS.MMG_FLYING        // 70
 const MMG_RESERVE = CONTRACT_PARAMS.MMG_RESERVE_TA    // 72
+const JAN_2027    = new Date(2027, 0, 1)
+const JAN_2028    = new Date(2028, 0, 1)
+
+type PayTier = 'TA_DOS_EOY2026' | 'TA_JAN2027' | 'TA_JAN2028'
+
+const TIER_LABELS: Record<PayTier, string> = {
+  TA_DOS_EOY2026: 'DOS tier',
+  TA_JAN2027: 'Jan 2027 tier (DOS+6 Months)',
+  TA_JAN2028: 'Jan 2028 tier (DOS+18 Months)',
+}
+
+/** Which AIP rate tier is in effect on a given date. */
+function tierAt(date: Date): PayTier {
+  if (date < JAN_2027) return 'TA_DOS_EOY2026'
+  if (date < JAN_2028) return 'TA_JAN2027'
+  return 'TA_JAN2028'
+}
 
 function fmt(n: number) {
   return `$${Math.round(n).toLocaleString()}`
@@ -75,12 +92,17 @@ export function StepPayRaise() {
     },
   ]
 
-  // Upgrade context for FO pilots
-  const upgradeLon = inputs.upgradeToCAInYears != null
-    ? getLongevityAt(baseLon, annivMonth, START_DATE, new Date(2026 + inputs.upgradeToCAInYears, 6, 1))
+  // Upgrade context for FO pilots — use whichever AIP tier is actually in
+  // effect on the pilot's upgrade date, not always the initial DOS tier.
+  const upgradeDate = inputs.upgradeToCAInYears != null
+    ? new Date(2026 + inputs.upgradeToCAInYears, 6, 1)
     : null
-  const upgradeCARate = (seat === 'FO' && upgradeLon != null && inputs.upgradeToCAInYears != null)
-    ? getRate('CA', upgradeLon, 'TA_DOS_EOY2026')
+  const upgradeTier = upgradeDate != null ? tierAt(upgradeDate) : null
+  const upgradeLon = upgradeDate != null
+    ? getLongevityAt(baseLon, annivMonth, START_DATE, upgradeDate)
+    : null
+  const upgradeCARate = (seat === 'FO' && upgradeLon != null && upgradeTier != null)
+    ? getRate('CA', upgradeLon, upgradeTier)
     : null
 
   return (
@@ -160,7 +182,7 @@ export function StepPayRaise() {
             </div>
             <div className="flex items-center justify-between">
               <div className="text-xs" style={{ color: 'var(--text-faint)' }}>
-                Captain rate at longevity {upgradeLon} · DOS tier
+                Captain rate at longevity {upgradeLon} · {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
               </div>
               <div className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
                 {fmtRate(upgradeCARate)}/hr · {fmt(upgradeCARate * mmg)}/mo
