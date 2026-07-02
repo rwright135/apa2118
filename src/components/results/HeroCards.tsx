@@ -279,12 +279,12 @@ function RiskRewardBreakdown({
                 ? <>
                     If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in {jcba} months, you&apos;d be missing out on{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
-                    Additionally, you&apos;d delay your lump sum Retention Bonus payment of{' '}
+                    You&apos;d be delaying your guaranteed retention bonus payment of{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong>.
                   </>
                 : <>
                     If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
-                    You&apos;d still delay your lump sum Retention Bonus payment of{' '}
+                    You&apos;d still be delaying your guaranteed retention bonus payment of{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> until JCBA closes in {jcba} months.
                   </>
             }
