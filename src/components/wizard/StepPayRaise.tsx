@@ -20,7 +20,6 @@ interface TierRow {
   label: string
   sublabel: string
   rate: number
-  monthlyPay: number
   raiseDollarsPerHr: number
   raiseMonthly: number
 }
@@ -49,7 +48,6 @@ export function StepPayRaise() {
       label: 'Current (CBA)',
       sublabel: 'What you earn today',
       rate: cbaRate,
-      monthlyPay: cbaRate * mmg,
       raiseDollarsPerHr: 0,
       raiseMonthly: 0,
     },
@@ -57,7 +55,6 @@ export function StepPayRaise() {
       label: 'Jul 2026 (DOS)',
       sublabel: 'Effective July 1 · includes back pay',
       rate: dosRate,
-      monthlyPay: dosRate * mmg,
       raiseDollarsPerHr: dosRate - cbaRate,
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
@@ -65,7 +62,6 @@ export function StepPayRaise() {
       label: 'Jan 2027 (DOS+6 Months)',
       sublabel: `Longevity year ${lonAt2027}`,
       rate: jan27Rate,
-      monthlyPay: jan27Rate * mmg,
       raiseDollarsPerHr: jan27Rate - cbaRate,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
@@ -73,7 +69,6 @@ export function StepPayRaise() {
       label: 'Jan 2028 (DOS+18 Months)',
       sublabel: `Longevity year ${lonAt2028} · final tier`,
       rate: jan28Rate,
-      monthlyPay: jan28Rate * mmg,
       raiseDollarsPerHr: jan28Rate - cbaRate,
       raiseMonthly: (jan28Rate - cbaRate) * mmg,
     },
@@ -157,9 +152,6 @@ export function StepPayRaise() {
                 <div className="text-right shrink-0">
                   <div className="text-lg font-bold tabular-nums" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--gold)' }}>
                     {fmtRate(tier.rate)}/hr
-                  </div>
-                  <div className="text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
-                    {fmt(tier.monthlyPay)}/mo
                   </div>
                 </div>
               </div>
