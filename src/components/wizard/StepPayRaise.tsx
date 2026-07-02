@@ -192,7 +192,7 @@ export function StepPayRaise() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
-                  Captain rate at longevity {upgradeLon}
+                  CAPT Year {upgradeLon}
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
                   {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
