@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { buildAllScenarios } from '../lib/scenarios'
 import type { UserInputs, ComparisonResult } from '../lib/types'
-import { saveToLocalStorage, clearAllStoredData } from './persistence'
+import { saveToLocalStorage, clearAllStoredData, loadFromLocalStorage, decodeFromURL } from './persistence'
 import {
   AVERAGE_ARRIVAL_MONTHS_ROUNDED,
   AVERAGE_ECONOMIC_INCREASE_PERCENT,
@@ -78,6 +78,58 @@ export const DEFAULT_INPUTS: Partial<UserInputs> = {
   advancedPostJCBA: { scenarioCPenalty: 0.15 },
 }
 
+/** Apply the same coercions and legacy migrations used by setInputs so we can
+ *  safely apply them during synchronous store initialization. */
+function sanitizeInputs(raw: Partial<UserInputs>): Partial<UserInputs> {
+  const s = { ...raw }
+
+  // Coerce date strings to Date objects
+  if (s.dateOfBirth && !(s.dateOfBirth instanceof Date)) {
+    const d = new Date(s.dateOfBirth as unknown as string)
+    s.dateOfBirth = isNaN(d.getTime()) ? undefined : d
+  }
+
+  // Migrate legacy advancedPostJCBA format
+  if (s.advancedPostJCBA && 'enabled' in (s.advancedPostJCBA as object)) {
+    s.advancedPostJCBA = { scenarioCPenalty: 0.15 }
+  }
+
+  // Migrate legacy voteNoOffer + jcbaDurationMonths fields
+  if (!s.voteNoScenarios) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacy = s as any
+    if (legacy.voteNoOffer) {
+      s.voteNoScenarios = [{
+        probability: legacy.voteNoOffer.probability ?? DEFAULT_VOTE_NO_SCENARIO.probability,
+        arrivalMonths: legacy.voteNoOffer.arrivalMonths ?? DEFAULT_VOTE_NO_SCENARIO.arrivalMonths,
+        percentAboveTA: legacy.voteNoOffer.percentAboveTA ?? DEFAULT_VOTE_NO_SCENARIO.percentAboveTA,
+        jcbaDurationMonths: legacy.jcbaDurationMonths ?? DEFAULT_VOTE_NO_SCENARIO.jcbaDurationMonths,
+      }]
+      delete legacy.voteNoOffer
+      delete legacy.jcbaDurationMonths
+    }
+  }
+
+  return s
+}
+
+/** Load and merge saved inputs synchronously so the very first render already
+ *  has the correct state. This prevents the double-render flash caused by
+ *  calling setInputs() in a useEffect after the initial paint. */
+function loadInitialInputs(): Partial<UserInputs> {
+  try {
+    const fromURL = decodeFromURL()
+    if (fromURL) return { ...DEFAULT_INPUTS, ...sanitizeInputs(fromURL) }
+    const fromStorage = loadFromLocalStorage()
+    if (fromStorage) return { ...DEFAULT_INPUTS, ...sanitizeInputs(fromStorage) }
+  } catch {
+    // Fall through to defaults on any error
+  }
+  return { ...DEFAULT_INPUTS }
+}
+
+const INITIAL_INPUTS = loadInitialInputs()
+
 interface AppState {
   currentStep: WizardStep
   inputs: Partial<UserInputs>
@@ -96,7 +148,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set, get) => ({
   currentStep: 'welcome',
-  inputs: { ...DEFAULT_INPUTS },
+  inputs: { ...INITIAL_INPUTS },
   results: null,
   isComputing: false,
 

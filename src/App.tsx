@@ -1,6 +1,4 @@
-import { useEffect } from 'react'
 import { useStore } from './state/store'
-import { loadFromLocalStorage, decodeFromURL } from './state/persistence'
 
 import { StepWelcome } from './components/wizard/StepWelcome'
 import { StepSeat } from './components/wizard/StepSeat'
@@ -21,20 +19,7 @@ import { ResultsScreen } from './components/results/ResultsScreen'
 import { LoadingScreen } from './components/shared/LoadingScreen'
 
 function App() {
-  const { currentStep, isComputing, setInputs } = useStore()
-
-  // useEffect MUST come before any conditional returns — Rules of Hooks
-  useEffect(() => {
-    const fromURL = decodeFromURL()
-    if (fromURL) {
-      setInputs(fromURL)
-      return
-    }
-    const fromStorage = loadFromLocalStorage()
-    if (fromStorage) {
-      setInputs(fromStorage)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const { currentStep, isComputing } = useStore()
 
   if (isComputing) return <LoadingScreen />
 
