@@ -129,93 +129,95 @@ export function StepPayRaise() {
         showMinMax
       />
 
-      {/* Tier cards */}
-      <div className="mb-6 mt-8 space-y-3">
-        {tiers.map((tier, i) => {
-          const isCurrent = i === 0
-          const hasRaise  = tier.raiseMonthly > 0
-          const invested  = tier.raiseMonthly * pct
-          return (
-            <div
-              key={tier.label}
-              className="rounded-xl px-4 py-4"
-              style={{
-                background: isCurrent ? 'var(--bg-subtle)' : 'var(--bg-elevated)',
-                border: isCurrent ? '1px solid var(--border)' : '1px solid var(--border-subtle)',
-              }}
-            >
-              {/* Header row */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
-                    {tier.label}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="text-lg font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                    {fmtRate(tier.rate)}/hr
-                  </div>
-                </div>
-              </div>
+      {/* Tier table */}
+      <div className="mb-6 mt-8 rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+              <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }}>Period</th>
+              <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--text-faint)' }}>Rate</th>
+              <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--positive)' }}>Monthly Raise</th>
+              {pct > 0 && (
+                <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--gold)' }}>Saved/Mo</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {tiers.map((tier, i) => {
+              const isCurrent = i === 0
+              const invested  = tier.raiseMonthly * pct
+              return (
+                <tr
+                  key={tier.label}
+                  style={{
+                    background: isCurrent ? 'var(--bg-subtle)' : i % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-elevated)',
+                    borderBottom: i < tiers.length - 1 ? '1px solid var(--border-subtle)' : undefined,
+                  }}
+                >
+                  <td className="px-4 py-3">
+                    <div className="font-semibold leading-snug" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
+                      {tier.label}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <span className="font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                      {fmtRate(tier.rate)}/hr
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {tier.raiseMonthly > 0 ? (
+                      <span className="font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                        +{fmt(tier.raiseMonthly)}/mo
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-faint)' }}>—</span>
+                    )}
+                  </td>
+                  {pct > 0 && (
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      {tier.raiseMonthly > 0 ? (
+                        <span className="font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                          {fmt(invested)}/mo
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-faint)' }}>—</span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
 
-              {/* Raise + investment rows */}
-              {hasRaise && (
-                <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Monthly Raise</span>
-                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                      +{fmt(tier.raiseMonthly)}/mo
+            {/* CA upgrade row for FO pilots */}
+            {seat === 'FO' && upgradeCARate != null && upgradeRaiseMonthly != null && inputs.upgradeToCAInYears != null && (
+              <tr style={{ borderTop: '2px solid rgba(201,168,76,0.3)', background: 'rgba(201,168,76,0.04)' }}>
+                <td className="px-4 py-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: 'var(--gold)' }}>
+                    After Upgrade
+                  </div>
+                  <div className="font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+                    CAPT Year {upgradeLon}
+                    <span className="ml-2 text-xs font-normal" style={{ color: 'var(--text-faint)' }}>
+                      Year {inputs.upgradeToCAInYears} · {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
                     </span>
                   </div>
-                  {pct > 0 && (
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Savings/Month</span>
-                      <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
-                        {fmt(invested)}/mo
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-
-        {/* CA upgrade preview for FO pilots */}
-        {seat === 'FO' && upgradeCARate != null && upgradeRaiseMonthly != null && inputs.upgradeToCAInYears != null && (
-          <div className="rounded-xl px-4 py-4" style={{ background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--gold)' }}>
-              After upgrade to Captain (Year {inputs.upgradeToCAInYears})
-            </div>
-
-            {/* Header row */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold" style={{ color: 'var(--text-base)' }}>
-                  CAPT Year {upgradeLon}
-                </div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                  {upgradeTier ? TIER_LABELS[upgradeTier] : ''}
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-lg font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                  {fmtRate(upgradeCARate)}/hr
-                </div>
-              </div>
-            </div>
-
-            {/* Raise row */}
-            <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>More per Month vs. Staying FO</span>
-                <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
-                  +{fmt(upgradeRaiseMonthly)}/mo
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+                </td>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <span className="font-bold tabular-nums" style={{ color: 'var(--gold)' }}>
+                    {fmtRate(upgradeCARate)}/hr
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <span className="font-semibold tabular-nums" style={{ color: 'var(--positive)' }}>
+                    +{fmt(upgradeRaiseMonthly)}/mo
+                  </span>
+                  <div className="text-xs" style={{ color: 'var(--text-faint)' }}>vs. staying FO</div>
+                </td>
+                {pct > 0 && <td />}
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       <NavButton onClick={nextStep}>Continue</NavButton>
