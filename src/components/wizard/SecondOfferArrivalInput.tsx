@@ -8,7 +8,6 @@ import {
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
 import {
-  AirlineHistoryFootnote,
   AirlineHistorySources,
   AirlineHistoryTable,
 } from './AirlineHistoryModalContent'
@@ -110,14 +109,13 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }} aria-label="Close modal">×</button>
         </div>
         <div className="overflow-auto px-5 py-4">
-          <AirlineHistoryTable />
+          <AirlineHistoryTable showIncreaseColumn={false} />
           <CalculationBox title="How we get 13.3 months (Average scenario default)">
             <p>{outlierLabel} is treated as an outlier and excluded from the average.</p>
             <p>({dayValues.join(' + ')}) ÷ {carrierCount} = {Math.round(averageDays)} days average</p>
             <p>{Math.round(averageDays)} ÷ 365 × 12 = <strong style={{ color: 'var(--text-base)' }}>{formatArrivalMonths(months)} months</strong></p>
           </CalculationBox>
           <AirlineHistorySources />
-          <AirlineHistoryFootnote />
         </div>
       </div>
     </div>
