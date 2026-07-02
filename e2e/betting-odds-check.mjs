@@ -87,6 +87,15 @@ async function shot(page, inputs, filename) {
   await page.screenshot({ path: path.join(OUT_DIR, filename), fullPage: false })
 }
 
+async function shotChart(page, inputs, filename) {
+  await seedPage(page, inputs)
+  await goToResults(page)
+  const chart = page.locator('text=Cumulative Cash Flow Over Time').first()
+  await chart.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(400)
+  await page.screenshot({ path: path.join(OUT_DIR, filename), fullPage: false })
+}
+
 async function main() {
   await mkdir(OUT_DIR, { recursive: true })
   const browser = await chromium.launch({
@@ -132,6 +141,21 @@ async function main() {
   const darkPage = await darkContext.newPage()
   await shot(darkPage, baseInputs({ probability: 0.85, percentAboveTA: 0.25, arrivalMonths: 4, jcbaDurationMonths: 12 }), 'betting-odds-dark.png')
   await darkContext.close()
+
+  const chartContext = await browser.newContext({ viewport: { width: 900, height: 900 } })
+  const chartPage = await chartContext.newPage()
+  await shotChart(chartPage, baseInputs(), 'cumulative-chart.png')
+  await chartContext.close()
+
+  const chartMobileContext = await browser.newContext({ viewport: { width: 390, height: 900 } })
+  const chartMobilePage = await chartMobileContext.newPage()
+  await shotChart(chartMobilePage, baseInputs(), 'cumulative-chart-mobile.png')
+  await chartMobileContext.close()
+
+  const chartDarkContext = await browser.newContext({ viewport: { width: 900, height: 900 }, colorScheme: 'dark' })
+  const chartDarkPage = await chartDarkContext.newPage()
+  await shotChart(chartDarkPage, baseInputs(), 'cumulative-chart-dark.png')
+  await chartDarkContext.close()
 
   await browser.close()
   console.log('Screenshots saved to e2e/output/')

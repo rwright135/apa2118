@@ -1,5 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
+import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
@@ -9,8 +10,6 @@ function fmtAxis(n: number) {
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
   return `$${n}`
 }
-
-const SCENARIO_ABBREVS = ['Your', 'Avg', 'WC']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -28,8 +27,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
+/**
+ * Your own scenario shows the two unblended vote-no paths (2nd offer /
+ * no offer) instead of a single probability-weighted line, since you can
+ * weigh the odds yourself. Average and Worst Case are each a single,
+ * already-fixed scenario — there's no probability weighting to unblend,
+ * so they're plotted as one line apiece.
+ */
 export function CumulativeLineChart({ results }: Props) {
-  const { voteYes, voteNo, textMuted, textFaint, scenarioOffer, scenarioWorst } = useResultChartColors()
+  const { voteYes, voteNo, textMuted, textFaint, scenarioOffer, scenarioAverage, scenarioWorst } = useResultChartColors()
 
   // Use the longest JCBA window across all scenarios to set chart length
   const maxJcba = Math.max(...results.map(r => r.voteNoScenario.jcbaDurationMonths))
@@ -46,22 +52,23 @@ export function CumulativeLineChart({ results }: Props) {
     const point: Record<string, number | string> = { month: `${rA.year}` }
 
     results.forEach((result, ri) => {
-      const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-      const voteNo    = result.voteNoExpected
-      const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-      const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+      const label = SCENARIO_LABELS[ri] ?? `Scenario ${ri + 1}`
 
-      const rResultA  = scenarioA.rows[Math.min(i, scenarioA.rows.length - 1)]
-      const rVN       = voteNo.rows[Math.min(i, voteNo.rows.length - 1)]
-      const rB        = scenarioB.rows[Math.min(i, scenarioB.rows.length - 1)]
-      const rC        = scenarioC.rows[Math.min(i, scenarioC.rows.length - 1)]
-
-      const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
-      const suffix = results.length > 1 ? ` (${abbrev})` : ''
-      point[`Vote Yes${suffix}`]  = Math.round(rResultA?.cumulativePV ?? 0)
-      point[`Vote No${suffix}`]   = Math.round(rVN?.cumulativePV ?? 0)
-      point[`Scen B${suffix}`]    = Math.round(rB?.cumulativePV ?? 0)
-      point[`Scen C${suffix}`]    = Math.round(rC?.cumulativePV ?? 0)
+      if (ri === 0) {
+        const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
+        const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
+        const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+        const rResultA = scenarioA.rows[Math.min(i, scenarioA.rows.length - 1)]
+        const rB       = scenarioB.rows[Math.min(i, scenarioB.rows.length - 1)]
+        const rC       = scenarioC.rows[Math.min(i, scenarioC.rows.length - 1)]
+        point['Vote Yes'] = Math.round(rResultA?.cumulativePV ?? 0)
+        point['If 2nd Offer Arrives'] = Math.round(rB?.cumulativePV ?? 0)
+        point['If No Offer Arrives'] = Math.round(rC?.cumulativePV ?? 0)
+      } else {
+        const voteNoBenchmark = result.voteNoExpected
+        const rVN = voteNoBenchmark.rows[Math.min(i, voteNoBenchmark.rows.length - 1)]
+        point[label] = Math.round(rVN?.cumulativePV ?? 0)
+      }
     })
 
     chartData.push(point)
@@ -76,15 +83,26 @@ export function CumulativeLineChart({ results }: Props) {
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
-          {results.map((_, ri) => {
-            const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
-            const suffix = results.length > 1 ? ` (${abbrev})` : ''
-            return [
-              <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
-              <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
-              <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-              <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={scenarioWorst} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-            ]
+          <Line type="monotone" dataKey="Vote Yes" stroke={voteYes} strokeWidth={2.5} dot={false} />
+          <Line type="monotone" dataKey="If 2nd Offer Arrives" stroke={scenarioOffer} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="If No Offer Arrives" stroke={voteNo} strokeWidth={2} dot={false} />
+
+          {results.slice(1).map((_, i) => {
+            const ri = i + 1
+            const label = SCENARIO_LABELS[ri] ?? `Scenario ${ri + 1}`
+            const color = ri === 1 ? scenarioAverage : scenarioWorst
+            return (
+              <Line
+                key={label}
+                type="monotone"
+                dataKey={label}
+                stroke={color}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                dot={false}
+                opacity={0.8}
+              />
+            )
           })}
         </LineChart>
       </ResponsiveContainer>
