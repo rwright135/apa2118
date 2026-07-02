@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
 import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
+import * as XLSX from 'xlsx'
 
 interface Props { results: ComparisonResult[] }
 
@@ -149,6 +150,63 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
   )
 }
 
+// ── XLSX export ───────────────────────────────────────────────────────────────
+
+function buildSheetRows(rows: MonthlyRow[], weight: number) {
+  return rows.map(r => ({
+    Month:              `${MONTHS_SHORT[r.month]} ${r.year}`,
+    Seat:               r.effectiveSeat,
+    Longevity:          r.longevity,
+    'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
+    Hours:              r.totalHours,
+    'Gross Pay':        Math.round(r.grossPay * weight),
+    '401k Contrib':     Math.round(r.k401Contribution * weight),
+    'Profit Share':     Math.round(r.profitSharingCash * weight),
+    'Retention':        Math.round(r.retentionCashFlow * weight),
+    'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
+    'Present Value':    Math.round(r.presentValue * weight),
+    'Cumulative PV':    Math.round(r.cumulativePV * weight),
+  }))
+}
+
+function exportToXLSX(result: ComparisonResult) {
+  const p = result.voteNoScenario.probability
+  const jcba = result.voteNoScenario.jcbaDurationMonths
+
+  const allSummaries = [...result.scenarios, result.voteNoExpected]
+
+  const sheets: { name: string; rows: MonthlyRow[]; weight: number }[] = [
+    { name: 'Vote Yes',          rows: allSummaries.find(s => s.scenarioId === 'A')!.rows,                  weight: 1 },
+    { name: 'Vote No (blended)', rows: allSummaries.find(s => s.scenarioId === 'VOTE_NO_EXPECTED')!.rows,   weight: 1 },
+    { name: 'Vote No (Offer)',   rows: allSummaries.find(s => s.scenarioId === 'B')!.rows,                  weight: p },
+    { name: 'Vote No (JCBA)',    rows: allSummaries.find(s => s.scenarioId === 'C')!.rows,                  weight: 1 - p },
+  ]
+
+  const wb = XLSX.utils.book_new()
+
+  // Summary sheet
+  const summaryData = sheets.map(({ name, rows, weight }) => {
+    const preJcba = rows.filter(r => r.monthIndex < jcba)
+    const all = rows
+    const grossPay    = Math.round(preJcba.reduce((s, r) => s + r.grossPay, 0) * weight)
+    const profitShare = Math.round(preJcba.reduce((s, r) => s + r.profitSharingCash, 0) * weight)
+    const retention   = Math.round(all.reduce((s, r) => s + r.retentionCashFlow, 0) * weight)
+    const brokerage   = Math.round(preJcba.reduce((s, r) => s + r.brokerageSavingsCash, 0) * weight)
+    const preJcbaPV   = Math.round(preJcba.reduce((s, r) => s + r.presentValue + r.presentValue401k, 0) * weight)
+    return { Scenario: name, 'Pre-JCBA Gross Pay': grossPay, 'Pre-JCBA Profit Share': profitShare,
+             'Retention': retention, 'Pre-JCBA Brokerage Saved': brokerage, 'Pre-JCBA Total PV': preJcbaPV }
+  })
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryData), 'Summary')
+
+  // One sheet per scenario
+  for (const { name, rows, weight } of sheets) {
+    const data = buildSheetRows(rows, weight)
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), name)
+  }
+
+  XLSX.writeFile(wb, 'APA2118_Month_by_Month.xlsx')
+}
+
 // ── Inner table for one ComparisonResult ──────────────────────────────────────
 
 function ResultTable({ result }: { result: ComparisonResult }) {
@@ -218,6 +276,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{rows.length} months total</span>
+          <button
+            type="button"
+            onClick={() => exportToXLSX(result)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-base)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
+            title="Download all scenarios as Excel / Google Sheets file"
+          >
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 2v7M4 6l3 3 3-3M2 11h10" />
+            </svg>
+            Download XLSX
+          </button>
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {(['YES', 'NO'] as const).map(id => (
