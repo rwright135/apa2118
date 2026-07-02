@@ -2,24 +2,11 @@ import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { SliderInput } from '../shared/SliderInput'
+import { ScenarioColorCard } from '../shared/ScenarioColorCard'
 import { POST_JCBA_UPLIFT } from '../../lib/scenarios'
+import { RETENTION_OUTCOME_COLORS } from '../../lib/retentionOutcomes'
 
 const DEFAULT_PENALTY = 0.15
-
-function OutcomeRow({ letter, label, children }: { letter: string; label: string; children: React.ReactNode }) {
-  return (
-    <div
-      className="flex items-start gap-3 text-xs py-2.5 px-3 rounded-lg"
-      style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
-    >
-      <span className="mt-0.5 font-bold" style={{ color: 'var(--gold)' }}>{letter}</span>
-      <div>
-        <span className="font-semibold" style={{ color: 'var(--gold)' }}>{label} — </span>
-        <span style={{ color: 'var(--text-muted)' }}>{children}</span>
-      </div>
-    </div>
-  )
-}
 
 export function StepAdvanced() {
   const { inputs, setInput, compute, prevStep, isComputing } = useStore()
@@ -60,45 +47,42 @@ export function StepAdvanced() {
           </span>
         </div>
 
-        {/* Post-JCBA outcomes — one consolidated block */}
-        <div
-          className="rounded-xl p-4 space-y-4"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-        >
-          <div>
-            <div className="font-semibold text-sm" style={{ color: 'var(--text-base)' }}>
-              Built-in assumption: +{upliftPct}% at JCBA for any deal
+        <div className="space-y-4">
+          <ScenarioColorCard scenarioId="A">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = current TA rates +{' '}
+              {upliftPct}%. You negotiated from the existing offer.
+            </p>
+          </ScenarioColorCard>
+
+          <ScenarioColorCard scenarioId="B">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = bridge offer rates +{' '}
+              {upliftPct}%. Since the bridge offer already beats TA, the JCBA starting point is even higher
+              — compounding the advantage.
+            </p>
+          </ScenarioColorCard>
+
+          <ScenarioColorCard scenarioId="C">
+            <div className="space-y-5">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                JCBA rates = {cJcbaRelativePct}% of current TA rates
+                {penaltyPct > 0 && ` (${penaltyPct}% below the Vote Yes JCBA outcome)`}. Negotiating
+                from DOS+5 CBA (2016) without a deal.
+              </p>
+              <SliderInput
+                value={penaltyPct}
+                min={0}
+                max={30}
+                step={1}
+                onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
+                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% lower`)}
+                label="What's your estimate on the amount of impact?"
+                accentColor={RETENTION_OUTCOME_COLORS.C}
+                showMinMax
+              />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <OutcomeRow letter="A" label="Vote Yes">
-              JCBA rates = current TA rates + {upliftPct}%. You negotiated from the existing offer.
-            </OutcomeRow>
-            <OutcomeRow letter="B" label="2nd Offer">
-              JCBA rates = bridge offer rates + {upliftPct}%. Since the bridge offer already beats TA,
-              the JCBA starting point is even higher — compounding the advantage.
-            </OutcomeRow>
-            <OutcomeRow letter="C" label="No Offer">
-              JCBA rates = {cJcbaRelativePct}% of current TA rates
-              {penaltyPct > 0 && ` (${penaltyPct}% below the Vote Yes JCBA outcome)`}. Negotiating
-              from DOS+5 CBA (2016) without a deal.
-            </OutcomeRow>
-          </div>
-
-          <div className="pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-            <SliderInput
-              value={penaltyPct}
-              min={0}
-              max={30}
-              step={1}
-              onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
-              formatValue={(v) => v === 0 ? 'No difference' : `${v}% lower`}
-              label="What's your estimate on the amount of impact?"
-              accentColor="var(--gold)"
-              showMinMax
-            />
-          </div>
+          </ScenarioColorCard>
         </div>
 
       </div>
