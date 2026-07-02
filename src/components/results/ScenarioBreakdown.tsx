@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
-import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
+import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
+import { getRetirementDate } from '../../lib/engine'
 
 interface Props { results: ComparisonResult[] }
 
@@ -8,6 +9,19 @@ function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`
   return `$${Math.round(n)}`
+}
+
+/** Full-career (all months through retirement) nominal pay + profit sharing —
+ *  NOT discounted, and does NOT include retention. This is intentionally a
+ *  bigger number than "Pre-JCBA Total" since it spans your whole career. */
+function fullCareerPay(s: ScenarioSummary): number {
+  return s.rows.reduce((sum, r) => sum + r.grossPay + r.profitSharingCash, 0)
+}
+
+/** Everything that ends up invested and compounding to age 65: 401(k),
+ *  the retention bonus once paid out, and brokerage savings from your raise. */
+function totalRetirementSavings(s: ScenarioSummary): number {
+  return s.retirementBalanceAt65 + s.retirementRetentionBalance + s.retirementBrokerageBalance
 }
 
 // ── Row definitions ───────────────────────────────────────────────────────────
@@ -20,110 +34,108 @@ interface StatDef {
   highlight?: boolean
 }
 
-const STATS: StatDef[] = [
-  {
-    label: "Pre-JCBA Total",
-    sub:   "Present value · decision window only",
-    getYes: s => s.preJcbaTotal,
-    getNo:  s => s.preJcbaTotal,
-    highlight: true,
-  },
-  {
-    label: "Projected Retirement Balance",
-    sub:   "401(k) compounded to age 65",
-    getYes: s => s.retirementBalanceAt65,
-    getNo:  s => s.retirementBalanceAt65,
-  },
-  {
-    label: "Total Gross Pay",
-    sub:   "Nominal — does not account for timing",
-    getYes: s => s.totalGrossPay,
-    getNo:  s => s.totalGrossPay,
-  },
-  {
-    label: "Profit Sharing",
-    sub:   "Semi-annual · scales with pay rate",
-    getYes: s => s.totalProfitSharing,
-    getNo:  s => s.totalProfitSharing,
-  },
-  {
-    label: "Retention Bonus",
-    sub:   "Probability-weighted payout",
-    getYes: s => s.totalRetention,
-    getNo:  s => s.totalRetention,
-  },
-  {
-    label: "Retention at Retirement",
-    sub:   "Payout invested & compounded to age 65",
-    getYes: s => s.retirementRetentionBalance,
-    getNo:  s => s.retirementRetentionBalance,
-  },
-]
+function buildStats(jcbaMonth: number, retirementYear: number): StatDef[] {
+  return [
+    {
+      label: `Pre-JCBA Total (~${jcbaMonth} months)`,
+      sub: 'Present value, today\'s dollars — pay, profit sharing, retention, 401(k) & brokerage through JCBA ratification',
+      getYes: s => s.preJcbaTotal,
+      getNo:  s => s.preJcbaTotal,
+      highlight: true,
+    },
+    {
+      label: 'Full-Career Pay',
+      sub: `Nominal (not discounted) — total pay + profit sharing through retirement in ${retirementYear}. Does not include the retention bonus, so this is bigger than the Pre-JCBA Total above.`,
+      getYes: s => fullCareerPay(s),
+      getNo:  s => fullCareerPay(s),
+    },
+    {
+      label: 'Retention Bonus Payout',
+      sub: 'Probability-weighted lump sum',
+      getYes: s => s.totalRetention,
+      getNo:  s => s.totalRetention,
+    },
+    {
+      label: `Total Retirement Savings (Age 65 · ${retirementYear})`,
+      sub: '401(k) + retention bonus + brokerage savings, all compounded to retirement — nominal value',
+      getYes: s => totalRetirementSavings(s),
+      getNo:  s => totalRetirementSavings(s),
+    },
+  ]
+}
 
-// ── Per-scenario rows inside the shared table body ────────────────────────────
+// ── Sub-breakdown for the combined retirement row ─────────────────────────────
 
-function ScenarioStatRows({
-  result,
-  index,
-  showHeader,
-}: {
-  result: ComparisonResult
-  index:  number
-  showHeader: boolean
-}) {
+function RetirementSavingsDetail({ yes, no }: { yes: ScenarioSummary; no: ScenarioSummary }) {
+  const rows: { label: string; getYes: (s: ScenarioSummary) => number; getNo: (s: ScenarioSummary) => number }[] = [
+    { label: '401(k)',              getYes: s => s.retirementBalanceAt65,      getNo: s => s.retirementBalanceAt65 },
+    { label: 'Retention (invested)', getYes: s => s.retirementRetentionBalance, getNo: s => s.retirementRetentionBalance },
+    { label: 'Brokerage (invested)', getYes: s => s.retirementBrokerageBalance, getNo: s => s.retirementBrokerageBalance },
+  ]
+  return (
+    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <td colSpan={3} className="px-4 pb-3 pt-0">
+        <div className="rounded-lg px-3 py-2 space-y-1.5" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
+          {rows.map(r => (
+            <div key={r.label} className="flex items-center justify-between text-xs gap-4">
+              <span style={{ color: 'var(--text-faint)' }}>{r.label}</span>
+              <div className="flex gap-6 tabular-nums">
+                <span style={{ color: VOTE_YES_CSS, width: '5.5rem', textAlign: 'right' }}>{fmt(r.getYes(yes))}</span>
+                <span style={{ color: VOTE_NO_CSS, width: '5.5rem', textAlign: 'right' }}>{fmt(r.getNo(no))}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// ── Rows inside the shared table body ─────────────────────────────────────────
+
+function ScenarioStatRows({ result }: { result: ComparisonResult }) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const voteNo    = result.voteNoExpected
-  const vns       = result.voteNoScenario
-  const p         = vns.probability
+  const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
+  const retirementYear = getRetirementDate(result.inputs.dateOfBirth).getFullYear()
+  const stats = buildStats(jcbaMonth, retirementYear)
 
   return (
     <>
-      {showHeader && (
-        <tr style={{ background: 'var(--bg-elevated)' }}>
-          <td
-            colSpan={3}
-            className="px-4 py-2 text-xs font-semibold"
-            style={{ color: 'var(--text-muted)', borderTop: index > 0 ? '2px solid var(--border)' : undefined }}
-          >
-            {SCENARIO_LABELS[index] ?? `Scenario ${index + 1}`}
-            <span className="ml-2 font-normal" style={{ color: 'var(--text-faint)' }}>
-              {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo arrival · +{(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA {vns.jcbaDurationMonths}mo
-            </span>
-          </td>
-        </tr>
-      )}
-
-      {STATS.map(stat => {
+      {stats.map(stat => {
         const yesVal = stat.getYes(scenarioA)
         const noVal  = stat.getNo(voteNo)
+        const isRetirementRow = stat.label.startsWith('Total Retirement Savings')
         return (
-          <tr
-            key={stat.label}
-            style={{
-              borderBottom: '1px solid var(--border-subtle)',
-              background: stat.highlight ? 'var(--bg-elevated)' : undefined,
-            }}
-          >
-            <td className="px-4 py-3">
-              <div
-                className="text-sm leading-snug"
-                style={{ color: stat.highlight ? 'var(--text-base)' : 'var(--text-muted)', fontWeight: stat.highlight ? 600 : 400 }}
-              >
-                {stat.label}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>{stat.sub}</div>
-            </td>
-            <td className="px-4 py-3 text-right whitespace-nowrap">
-              <span className="text-sm font-semibold tabular-nums" style={{ color: stat.highlight ? VOTE_YES_CSS : 'var(--text-base)' }}>
-                {fmt(yesVal)}
-              </span>
-            </td>
-            <td className="px-4 py-3 text-right whitespace-nowrap">
-              <span className="text-sm font-semibold tabular-nums" style={{ color: VOTE_NO_CSS }}>
-                {fmt(noVal)}
-              </span>
-            </td>
-          </tr>
+          <Fragment key={stat.label}>
+            <tr
+              style={{
+                borderBottom: isRetirementRow ? undefined : '1px solid var(--border-subtle)',
+                background: stat.highlight ? 'var(--bg-elevated)' : undefined,
+              }}
+            >
+              <td className="px-4 py-3">
+                <div
+                  className="text-sm leading-snug"
+                  style={{ color: stat.highlight ? 'var(--text-base)' : 'var(--text-muted)', fontWeight: stat.highlight ? 600 : 400 }}
+                >
+                  {stat.label}
+                </div>
+                <div className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-faint)' }}>{stat.sub}</div>
+              </td>
+              <td className="px-4 py-3 text-right whitespace-nowrap align-top">
+                <span className="text-sm font-semibold tabular-nums" style={{ color: stat.highlight ? VOTE_YES_CSS : 'var(--text-base)' }}>
+                  {fmt(yesVal)}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-right whitespace-nowrap align-top">
+                <span className="text-sm font-semibold tabular-nums" style={{ color: VOTE_NO_CSS }}>
+                  {fmt(noVal)}
+                </span>
+              </td>
+            </tr>
+            {isRetirementRow && <RetirementSavingsDetail yes={scenarioA} no={voteNo} />}
+          </Fragment>
         )
       })}
     </>
@@ -216,58 +228,49 @@ function ScenarioWeightingDetail({ result }: { result: ComparisonResult }) {
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
-function BreakdownBlock({
-  result,
-  index,
-  showHeader,
-}: {
-  result: ComparisonResult
-  index: number
-  showHeader: boolean
-}) {
-  return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
-      <table className="w-full table-fixed" style={{ background: 'var(--bg-surface)' }}>
-        <colgroup>
-          <col />
-          <col style={{ width: '7.5rem' }} />
-          <col style={{ width: '7.5rem' }} />
-        </colgroup>
-        <thead>
-          <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-            <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
-            <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_YES_CSS }}>
-              Vote Yes
-            </th>
-            <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_CSS }}>
-              Vote No
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <ScenarioStatRows result={result} index={index} showHeader={showHeader} />
-        </tbody>
-      </table>
-
-      <ScenarioWeightingDetail result={result} />
-    </div>
-  )
-}
-
+/** Full breakdown table — rendered ONLY for the user's own assumptions
+ *  scenario (results[0]). Benchmark scenarios (Average / Worst Case) already
+ *  get their own headline cards elsewhere; a duplicate table per scenario
+ *  here was too much information. */
 export function ScenarioBreakdown({ results }: Props) {
+  const result = results[0]
+
   return (
     <div className="space-y-3">
-      <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-        Breakdown
-      </h2>
+      <div>
+        <h2 className="font-semibold text-sm uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+          Your Full Breakdown
+        </h2>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+          These numbers tie directly to the Month-by-Month Detail table below — expand it to verify.
+        </p>
+      </div>
 
-      {results.length === 1 ? (
-        <BreakdownBlock result={results[0]} index={0} showHeader={false} />
-      ) : (
-        results.map((result, i) => (
-          <BreakdownBlock key={i} result={result} index={i} showHeader />
-        ))
-      )}
+      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+        <table className="w-full table-fixed" style={{ background: 'var(--bg-surface)' }}>
+          <colgroup>
+            <col />
+            <col style={{ width: '7.5rem' }} />
+            <col style={{ width: '7.5rem' }} />
+          </colgroup>
+          <thead>
+            <tr className="border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+              <th className="px-4 py-2.5 text-left text-xs font-medium" style={{ color: 'var(--text-faint)' }} />
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_YES_CSS }}>
+                Vote Yes
+              </th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: VOTE_NO_CSS }}>
+                Vote No
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <ScenarioStatRows result={result} />
+          </tbody>
+        </table>
+
+        <ScenarioWeightingDetail result={result} />
+      </div>
     </div>
   )
 }

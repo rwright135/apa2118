@@ -167,6 +167,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
 
+  // Same definitions used in the "Your Full Breakdown" card — kept in sync so
+  // the two are directly comparable when this table is expanded.
+  const fullCareerPayNominal = rows.reduce((sum, r) => sum + r.grossPay + r.profitSharingCash, 0)
+  const totalRetirementSavingsNominal =
+    summary.retirementBalanceAt65 + summary.retirementRetentionBalance + summary.retirementBrokerageBalance
+
   const p = result.voteNoScenario.probability
   // Weight to apply when "show probability-weighted" is on
   const scenarioWeight = activeTab === 'B' ? p : activeTab === 'C' ? 1 - p : 1
@@ -391,9 +397,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )}
       </div>
 
-      {/* Summary row: ties table totals to breakdown headline numbers */}
+      {/* Summary row: ties table totals to the "Your Full Breakdown" card above */}
       <div
-        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-2"
+        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-3"
         style={{ background: 'var(--bg-elevated)', borderTop: '2px solid var(--border)' }}
       >
         <div>
@@ -409,14 +415,25 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         </div>
         <div>
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            401(k) projected @ retirement{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            Full-career pay + profit sharing (nominal){applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+          </div>
+          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
+            {fmt(fullCareerPayNominal * weight)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            Total retirement savings @ 65{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
+              (401k + retention + brokerage)
+            </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.retirementBalanceAt65 * weight)}
+            {fmt(totalRetirementSavingsNominal * weight)}
           </div>
         </div>
         <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Breakdown table above ↑'}
+          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Your Full Breakdown above ↑'}
         </div>
       </div>
 
