@@ -63,15 +63,28 @@ export function AirlineHistoryFootnote() {
   )
 }
 
-export function AirlineHistoryTable({ showIncreaseColumn = true }: { showIncreaseColumn?: boolean }) {
+interface AirlineHistoryTableProps {
+  showTimeBetweenColumn?: boolean
+  showIncreaseColumn?: boolean
+}
+
+export function AirlineHistoryTable({
+  showTimeBetweenColumn = true,
+  showIncreaseColumn = true,
+}: AirlineHistoryTableProps) {
+  // Last visible column drops the right padding — track it so headers/cells stay aligned.
+  const lastColumn = showIncreaseColumn ? 'increase' : showTimeBetweenColumn ? 'timeBetween' : 'secondTA'
+
   return (
     <table className="w-full min-w-[640px] text-xs border-collapse">
       <thead>
         <tr style={{ color: 'var(--text-faint)' }}>
           <th className="text-left font-semibold pb-3 pr-3">Airline</th>
           <th className="text-left font-semibold pb-3 pr-3">First TA Rejected</th>
-          <th className="text-left font-semibold pb-3 pr-3">Second TA Ratified</th>
-          <th className={showIncreaseColumn ? 'text-left font-semibold pb-3 pr-3' : 'text-left font-semibold pb-3'}>Time Between</th>
+          <th className={`text-left font-semibold pb-3 ${lastColumn === 'secondTA' ? '' : 'pr-3'}`}>Second TA Ratified</th>
+          {showTimeBetweenColumn && (
+            <th className={`text-left font-semibold pb-3 ${lastColumn === 'timeBetween' ? '' : 'pr-3'}`}>Time Between</th>
+          )}
           {showIncreaseColumn && <th className="text-left font-semibold pb-3">Approx. Increase*</th>}
         </tr>
       </thead>
@@ -84,11 +97,13 @@ export function AirlineHistoryTable({ showIncreaseColumn = true }: { showIncreas
               </div>
             </td>
             <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</td>
-            <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</td>
-            <td className={showIncreaseColumn ? 'py-3 pr-3 align-top tabular-nums' : 'py-3 align-top tabular-nums'} style={{ color: 'var(--text-muted)' }}>
-              {record.daysBetween} days
-              <div style={{ color: 'var(--text-faint)' }}>~{formatArrivalMonths(record.approximateMonths)} mo</div>
-            </td>
+            <td className={`py-3 align-top ${lastColumn === 'secondTA' ? '' : 'pr-3'}`} style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</td>
+            {showTimeBetweenColumn && (
+              <td className={`py-3 align-top tabular-nums ${lastColumn === 'timeBetween' ? '' : 'pr-3'}`} style={{ color: 'var(--text-muted)' }}>
+                {record.daysBetween} days
+                <div style={{ color: 'var(--text-faint)' }}>~{formatArrivalMonths(record.approximateMonths)} mo</div>
+              </td>
+            )}
             {showIncreaseColumn && (
               <td className="py-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.economicIncrease}</td>
             )}
