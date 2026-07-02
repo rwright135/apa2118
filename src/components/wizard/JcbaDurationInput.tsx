@@ -193,7 +193,7 @@ export function JcbaDurationInput({ value, min, max, step, onChange }: Props) {
         onChange={onChange}
         formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
         markers={markers}
-        footnote={`Tap or hover a logo for historical JCBA timing. All-carrier average: ${formatTimelineMonths(AVERAGE_JCBA_MONTHS)} months.`}
+        footnote={`Tap a logo to jump the slider to that timeline and see historical JCBA details. All-carrier average: ${formatTimelineMonths(AVERAGE_JCBA_MONTHS)} months.`}
       />
 
       <JcbaHistoryModal open={modalOpen} onClose={() => setModalOpen(false)} />

@@ -82,17 +82,20 @@ async function main() {
 
     const measurements = await page.evaluate(() => {
       const inputs = Array.from(document.querySelectorAll('input[type="range"]'))
-      const input = inputs[1]
-      const container = input?.parentElement
-      const badge = container?.querySelector('span.rounded-full') // the count badge
-      const chipButtons = container ? Array.from(container.querySelectorAll('button')) : []
       const rect = (el) => el ? (({ top, left, width, height, bottom }) => ({ top, left, width, height, bottom }))(el.getBoundingClientRect()) : null
-      return {
-        container: rect(container),
-        input: rect(input),
-        badge: rect(badge),
-        chipButtons: chipButtons.map(b => rect(b)),
-      }
+      return inputs.map((input, idx) => {
+        const container = input?.parentElement
+        const badge = container?.querySelector('span.rounded-full')
+        const chipButtons = container ? Array.from(container.querySelectorAll('button')) : []
+        return {
+          idx,
+          padding: container ? getComputedStyle(container).paddingBottom : null,
+          container: rect(container),
+          input: rect(input),
+          badge: rect(badge),
+          chipButtons: chipButtons.map(b => rect(b)),
+        }
+      })
     })
     console.log(`engine=${engine} width=${width}`, JSON.stringify(measurements))
 
