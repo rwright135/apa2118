@@ -496,10 +496,6 @@ export function HeroCards({ results }: Props) {
           ))}
         </div>
       )}
-
-      <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
-        After the JCBA concludes, all paths converge to the same rates — those years cancel out.
-      </p>
     </div>
   )
 }
