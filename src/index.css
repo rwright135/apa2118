@@ -53,6 +53,9 @@ html {
   --positive:      #22c55e;
   --negative:      #ef4444;
   --warning:       #f59e0b;
+
+  --scenario-average: #3b82f6;
+  --scenario-offer:   #a855f7;
 }
 
 /* ── Light mode overrides ────────────────────────────────────────────────── */

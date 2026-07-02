@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
-import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
+import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -85,7 +85,7 @@ function ScenarioStatRows({
             className="px-4 py-2 text-xs font-semibold"
             style={{ color: 'var(--text-muted)', borderTop: index > 0 ? '2px solid var(--border)' : undefined }}
           >
-            Scenario {index + 1}
+            {SCENARIO_LABELS[index] ?? `Scenario ${index + 1}`}
             <span className="ml-2 font-normal" style={{ color: 'var(--text-faint)' }}>
               {Math.round(p * 100)}% offer · {vns.arrivalMonths}mo arrival · +{(vns.percentAboveTA * 100).toFixed(0)}% above TA · JCBA {vns.jcbaDurationMonths}mo
             </span>

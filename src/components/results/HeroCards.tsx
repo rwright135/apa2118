@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
+import { SCENARIO_LABELS } from '../../lib/resultColors'
+import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -10,7 +12,7 @@ function fmt(n: number) {
 }
 
 function fmtAssumptionsFooter(vns: VoteNoScenario) {
-  return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
+  return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths} months | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths} months`
 }
 
 const RISK_REWARD_HELP = (
@@ -352,11 +354,6 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
 // ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
 
-const BENCHMARK_SCENARIOS = [
-  { label: 'Average', color: '#3b82f6' },
-  { label: 'Worst Case', color: '#ef4444' },
-] as const
-
 function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -419,6 +416,8 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
 export function HeroCards({ results }: Props) {
   const userResult       = results[0]
   const referenceResults = results.slice(1)
+  const { scenarioAverage, scenarioWorst } = useResultChartColors()
+  const benchmarkColors = [scenarioAverage, scenarioWorst]
 
   return (
     <div className="space-y-4">
@@ -431,17 +430,14 @@ export function HeroCards({ results }: Props) {
           <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
             Industry benchmarks
           </div>
-          {referenceResults.map((result, i) => {
-            const benchmark = BENCHMARK_SCENARIOS[i]
-            return (
+          {referenceResults.map((result, i) => (
               <CompactScenarioCard
                 key={i}
                 result={result}
-                label={benchmark?.label ?? `Scenario ${i + 2}`}
-                scenarioColor={benchmark?.color ?? 'var(--text-muted)'}
+                label={SCENARIO_LABELS[i + 1] ?? `Scenario ${i + 2}`}
+                scenarioColor={benchmarkColors[i] ?? scenarioAverage}
               />
-            )
-          })}
+          ))}
         </div>
       )}
 

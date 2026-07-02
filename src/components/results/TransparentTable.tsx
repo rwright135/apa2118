@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
-import { VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
+import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
+import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -12,8 +13,7 @@ function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
-const SCENARIO_COLORS = ['#c9a84c', '#3b82f6', '#ef4444']
-const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
+const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
   YES: { label: 'Vote Yes',         active: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)',     color: 'var(--gold)'     }, inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' } },
@@ -448,6 +448,8 @@ export function TransparentTable({ results }: Props) {
   const [activeScenario, setActiveScenario] = useState(0)
   const multiScenario = results.length > 1
   const activeResult  = results[activeScenario] ?? results[0]
+  const { voteYes, scenarioAverage, scenarioWorst } = useResultChartColors()
+  const scenarioColors = [voteYes, scenarioAverage, scenarioWorst]
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
@@ -462,7 +464,7 @@ export function TransparentTable({ results }: Props) {
           <div className="flex gap-1.5 flex-wrap mb-0">
             {results.map((result, i) => {
               const vns   = result.voteNoScenario
-              const color = SCENARIO_COLORS[i]
+              const color = scenarioColors[i] ?? SCENARIO_COLORS_FALLBACK[i]
               const isActive = i === activeScenario
               return (
                 <button

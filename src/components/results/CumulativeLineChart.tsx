@@ -10,7 +10,6 @@ function fmtAxis(n: number) {
   return `$${n}`
 }
 
-const SCENARIO_DETAIL_COLORS = ['#a855f7', '#ef4444']
 const SCENARIO_ABBREVS = ['Your', 'Avg', 'WC']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function CumulativeLineChart({ results }: Props) {
-  const { voteYes, voteNo } = useResultChartColors()
+  const { voteYes, voteNo, textMuted, textFaint, scenarioOffer, scenarioWorst } = useResultChartColors()
 
   // Use the longest JCBA window across all scenarios to set chart length
   const maxJcba = Math.max(...results.map(r => r.voteNoScenario.jcbaDurationMonths))
@@ -72,10 +71,10 @@ export function CumulativeLineChart({ results }: Props) {
     <div>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-          <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tickFormatter={fmtAxis} tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={56} />
+          <XAxis dataKey="month" tick={{ fill: textMuted, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <YAxis tickFormatter={fmtAxis} tick={{ fill: textFaint, fontSize: 10 }} axisLine={false} tickLine={false} width={56} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+          <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
           {results.map((_, ri) => {
             const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
@@ -83,8 +82,8 @@ export function CumulativeLineChart({ results }: Props) {
             return [
               <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
               <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
-              <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={SCENARIO_DETAIL_COLORS[0]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-              <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={SCENARIO_DETAIL_COLORS[1]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
+              <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
+              <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={scenarioWorst} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
             ]
           })}
         </LineChart>

@@ -1,10 +1,9 @@
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
+import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
-
-const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
 
 interface ChartDatum {
   name: string
@@ -34,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function ComparisonBarChart({ results }: Props) {
-  const { voteYes, voteNo } = useResultChartColors()
+  const { voteYes, voteNo, textMuted, textFaint } = useResultChartColors()
 
   const data: ChartDatum[] = results.flatMap((result, i) => {
     const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
@@ -71,7 +70,7 @@ export function ComparisonBarChart({ results }: Props) {
         >
           <XAxis
             dataKey="name"
-            tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+            tick={{ fill: textMuted, fontSize: 11, fontWeight: 600 }}
             axisLine={false}
             tickLine={false}
             interval={0}
@@ -79,7 +78,7 @@ export function ComparisonBarChart({ results }: Props) {
           />
           <YAxis
             tickFormatter={fmtAxis}
-            tick={{ fill: '#64748b', fontSize: 10 }}
+            tick={{ fill: textFaint, fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             width={56}
