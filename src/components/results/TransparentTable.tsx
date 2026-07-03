@@ -175,8 +175,8 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
     'Profit Share':     Math.round(r.profitSharingCash * weight),
     'Retention Accrual': Math.round((r.retentionCashFlow > 0.01 ? r.retentionCashFlow : r.retentionAccrualNote) * weight),
     'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
-    'Present Value':    Math.round(r.presentValue * weight),
     'Cumulative PV':    Math.round(r.cumulativePV * weight),
+    'Row PV':           Math.round(r.presentValue * weight),
   }))
 }
 
@@ -277,8 +277,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'brokerageSavingsCash', label: 'Brokerage' },
-    { key: 'presentValue',         label: 'PV', gold: true },
-    { key: 'cumulativePV',         label: 'Cum. Total PV', gold: true },
+    { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
+    { key: 'presentValue',         label: 'Row PV', gold: true },
   ]
 
   return (
@@ -373,7 +373,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.key === 'retentionAccrual' ? (
+                  {col.key === 'cumulativePV' ? (
+                    <span title="Running total of all present values: each row's cash flows (pay, PS, retention) discounted by 1/(1+r)^(m/12) from today, plus 401(k) and brokerage compounded to retirement then discounted back. Correct for payments 30+ years out.">Cumulative PV</span>
+                  ) : col.key === 'retentionAccrual' ? (
                     <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
                   ) : col.label}
                 </th>
