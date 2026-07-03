@@ -276,7 +276,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'k401Contribution',     label: '401(k) contrib' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
-    { key: 'brokerageSavingsCash', label: 'Brokerage', gold: true, voteYesOnly: false },
+    { key: 'brokerageSavingsCash', label: 'Brokerage' },
     { key: 'presentValue',         label: 'PV', gold: true },
     { key: 'cumulativePV',         label: 'Cum. Total PV', gold: true },
   ]
@@ -373,9 +373,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.key === 'brokerageSavingsCash' ? (
-                    <span title="Fraction of your raise saved to a brokerage account, compounded to retirement">💼 {col.label}</span>
-                  ) : col.key === 'retentionAccrual' ? (
+                  {col.key === 'retentionAccrual' ? (
                     <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
                   ) : col.label}
                 </th>
