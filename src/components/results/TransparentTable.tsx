@@ -321,6 +321,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
                 These are the full numbers if this outcome occurs.
                 This scenario has a <strong>{Math.round(scenarioWeight * 100)}%</strong> probability weighting in the blended Vote No.
+                {' '}Turn on the slider to see the numbers that make up the Vote No (Blended) Option.
               </div>
             </div>
             <button
