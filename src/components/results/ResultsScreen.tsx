@@ -10,7 +10,7 @@ import { ShareSheet } from './ShareSheet'
 import { ThemeToggle } from '../shared/ThemeToggle'
 
 export function ResultsScreen() {
-  const { results, goToStep, inputs } = useStore()
+  const { results, goToStep } = useStore()
 
   if (!results || results.length === 0) return null
 
@@ -54,7 +54,7 @@ export function ResultsScreen() {
           </div>
 
           <div className="flex items-center gap-2">
-            <ShareSheet inputs={inputs} />
+            <ShareSheet />
             <ThemeToggle />
           </div>
         </div>
@@ -72,6 +72,7 @@ export function ResultsScreen() {
         <ScenarioBreakdown results={results} />
 
         <div
+          id="results-export-end"
           className="rounded-2xl p-4"
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
         >

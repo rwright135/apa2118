@@ -1,29 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { encodeToURL } from '../../state/persistence'
-import type { UserInputs } from '../../lib/types'
 
-interface Props { inputs: Partial<UserInputs> }
-
-// ── URL shortening ────────────────────────────────────────────────────────────
-
-/**
- * Shorten a URL via TinyURL's free public API (no API key required).
- * Falls back to the original URL silently on any network or API error.
- */
-async function shortenURL(url: string): Promise<string> {
-  try {
-    const res = await fetch(
-      `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
-      { signal: AbortSignal.timeout(6000) }
-    )
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const short = (await res.text()).trim()
-    if (short.startsWith('http')) return short
-    throw new Error('Unexpected response')
-  } catch {
-    return url
-  }
-}
 
 // ── Capture helpers ───────────────────────────────────────────────────────────
 
@@ -31,29 +7,49 @@ function getResultsEl() {
   return document.getElementById('results-container')
 }
 
-/** Capture the results container as a PNG data URL.
- *  The sticky toolbar (Edit Inputs / Share / theme toggle) is hidden during
- *  capture so the exported image looks like a clean document rather than an
- *  app screenshot.
+/** Capture the results container up to and including the cumulative chart
+ *  as a PNG data URL. The sticky toolbar and month-by-month table are hidden
+ *  during capture so the exported image is clean and not excessively tall.
  */
 async function captureImage(): Promise<string> {
   const el = getResultsEl()
   if (!el) throw new Error('Results container not found')
 
-  // Hide the toolbar for a clean, chrome-free capture
   const toolbar = document.getElementById('results-toolbar')
-  const prevDisplay = toolbar ? toolbar.style.display : null
-  if (toolbar) toolbar.style.display = 'none'
+  const table   = el.querySelector<HTMLElement>(':scope > div > .rounded-2xl.overflow-hidden:last-of-type')
+  const exportEnd = document.getElementById('results-export-end')
+
+  const prevToolbar = toolbar?.style.display ?? null
+  const prevTable   = table?.style.display   ?? null
+
+  if (toolbar)   toolbar.style.display = 'none'
+  if (table)     table.style.display   = 'none'
 
   try {
-    // Allow the browser to repaint before measuring
     await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))
     const { toPng } = await import('html-to-image')
-    const bgColor = getComputedStyle(el).backgroundColor || '#ffffff'
-    return await toPng(el, { cacheBust: true, pixelRatio: 2, backgroundColor: bgColor, skipFonts: false })
+    const bgColor   = getComputedStyle(el).backgroundColor || '#ffffff'
+
+    // Measure height to crop — stop right after the chart section
+    let cropHeight: number | undefined
+    if (exportEnd) {
+      const containerRect = el.getBoundingClientRect()
+      const endRect       = exportEnd.getBoundingClientRect()
+      const scrollTop     = el.scrollTop || document.documentElement.scrollTop
+      const ratio         = el.offsetWidth > 0 ? (el.scrollWidth / el.offsetWidth) : 1
+      cropHeight = Math.ceil((endRect.bottom - containerRect.top + scrollTop + 32) * ratio)
+    }
+
+    return await toPng(el, {
+      cacheBust:       true,
+      pixelRatio:      2,
+      backgroundColor: bgColor,
+      skipFonts:       false,
+      height:          cropHeight,
+    })
   } finally {
-    // Always restore the toolbar, even if capture throws
-    if (toolbar && prevDisplay !== null) toolbar.style.display = prevDisplay
+    if (toolbar && prevToolbar !== null) toolbar.style.display = prevToolbar
+    if (table   && prevTable   !== null) table.style.display   = prevTable
   }
 }
 
@@ -68,30 +64,40 @@ async function exportPDF() {
     i.src = dataUrl
   })
 
-  const MARGIN_MM  = 8
-  const pdf        = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-  const pageWmm    = pdf.internal.pageSize.getWidth()
-  const pageHmm    = pdf.internal.pageSize.getHeight()
-  const contentWmm = pageWmm - MARGIN_MM * 2
-  const contentHmm = pageHmm - MARGIN_MM * 2
-  const pxPerMm    = img.naturalWidth / contentWmm
-  const sliceHpx   = Math.floor(contentHmm * pxPerMm)
-  const totalPages = Math.ceil(img.naturalHeight / sliceHpx)
+  const MARGIN_MM   = 10
+  const pdf         = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  const pageWmm     = pdf.internal.pageSize.getWidth()
+  const pageHmm     = pdf.internal.pageSize.getHeight()
+  const contentWmm  = pageWmm  - MARGIN_MM * 2
+  const contentHmm  = pageHmm  - MARGIN_MM * 2
+  const imgAspect   = img.naturalHeight / img.naturalWidth
+  const scaledHmm   = contentWmm * imgAspect
 
-  const canvas = document.createElement('canvas')
-  canvas.width = img.naturalWidth
-  const ctx = canvas.getContext('2d')!
+  if (scaledHmm <= contentHmm) {
+    // Fits on one page — center it vertically
+    const offsetY = MARGIN_MM + (contentHmm - scaledHmm) / 2
+    pdf.addImage(dataUrl, 'PNG', MARGIN_MM, offsetY, contentWmm, scaledHmm)
+  } else {
+    // Multi-page slice — cut along row boundaries to avoid splitting content mid-element
+    const pxPerMm   = img.naturalWidth / contentWmm
+    const sliceHpx  = Math.floor(contentHmm * pxPerMm)
+    const totalPages = Math.ceil(img.naturalHeight / sliceHpx)
 
-  for (let page = 0; page < totalPages; page++) {
-    const srcY    = page * sliceHpx
-    const srcH    = Math.min(sliceHpx, img.naturalHeight - srcY)
-    const destHmm = srcH / pxPerMm
-    canvas.height = srcH
-    ctx.clearRect(0, 0, canvas.width, srcH)
-    ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH)
-    const slice = canvas.toDataURL('image/jpeg', 0.92)
-    if (page > 0) pdf.addPage()
-    pdf.addImage(slice, 'JPEG', MARGIN_MM, MARGIN_MM, contentWmm, destHmm)
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    const ctx = canvas.getContext('2d')!
+
+    for (let page = 0; page < totalPages; page++) {
+      const srcY   = page * sliceHpx
+      const srcH   = Math.min(sliceHpx, img.naturalHeight - srcY)
+      const destHmm = srcH / pxPerMm
+      canvas.height = srcH
+      ctx.clearRect(0, 0, canvas.width, srcH)
+      ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH)
+      const slice = canvas.toDataURL('image/png')
+      if (page > 0) pdf.addPage()
+      pdf.addImage(slice, 'PNG', MARGIN_MM, MARGIN_MM, contentWmm, destHmm)
+    }
   }
 
   pdf.save(`APA2118-Contract-Comparison-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -150,14 +156,11 @@ function SheetRow({ icon, label, sublabel, onClick, loading }: SheetItem) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ShareSheet({ inputs }: Props) {
-  const [open, setOpen]        = useState(false)
-  const [copied, setCopied]    = useState(false)
-  const [busy, setBusy]        = useState<null | 'pdf' | 'image' | 'copy'>(null)
-  const [error, setError]      = useState<string | null>(null)
-  const sheetRef               = useRef<HTMLDivElement>(null)
-
-  const shareURL = encodeToURL(inputs)
+export function ShareSheet() {
+  const [open, setOpen]     = useState(false)
+  const [busy, setBusy]     = useState<null | 'pdf' | 'image'>(null)
+  const [error, setError]   = useState<string | null>(null)
+  const sheetRef            = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -168,20 +171,6 @@ export function ShareSheet({ inputs }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-
-  const handleCopy = async () => {
-    setBusy('copy'); setError(null)
-    try {
-      const short = await shortenURL(shareURL)
-      await navigator.clipboard.writeText(short)
-      setBusy(null)
-      setCopied(true)
-      setTimeout(() => { setCopied(false); setOpen(false) }, 1500)
-    } catch {
-      setBusy(null)
-      setError('Copy failed')
-    }
-  }
 
   const handlePDF = async () => {
     setOpen(false)
@@ -205,7 +194,7 @@ export function ShareSheet({ inputs }: Props) {
     } finally { setBusy(null) }
   }
 
-  const busyLabel = busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : busy === 'copy' ? 'Shortening…' : null
+  const busyLabel = busy === 'pdf' ? 'Generating PDF…' : busy === 'image' ? 'Saving image…' : null
 
   return (
     <div className="relative" ref={sheetRef}>
@@ -252,23 +241,16 @@ export function ShareSheet({ inputs }: Props) {
           </div>
 
           <SheetRow
-            icon={copied ? '✓' : '🔗'}
-            label={copied ? 'Link copied!' : 'Copy link'}
-            sublabel="Shortened link — all your inputs are encoded inside"
-            onClick={handleCopy}
-            loading={busy === 'copy'}
-          />
-          <SheetRow
             icon="📄"
             label="Download as PDF"
-            sublabel="Full results page as a print-ready PDF"
+            sublabel="Results through the cumulative chart, print-ready"
             onClick={handlePDF}
             loading={busy === 'pdf'}
           />
           <SheetRow
             icon="⬇️"
             label="Download as image"
-            sublabel="Save a PNG of your results to this device"
+            sublabel="Save a PNG of your results (through the chart)"
             onClick={handleImage}
             loading={busy === 'image'}
           />

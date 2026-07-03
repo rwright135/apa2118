@@ -2,12 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ShareSheet } from './ShareSheet'
 
-// Default: TinyURL succeeds
-vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-  ok: true,
-  text: async () => 'https://tinyurl.com/abc123',
-} as unknown as Response))
-
 const MOCK_PNG = 'data:image/png;base64,iVBORw0KGgo='
 
 const { pdfSave, pdfAddImage, pdfAddPage } = vi.hoisted(() => ({
@@ -63,7 +57,7 @@ function mockCanvas() {
     clearRect: vi.fn(),
     drawImage: vi.fn(),
   }) as unknown as typeof HTMLCanvasElement.prototype.getContext
-  HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,/9j/4AAQ')
+  HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/png;base64,/9j/4AAQ')
 }
 
 describe('ShareSheet export flows', () => {
@@ -76,10 +70,6 @@ describe('ShareSheet export flows', () => {
     pdfSave.mockClear()
     pdfAddImage.mockClear()
     pdfAddPage.mockClear()
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
-    })
   })
 
   afterEach(() => {
@@ -88,45 +78,16 @@ describe('ShareSheet export flows', () => {
   })
 
   async function openSheet() {
-    render(<ShareSheet inputs={{ seat: 'FO', longevityAsOfJul2026: 4 }} />)
+    render(<ShareSheet />)
     fireEvent.click(screen.getByRole('button', { name: 'Share' }))
     await screen.findByText('Export Results')
   }
 
-  it('renders Export Results header with three actions', async () => {
+  it('renders Export Results header with PDF and image actions only', async () => {
     await openSheet()
-    expect(screen.getByText('Copy link')).toBeInTheDocument()
+    expect(screen.queryByText('Copy link')).not.toBeInTheDocument()
     expect(screen.getByText('Download as PDF')).toBeInTheDocument()
     expect(screen.getByText('Download as image')).toBeInTheDocument()
-  })
-
-  it('copies shortened TinyURL link to clipboard', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
-
-    await openSheet()
-    fireEvent.click(screen.getByText('Copy link'))
-
-    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
-    expect(writeText.mock.calls[0][0]).toBe('https://tinyurl.com/abc123')
-    expect(await screen.findByText('Link copied!')).toBeInTheDocument()
-  })
-
-  it('falls back to the compact URL when TinyURL is unavailable', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')))
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
-
-    await openSheet()
-    fireEvent.click(screen.getByText('Copy link'))
-
-    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
-    const url = writeText.mock.calls[0][0] as string
-    // Fallback: compact btoa(json) format, not a tinyurl
-    expect(url).toContain('d=')
-    const param = new URL(url).searchParams.get('d')!
-    expect(atob(param)).toMatch(/^\{/)
-    expect(await screen.findByText('Link copied!')).toBeInTheDocument()
   })
 
   it('downloads PNG when "Download as image" is clicked', async () => {
@@ -144,14 +105,13 @@ describe('ShareSheet export flows', () => {
     await waitFor(() => expect(click).toHaveBeenCalled())
   })
 
-  it('generates a multi-page PDF from captured image slices', async () => {
+  it('generates a PDF from captured image', async () => {
     await openSheet()
     fireEvent.click(screen.getByText('Download as PDF'))
 
     await waitFor(() => expect(pdfSave).toHaveBeenCalledOnce())
     expect(pdfSave.mock.calls[0][0]).toMatch(/^APA2118-Contract-Comparison-\d{4}-\d{2}-\d{2}\.pdf$/)
     expect(pdfAddImage).toHaveBeenCalled()
-    expect(pdfAddPage.mock.calls.length).toBeGreaterThan(0)
   })
 
   it('surfaces an error when results container is missing', async () => {
