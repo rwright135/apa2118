@@ -195,8 +195,6 @@ function RiskRewardBreakdown({
     investmentRate,
     pB,
     pC,
-    bPayDiff,
-    bPSDiff,
     bRetDiff,
     bNominalGap,
     bPayPlusPS_waiting,
