@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:export": "node e2e/export-check.mjs"
+    "test:export": "node e2e/export-check.mjs",
+    "test:reset": "node e2e/reset-check.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -22,6 +23,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "recharts": "^3.8.1",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

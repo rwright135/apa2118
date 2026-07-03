@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { encodeToURL, decodeFromURL } from './persistence'
+import { encodeToURL, decodeFromURL, clearAllStoredData, saveToLocalStorage, loadFromLocalStorage } from './persistence'
 import type { UserInputs } from '../lib/types'
 
 const BASE = 'http://localhost:3000/'
@@ -148,5 +148,68 @@ describe('decodeFromURL — legacy double-encoded format (backward compatibility
     const decoded = decodeFromURL()!
     expect(decoded.dateOfBirth).toBeInstanceOf(Date)
     expect((decoded.dateOfBirth as Date).getFullYear()).toBe(1990)
+  })
+})
+
+describe('clearAllStoredData — hard reset', () => {
+  afterEach(() => {
+    window.history.replaceState(null, '', '/')
+    localStorage.clear()
+    sessionStorage.clear()
+    for (const cookie of document.cookie.split(';')) {
+      const name = cookie.split('=')[0]?.trim()
+      if (name) document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+    }
+  })
+
+  it('removes the persisted inputs key from localStorage', () => {
+    saveToLocalStorage({ seat: 'FO' })
+    expect(loadFromLocalStorage()).not.toBeNull()
+
+    clearAllStoredData()
+
+    expect(loadFromLocalStorage()).toBeNull()
+  })
+
+  it('strips a lingering shared-link ?d= param without touching other params', () => {
+    window.history.pushState(null, '', '/?d=abc123&foo=bar')
+
+    clearAllStoredData()
+
+    const url = new URL(window.location.href)
+    expect(url.searchParams.has('d')).toBe(false)
+    expect(url.searchParams.get('foo')).toBe('bar')
+  })
+
+  it('clears sessionStorage', () => {
+    sessionStorage.setItem('leftover', 'value')
+
+    clearAllStoredData()
+
+    expect(sessionStorage.getItem('leftover')).toBeNull()
+  })
+
+  it('clears cookies scoped to the page', () => {
+    document.cookie = 'apa2118_test=1; path=/'
+    expect(document.cookie).toContain('apa2118_test')
+
+    clearAllStoredData()
+
+    expect(document.cookie).not.toContain('apa2118_test')
+  })
+
+  it('is idempotent — safe to fire twice in quick succession (matches the reported bug)', () => {
+    saveToLocalStorage({ seat: 'CA' })
+    window.history.pushState(null, '', '/?d=xyz')
+    sessionStorage.setItem('leftover', 'value')
+    document.cookie = 'apa2118_test=1; path=/'
+
+    clearAllStoredData()
+    clearAllStoredData()
+
+    expect(loadFromLocalStorage()).toBeNull()
+    expect(new URL(window.location.href).searchParams.has('d')).toBe(false)
+    expect(sessionStorage.getItem('leftover')).toBeNull()
+    expect(document.cookie).not.toContain('apa2118_test')
   })
 })

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
-import { VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
+import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
+import { useResultChartColors } from './useResultChartColors'
+import * as XLSX from 'xlsx'
 
 interface Props { results: ComparisonResult[] }
 
@@ -9,11 +11,21 @@ function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
+/** Monthly RB accrual (rate × 85 hrs × 35%) or payout lump when applicable. */
+function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boolean } {
+  if (row.retentionCashFlow > 0.01) {
+    return { amount: row.retentionCashFlow, isPayout: true }
+  }
+  if (row.retentionAccrualNote > 0.01) {
+    return { amount: row.retentionAccrualNote, isPayout: false }
+  }
+  return { amount: 0, isPayout: false }
+}
+
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
-const SCENARIO_COLORS = ['#c9a84c', '#3b82f6', '#ef4444']
-const SCENARIO_LABELS = ['Your Scenario', 'Average', 'Worst Case']
+const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
   YES: { label: 'Vote Yes',         active: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)',     color: 'var(--gold)'     }, inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' } },
@@ -149,13 +161,69 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
   )
 }
 
+// ── XLSX export ───────────────────────────────────────────────────────────────
+
+function buildSheetRows(rows: MonthlyRow[], weight: number) {
+  return rows.map(r => ({
+    Month:              `${MONTHS_SHORT[r.month]} ${r.year}`,
+    Seat:               r.effectiveSeat,
+    Longevity:          r.longevity,
+    'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
+    Hours:              r.totalHours,
+    'Gross Pay':        Math.round(r.grossPay * weight),
+    '401k Contrib':     Math.round(r.k401Contribution * weight),
+    'Profit Share':     Math.round(r.profitSharingCash * weight),
+    'Retention Accrual': Math.round((r.retentionCashFlow > 0.01 ? r.retentionCashFlow : r.retentionAccrualNote) * weight),
+    'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
+    'Cumulative PV':    Math.round(r.cumulativePV * weight),
+    'Row PV':           Math.round(r.presentValue * weight),
+  }))
+}
+
+function exportToXLSX(result: ComparisonResult) {
+  const p = result.voteNoScenario.probability
+  const jcba = result.voteNoScenario.jcbaDurationMonths
+
+  const allSummaries = [...result.scenarios, result.voteNoExpected]
+
+  const sheets: { name: string; rows: MonthlyRow[]; weight: number }[] = [
+    { name: 'Vote Yes',          rows: allSummaries.find(s => s.scenarioId === 'A')!.rows,                  weight: 1 },
+    { name: 'Vote No (blended)', rows: allSummaries.find(s => s.scenarioId === 'VOTE_NO_EXPECTED')!.rows,   weight: 1 },
+    { name: 'Vote No (Offer)',   rows: allSummaries.find(s => s.scenarioId === 'B')!.rows,                  weight: p },
+    { name: 'Vote No (JCBA)',    rows: allSummaries.find(s => s.scenarioId === 'C')!.rows,                  weight: 1 - p },
+  ]
+
+  const wb = XLSX.utils.book_new()
+
+  // Summary sheet
+  const summaryData = sheets.map(({ name, rows, weight }) => {
+    const preJcba = rows.filter(r => r.monthIndex < jcba)
+    const all = rows
+    const grossPay    = Math.round(preJcba.reduce((s, r) => s + r.grossPay, 0) * weight)
+    const profitShare = Math.round(preJcba.reduce((s, r) => s + r.profitSharingCash, 0) * weight)
+    const retention   = Math.round(all.reduce((s, r) => s + r.retentionCashFlow, 0) * weight)
+    const brokerage   = Math.round(preJcba.reduce((s, r) => s + r.brokerageSavingsCash, 0) * weight)
+    const preJcbaPV   = Math.round(preJcba.reduce((s, r) => s + r.presentValue + r.presentValue401k, 0) * weight)
+    return { Scenario: name, 'Pre-JCBA Gross Pay': grossPay, 'Pre-JCBA Profit Share': profitShare,
+             'Retention': retention, 'Pre-JCBA Brokerage Saved': brokerage, 'Pre-JCBA Total PV': preJcbaPV }
+  })
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryData), 'Summary')
+
+  // One sheet per scenario
+  for (const { name, rows, weight } of sheets) {
+    const data = buildSheetRows(rows, weight)
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), name)
+  }
+
+  XLSX.writeFile(wb, 'APA2118_Month_by_Month.xlsx')
+}
+
 // ── Inner table for one ComparisonResult ──────────────────────────────────────
 
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
-  const [showRetention, setShowRetention] = useState(false)
-  const [applyWeight, setApplyWeight]     = useState(false)
+  const [applyWeight, setApplyWeight]     = useState(true)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
@@ -166,6 +234,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
+
+  // Same definitions used in the "Your Full Breakdown" card — kept in sync so
+  // the two are directly comparable when this table is expanded.
+  const fullCareerPayNominal = rows.reduce((sum, r) => sum + r.grossPay + r.profitSharingCash, 0)
+  const totalRetirementSavingsNominal =
+    summary.retirementBalanceAt65 + summary.retirementRetentionBalance + summary.retirementBrokerageBalance
 
   const p = result.voteNoScenario.probability
   // Weight to apply when "show probability-weighted" is on
@@ -201,10 +275,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'grossPay',             label: 'Gross Pay' },
     { key: 'k401Contribution',     label: '401(k) contrib' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
-    { key: 'retentionCashFlow',    label: 'Retention' },
-    { key: 'brokerageSavingsCash', label: 'Brokerage', gold: true, voteYesOnly: false },
-    { key: 'presentValue',         label: 'PV', gold: true },
-    { key: 'cumulativePV',         label: 'Cum. Total PV', gold: true },
+    { key: 'retentionAccrual',     label: 'RB Accrual' },
+    { key: 'brokerageSavingsCash', label: 'Brokerage' },
+    { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
+    { key: 'presentValue',         label: 'Row PV', gold: true },
   ]
 
   return (
@@ -213,6 +287,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{rows.length} months total</span>
+          <button
+            type="button"
+            onClick={() => exportToXLSX(result)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-base)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
+            title="Download all scenarios as Excel / Google Sheets file"
+          >
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 2v7M4 6l3 3 3-3M2 11h10" />
+            </svg>
+            Download XLSX
+          </button>
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {(['YES', 'NO'] as const).map(id => (
@@ -244,6 +332,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
                 These are the full numbers if this outcome occurs.
                 This scenario has a <strong>{Math.round(scenarioWeight * 100)}%</strong> probability weighting in the blended Vote No.
+                {' '}Turn on the slider to see the numbers that make up the Vote No (Blended) Option.
               </div>
             </div>
             <button
@@ -284,8 +373,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.key === 'brokerageSavingsCash' ? (
-                    <span title="Fraction of your raise saved to a brokerage account, compounded to retirement">💼 {col.label}</span>
+                  {col.key === 'cumulativePV' ? (
+                    <span title="Running total of all present values: each row's cash flows (pay, PS, retention) discounted by 1/(1+r)^(m/12) from today, plus 401(k) and brokerage compounded to retirement then discounted back. Correct for payments 30+ years out.">Cumulative PV</span>
+                  ) : col.key === 'retentionAccrual' ? (
+                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
                   ) : col.label}
                 </th>
               ))}
@@ -352,6 +443,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
                     {columns.map(col => {
+                      if (col.key === 'retentionAccrual') {
+                        const { amount, isPayout } = getRetentionTableCell(row)
+                        const val = amount * weight
+                        return (
+                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
+                            style={{
+                              color: isPayout ? 'var(--positive)' : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
+                              fontWeight: isPayout ? 600 : 400,
+                            }}
+                          >
+                            {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+                          </td>
+                        )
+                      }
                       const raw = (row as unknown as Record<string, number>)[col.key]
                       const val = raw * weight
                       return (
@@ -391,9 +496,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )}
       </div>
 
-      {/* Summary row: ties table totals to breakdown headline numbers */}
+      {/* Summary row: ties table totals to the "Your Full Breakdown" card above */}
       <div
-        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-2"
+        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-3"
         style={{ background: 'var(--bg-elevated)', borderTop: '2px solid var(--border)' }}
       >
         <div>
@@ -409,34 +514,35 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         </div>
         <div>
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            401(k) projected @ retirement{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            Full-career pay + profit sharing (nominal){applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+          </div>
+          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
+            {fmt(fullCareerPayNominal * weight)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
+            Total retirement savings @ 65{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
+              (401k + retention + brokerage)
+            </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.retirementBalanceAt65 * weight)}
+            {fmt(totalRetirementSavingsNominal * weight)}
           </div>
         </div>
         <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Breakdown table above ↑'}
+          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Your Full Breakdown above ↑'}
         </div>
       </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <button
-          onClick={() => setShowRetention(v => !v)}
-          className="mt-3 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-          style={{ color: 'var(--accent)' }}
-        >
-          <span>{showRetention ? '▲' : '▼'}</span>
-          {showRetention ? 'Hide retention bonus detail' : '💰 Show retention bonus accrual & payout detail'}
-        </button>
-        {showRetention && (
-          <RetentionDetail
-            rows={rows}
-            startingBalance={result.inputs.retentionCurrentBalance}
-            probability={prob}
-            isVoteYes={isVoteYes}
-          />
-        )}
+        <RetentionDetail
+          rows={rows}
+          startingBalance={result.inputs.retentionCurrentBalance}
+          probability={prob}
+          isVoteYes={isVoteYes}
+        />
       </div>
     </div>
   )
@@ -448,6 +554,8 @@ export function TransparentTable({ results }: Props) {
   const [activeScenario, setActiveScenario] = useState(0)
   const multiScenario = results.length > 1
   const activeResult  = results[activeScenario] ?? results[0]
+  const { voteYes, scenarioAverage, scenarioWorst } = useResultChartColors()
+  const scenarioColors = [voteYes, scenarioAverage, scenarioWorst]
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
@@ -462,7 +570,7 @@ export function TransparentTable({ results }: Props) {
           <div className="flex gap-1.5 flex-wrap mb-0">
             {results.map((result, i) => {
               const vns   = result.voteNoScenario
-              const color = SCENARIO_COLORS[i]
+              const color = scenarioColors[i] ?? SCENARIO_COLORS_FALLBACK[i]
               const isActive = i === activeScenario
               return (
                 <button

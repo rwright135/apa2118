@@ -8,6 +8,7 @@ import {
   formatTimelineMonths,
   type JcbaMergerRecord,
 } from '../../data/jcbaMergerHistory'
+import { formatDateAbbrevMonth } from '../../lib/inputDisplay'
 import { SliderWithMarkers, type MarkerRecord } from './SliderWithMarkers'
 
 interface Props {
@@ -54,12 +55,12 @@ function MergerTooltipBody({ record }: { record: JcbaMergerRecord }) {
       <dl className="space-y-1.5 text-xs">
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Merger close</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.mergerClose}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.mergerClose)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>JCBA completion</dt>
           <dd style={{ color: 'var(--text-muted)' }}>
-            {record.jcbaCompletion}
+            {formatDateAbbrevMonth(record.jcbaCompletion)}
             {record.completionNote ? <span style={{ color: 'var(--text-faint)' }}> ({record.completionNote})</span> : null}
           </dd>
         </div>
@@ -119,9 +120,9 @@ function JcbaHistoryModal({ open, onClose }: { open: boolean; onClose: () => voi
                       <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{record.label}</span>
                     </div>
                   </td>
-                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{record.mergerClose}</td>
+                  <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.mergerClose)}</td>
                   <td className="py-3 pr-3 align-top" style={{ color: 'var(--text-muted)' }}>
-                    {record.jcbaCompletion}
+                    {formatDateAbbrevMonth(record.jcbaCompletion)}
                     {record.completionNote && <div style={{ color: 'var(--text-faint)' }}>{record.completionNote}</div>}
                   </td>
                   <td className="py-3 align-top tabular-nums font-semibold" style={{ color: 'var(--text-base)' }}>{formatTimelineMonths(record.months)}</td>
@@ -134,10 +135,9 @@ function JcbaHistoryModal({ open, onClose }: { open: boolean; onClose: () => voi
             <p>({monthValues.map(formatTimelineMonths).join(' + ')}) ÷ {carrierCount} = <strong style={{ color: 'var(--text-base)' }}>{formatTimelineMonths(months)} months</strong></p>
           </CalculationBox>
 
-          <div className="rounded-xl p-4 mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+          <div className="rounded-xl p-4 mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
             {([
               ['Average (all 4)', JCBA_SUMMARY_STATS.average],
-              ['Median', JCBA_SUMMARY_STATS.median],
               ['Shortest', JCBA_SUMMARY_STATS.shortest],
               ['Longest', JCBA_SUMMARY_STATS.longest],
             ] as const).map(([label, val]) => (
@@ -192,7 +192,7 @@ export function JcbaDurationInput({ value, min, max, step, onChange }: Props) {
         onChange={onChange}
         formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
         markers={markers}
-        footnote={`Tap or hover a logo for historical JCBA timing. All-carrier average: ${formatTimelineMonths(AVERAGE_JCBA_MONTHS)} months.`}
+        footnote={`Tap a logo to jump the slider to that timeline and see historical JCBA details. All-carrier average: ${formatTimelineMonths(AVERAGE_JCBA_MONTHS)} months.`}
       />
 
       <JcbaHistoryModal open={modalOpen} onClose={() => setModalOpen(false)} />

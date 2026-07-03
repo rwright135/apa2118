@@ -10,9 +10,6 @@ function fmtAxis(n: number) {
   return `$${n}`
 }
 
-const SCENARIO_DETAIL_COLORS = ['#a855f7', '#ef4444']
-const SCENARIO_ABBREVS = ['Your', 'Avg', 'WC']
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -29,64 +26,65 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export function CumulativeLineChart({ results }: Props) {
-  const { voteYes, voteNo } = useResultChartColors()
+/**
+ * 4 lines, ordered left-to-right in the legend:
+ *   1. Vote Yes            — solid gold
+ *   2. Vote No (blended)   — solid blue/vote-no
+ *   3. Vote No — 2nd Offer — dashed purple  (B: upper bound)
+ *   4. Vote No — No Offer  — dashed red     (C: lower bound)
+ *
+ * Average and Worst Case benchmarks are removed — too many lines.
+ */
 
-  // Use the longest JCBA window across all scenarios to set chart length
+const KEY_YES    = 'Vote Yes'
+const KEY_NO     = 'Vote No (blended)'
+const KEY_B      = 'Vote No — 2nd Offer'
+const KEY_C      = 'Vote No — No Offer'
+
+export function CumulativeLineChart({ results }: Props) {
+  const { voteYes, voteNo, textMuted, textFaint, scenarioOffer } = useResultChartColors()
+
   const maxJcba = Math.max(...results.map(r => r.voteNoScenario.jcbaDurationMonths))
   const refResult = results[0]
   const refA = refResult.scenarios.find(s => s.scenarioId === 'A')!
   const maxLen = Math.min(maxJcba + 1, refA.rows.length)
   const step = Math.max(1, Math.floor(maxLen / 120))
 
-  // Build chart data keyed by month index
   const chartData: Record<string, number | string>[] = []
   for (let i = 0; i < maxLen; i += step) {
     const rA = refA.rows[i]
     if (!rA) continue
-    const point: Record<string, number | string> = { month: `${rA.year}` }
 
-    results.forEach((result, ri) => {
-      const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-      const voteNo    = result.voteNoExpected
-      const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-      const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
+    const sA  = refResult.scenarios.find(s => s.scenarioId === 'A')!
+    const sB  = refResult.scenarios.find(s => s.scenarioId === 'B')!
+    const sC  = refResult.scenarios.find(s => s.scenarioId === 'C')!
+    const vno = refResult.voteNoExpected
 
-      const rResultA  = scenarioA.rows[Math.min(i, scenarioA.rows.length - 1)]
-      const rVN       = voteNo.rows[Math.min(i, voteNo.rows.length - 1)]
-      const rB        = scenarioB.rows[Math.min(i, scenarioB.rows.length - 1)]
-      const rC        = scenarioC.rows[Math.min(i, scenarioC.rows.length - 1)]
-
-      const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
-      const suffix = results.length > 1 ? ` (${abbrev})` : ''
-      point[`Vote Yes${suffix}`]  = Math.round(rResultA?.cumulativePV ?? 0)
-      point[`Vote No${suffix}`]   = Math.round(rVN?.cumulativePV ?? 0)
-      point[`Scen B${suffix}`]    = Math.round(rB?.cumulativePV ?? 0)
-      point[`Scen C${suffix}`]    = Math.round(rC?.cumulativePV ?? 0)
+    chartData.push({
+      month:   `${rA.year}`,
+      [KEY_YES]: Math.round(sA.rows[Math.min(i, sA.rows.length - 1)]?.cumulativePV ?? 0),
+      [KEY_NO]:  Math.round(vno.rows[Math.min(i, vno.rows.length - 1)]?.cumulativePV ?? 0),
+      [KEY_B]:   Math.round(sB.rows[Math.min(i, sB.rows.length - 1)]?.cumulativePV ?? 0),
+      [KEY_C]:   Math.round(sC.rows[Math.min(i, sC.rows.length - 1)]?.cumulativePV ?? 0),
     })
-
-    chartData.push(point)
   }
 
   return (
     <div>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-          <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tickFormatter={fmtAxis} tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} width={56} />
+          <XAxis dataKey="month" tick={{ fill: textMuted, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <YAxis tickFormatter={fmtAxis} tick={{ fill: textFaint, fontSize: 10 }} axisLine={false} tickLine={false} width={56} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+          <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
-          {results.map((_, ri) => {
-            const abbrev = SCENARIO_ABBREVS[ri] ?? `S${ri + 1}`
-            const suffix = results.length > 1 ? ` (${abbrev})` : ''
-            return [
-              <Line key={`yes-${ri}`} type="monotone" dataKey={`Vote Yes${suffix}`} stroke={voteYes} strokeWidth={2.5} dot={false} />,
-              <Line key={`no-${ri}`}  type="monotone" dataKey={`Vote No${suffix}`}  stroke={voteNo}   strokeWidth={2.5} dot={false} />,
-              <Line key={`b-${ri}`} type="monotone" dataKey={`Scen B${suffix}`} stroke={SCENARIO_DETAIL_COLORS[0]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-              <Line key={`c-${ri}`} type="monotone" dataKey={`Scen C${suffix}`} stroke={SCENARIO_DETAIL_COLORS[1]} strokeWidth={1.5} strokeDasharray="4 3" dot={false} opacity={0.6} />,
-            ]
-          })}
+          {/* Solid lines — Vote Yes and blended Vote No */}
+          <Line type="monotone" dataKey={KEY_YES} stroke={voteYes}      strokeWidth={2.5} dot={false} />
+          <Line type="monotone" dataKey={KEY_NO}  stroke={voteNo}       strokeWidth={2}   dot={false} />
+
+          {/* Dashed lines — individual paths showing the spread */}
+          <Line type="monotone" dataKey={KEY_B}   stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
+          <Line type="monotone" dataKey={KEY_C}   stroke="var(--negative)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -6,6 +6,18 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
+const MONTHS_ABBREV = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** "July 10, 2015" → "Jul 10, 2015" for compact modal table display. */
+export function formatDateAbbrevMonth(date: string): string {
+  for (let i = 0; i < MONTHS.length; i++) {
+    if (date.startsWith(MONTHS[i])) {
+      return `${MONTHS_ABBREV[i]}${date.slice(MONTHS[i].length)}`
+    }
+  }
+  return date
+}
+
 export interface InputDisplayItem {
   label: string
   value: string

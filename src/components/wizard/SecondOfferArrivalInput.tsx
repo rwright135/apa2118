@@ -7,8 +7,8 @@ import {
   formatArrivalMonths,
   type AirlineSecondOfferRecord,
 } from '../../data/airlineSecondOfferHistory'
+import { formatDateAbbrevMonth } from '../../lib/inputDisplay'
 import {
-  AirlineHistoryFootnote,
   AirlineHistorySources,
   AirlineHistoryTable,
 } from './AirlineHistoryModalContent'
@@ -56,11 +56,11 @@ function AirlineTooltipBody({ record }: { record: AirlineSecondOfferRecord }) {
       <dl className="space-y-1.5 text-xs">
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>First TA rejected</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.firstTARejected}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.firstTARejected)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Second TA ratified</dt>
-          <dd style={{ color: 'var(--text-muted)' }}>{record.secondTARatified}</dd>
+          <dd style={{ color: 'var(--text-muted)' }}>{formatDateAbbrevMonth(record.secondTARatified)}</dd>
         </div>
         <div>
           <dt style={{ color: 'var(--text-faint)' }}>Time between</dt>
@@ -110,14 +110,13 @@ function AirlineHistoryModal({ open, onClose }: { open: boolean; onClose: () => 
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }} aria-label="Close modal">×</button>
         </div>
         <div className="overflow-auto px-5 py-4">
-          <AirlineHistoryTable />
+          <AirlineHistoryTable showIncreaseColumn={false} />
           <CalculationBox title="How we get 13.3 months (Average scenario default)">
             <p>{outlierLabel} is treated as an outlier and excluded from the average.</p>
             <p>({dayValues.join(' + ')}) ÷ {carrierCount} = {Math.round(averageDays)} days average</p>
             <p>{Math.round(averageDays)} ÷ 365 × 12 = <strong style={{ color: 'var(--text-base)' }}>{formatArrivalMonths(months)} months</strong></p>
           </CalculationBox>
           <AirlineHistorySources />
-          <AirlineHistoryFootnote />
         </div>
       </div>
     </div>
@@ -160,7 +159,7 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
         onChange={onChange}
         formatValue={(v) => `${v} months`}
         markers={markers}
-        footnote="Click a logo for historical timing details. * FedEx excluded from the 13.3-month industry average as an outlier."
+        footnote="Click a logo to jump the slider to that timeline and see historical details. * FedEx excluded from the 13.3-month industry average as an outlier."
       />
 
       <AirlineHistoryModal open={modalOpen} onClose={() => setModalOpen(false)} />

@@ -3,10 +3,9 @@ import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { NumberInput } from '../shared/NumberInput'
 import { SliderInput } from '../shared/SliderInput'
+import { ScenarioColorCard } from '../shared/ScenarioColorCard'
 import {
   RETENTION_OUTCOME_COLORS,
-  RETENTION_OUTCOME_TITLES,
-  type RetentionOutcomeId,
 } from '../../lib/retentionOutcomes'
 
 const RETENTION_OUTCOMES = [
@@ -36,36 +35,6 @@ function isSliderOutcome(
   outcome: (typeof RETENTION_OUTCOMES)[number],
 ): outcome is SliderRetentionOutcome {
   return 'inputKey' in outcome
-}
-
-function RetentionOutcomeBox({
-  outcomeId,
-  children,
-}: {
-  outcomeId: RetentionOutcomeId
-  children: React.ReactNode
-}) {
-  const color = RETENTION_OUTCOME_COLORS[outcomeId]
-
-  return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}
-    >
-      <div
-        className="flex items-center gap-2 px-4 py-3"
-        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
-      >
-        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-        <span className="font-bold text-sm" style={{ color }}>
-          {RETENTION_OUTCOME_TITLES[outcomeId]}
-        </span>
-      </div>
-      <div className="px-4 py-5">
-        {children}
-      </div>
-    </div>
-  )
 }
 
 function WhyThisMattersCard() {
@@ -132,7 +101,7 @@ export function StepRetention() {
             const color = RETENTION_OUTCOME_COLORS[outcome.key]
 
             return (
-              <RetentionOutcomeBox key={outcome.key} outcomeId={outcome.key}>
+              <ScenarioColorCard key={outcome.key} scenarioId={outcome.key}>
                 {'fixed' in outcome && outcome.fixed ? (
                   <div className="space-y-3">
                     <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -159,7 +128,7 @@ export function StepRetention() {
                     accentColor={color}
                   />
                 ) : null}
-              </RetentionOutcomeBox>
+              </ScenarioColorCard>
             )
           })}
         </div>

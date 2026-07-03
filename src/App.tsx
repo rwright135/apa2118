@@ -1,6 +1,4 @@
-import { useEffect } from 'react'
 import { useStore } from './state/store'
-import { loadFromLocalStorage, decodeFromURL } from './state/persistence'
 
 import { StepWelcome } from './components/wizard/StepWelcome'
 import { StepSeat } from './components/wizard/StepSeat'
@@ -11,6 +9,7 @@ import { StepLineType } from './components/wizard/StepLineType'
 import { StepExtraHours } from './components/wizard/StepExtraHours'
 import { StepDOB } from './components/wizard/StepDOB'
 import { StepProfitSharing } from './components/wizard/StepProfitSharing'
+import { StepScenariosIntro } from './components/wizard/StepScenariosIntro'
 import { StepRetention } from './components/wizard/StepRetention'
 import { StepInvestmentRate } from './components/wizard/StepInvestmentRate'
 import { StepVoteNo } from './components/wizard/StepVoteNo'
@@ -20,20 +19,7 @@ import { ResultsScreen } from './components/results/ResultsScreen'
 import { LoadingScreen } from './components/shared/LoadingScreen'
 
 function App() {
-  const { currentStep, isComputing, setInputs } = useStore()
-
-  // useEffect MUST come before any conditional returns — Rules of Hooks
-  useEffect(() => {
-    const fromURL = decodeFromURL()
-    if (fromURL) {
-      setInputs(fromURL)
-      return
-    }
-    const fromStorage = loadFromLocalStorage()
-    if (fromStorage) {
-      setInputs(fromStorage)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const { currentStep, isComputing } = useStore()
 
   if (isComputing) return <LoadingScreen />
 
@@ -47,8 +33,9 @@ function App() {
     case 'extraHours':   return <StepExtraHours />
     case 'dob':          return <StepDOB />
     case 'profitSharing':return <StepProfitSharing />
-    case 'retention':    return <StepRetention />
     case 'investmentRate':return <StepInvestmentRate />
+    case 'scenariosIntro': return <StepScenariosIntro />
+    case 'retention':    return <StepRetention />
     case 'voteNo':       return <StepVoteNo />
     case 'payRaise':     return <StepPayRaise />
     case 'advanced':     return <StepAdvanced />

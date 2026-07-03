@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ComparisonResult, VoteNoScenario } from '../../lib/types'
+import { useState } from 'react'
+import type { ComparisonResult } from '../../lib/types'
+import { SCENARIO_LABELS } from '../../lib/resultColors'
+import { computeRiskRewardMetrics } from '../../lib/riskReward'
+import { HelpButton } from '../shared/HelpButton'
+import { Assumption, AssumptionsFooter, AssumptionsFootnote, BenchmarkAssumptionsFootnote } from './Assumption'
+import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -9,61 +14,10 @@ function fmt(n: number) {
   return `$${Math.round(n)}`
 }
 
-function fmtAssumptionsFooter(vns: VoteNoScenario) {
-  return `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths}mons | ${(vns.percentAboveTA * 100).toFixed(0)}% Higher | JCBA in ${vns.jcbaDurationMonths}mons`
-}
-
 const RISK_REWARD_HELP = (
-  'Instead of a single expected-value number, these cards show the upside if a second offer arrives, '
-  + 'the downside if it doesn\'t, and whether the potential reward is worth the risk of voting No.'
+  'Instead of a single cumulative expected value number, these cards show the Risk vs. Reward of this binary outcome: '
+  + 'the upside if a second offer arrives vs. the downside if it doesn\'t.'
 )
-
-function HelpButton({ label, helpText }: { label: string; helpText: string }) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-
-  return (
-    <div ref={rootRef} className="relative shrink-0">
-      <button
-        type="button"
-        aria-label={label}
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        className="w-5 h-5 rounded-full text-xs font-bold leading-none transition-colors"
-        style={{
-          color: 'var(--text-faint)',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        ?
-      </button>
-      {open && (
-        <div
-          className="absolute right-0 top-full mt-2 z-20 w-64 rounded-xl px-3 py-2.5 text-xs leading-relaxed shadow-lg"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          {helpText}
-        </div>
-      )}
-    </div>
-  )
-}
 
 function RiskRewardHelp() {
   return <HelpButton label="About this risk vs reward breakdown" helpText={RISK_REWARD_HELP} />
@@ -136,84 +90,89 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
   )
 }
 
-function computeRiskRewardMetrics(result: ComparisonResult) {
-  const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
-  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
-  const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
-  const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
-
-  const bNominalGap =
-    (scenarioB.totalGrossPay + scenarioB.totalProfitSharing + scenarioB.totalRetention) -
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.totalRetention)
-
-  const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
-  const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
-
-  const cWagesShortfall =
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
-
-  const cRetentionForegone = scenarioA.totalRetention
-  const cHeadlineLoss = cWagesShortfall + cRetentionForegone
-
-  const cRetPayoutRow = scenarioC.rows.find(r => r.retentionCashFlow > 0)
-  const cRetPayoutMonths = cRetPayoutRow?.monthIndex ?? (jcba + 2)
-
-  let cRetAccrued = retentionCurrentBalance
-  for (const row of scenarioC.rows) {
-    if (row.monthIndex >= cRetPayoutMonths) break
-    cRetAccrued += row.retentionAccrualNote
-  }
-
-  const cExpectedRetentionPayout = cRetAccrued * pC
-  const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
-
-  return {
-    jcba,
-    arrivalMonths,
-    percentAboveTA,
-    retentionCurrentBalance,
-    pB,
-    pC,
-    bNominalGap,
-    bRetPayoutRow,
-    bRetPayoutMonths,
-    cWagesShortfall,
-    cHeadlineLoss,
-    cNetAfterRetention,
-    cRetAccrued,
-    cExpectedRetentionPayout,
-  }
-}
-
-function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
+function RiskRewardHeadline({
+  result,
+  assumptionScope = 'your',
+}: {
+  result: ComparisonResult
+  assumptionScope?: 'your' | 'these'
+}) {
   const { bNominalGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
   const upsideIsGain = bNominalGap >= 0
   const upsideAmount = fmt(Math.abs(bNominalGap))
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
+  const assumptionLabel = assumptionScope === 'your' ? 'your' : 'these'
+
+  if (!upsideIsGain) {
+    // Voting No doesn't pay off even if the 2nd offer arrives
+    return (
+      <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
+        Based on {assumptionLabel} assumptions, Voting No doesn&apos;t pay off either way:{' '}
+        even with a 2nd offer you&apos;d be{' '}
+        <strong style={{ color: 'var(--negative)' }}>down {upsideAmount}</strong>
+        {cHeadlineLoss > 0 && (
+          <>
+            , and with no offer the loss grows to{' '}
+            <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
+          </>
+        )}
+        .
+      </p>
+    )
+  }
 
   return (
     <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-      If a second offer arrives, you stand to{' '}
-      <strong style={{ color: upsideIsGain ? 'var(--positive)' : 'var(--negative)' }}>
-        {upsideIsGain ? 'gain' : 'lose'} {upsideAmount}
-      </strong>
-      {' '}vs. Voting Yes
+      Based on {assumptionLabel} assumptions, if a second offer arrives, you stand to{' '}
+      <strong style={{ color: 'var(--positive)' }}>gain {upsideAmount}</strong>
       {cHeadlineLoss > 0 ? (
         <>
-          {' '}— but you&apos;re risking{' '}
+          , but you&apos;re risking{' '}
           <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
           {' '}if no offer arrives.
         </>
       ) : (
         <>
-          {' '}— and if no offer arrives, you still come out{' '}
+          , and if no offer arrives, you still come out{' '}
           <strong style={{ color: 'var(--positive)' }}>{riskAmount} ahead</strong>
-          {' '}on nominal pay vs. Voting Yes.
+          {' '}on nominal pay.
         </>
       )}
     </p>
+  )
+}
+
+// ── Mini breakdown tables inside each risk card ───────────────────────────────
+
+function BreakdownRow({ label, value, color, bold }: { label: string; value: string; color?: string; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{label}</span>
+      <span className="text-xs tabular-nums font-semibold" style={{ color: color ?? 'var(--text-base)', fontWeight: bold ? 700 : 600 }}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function CollapsibleBreakdown({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mt-2.5">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 text-xs font-semibold transition-colors"
+        style={{ color: 'var(--accent)' }}
+      >
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3"/>
+        </svg>
+        {open ? 'Hide breakdown' : title}
+      </button>
+      {open && <div className="mt-1.5">{children}</div>}
+    </div>
   )
 }
 
@@ -221,10 +180,12 @@ function RiskRewardBreakdown({
   result,
   collapsible = false,
   defaultExpanded = true,
+  assumptionsFootnote = <AssumptionsFootnote />,
 }: {
   result: ComparisonResult
   collapsible?: boolean
   defaultExpanded?: boolean
+  assumptionsFootnote?: React.ReactNode
 }) {
   const {
     jcba,
@@ -233,9 +194,14 @@ function RiskRewardBreakdown({
     retentionCurrentBalance,
     pB,
     pC,
+    bPayDiff,
+    bPSDiff,
+    bRetDiff,
     bNominalGap,
     bRetPayoutRow,
     bRetPayoutMonths,
+    cPayDiff,
+    cRetentionForegone,
     cWagesShortfall,
     cHeadlineLoss,
     cNetAfterRetention,
@@ -243,24 +209,55 @@ function RiskRewardBreakdown({
     cExpectedRetentionPayout,
   } = computeRiskRewardMetrics(result)
 
+  const bIsPositive = bNominalGap >= 0
+
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
       <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 
           <RiskCard
-            dotColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            dotColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             title="If the second offer arrives"
-            value={<>{bNominalGap >= 0 ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
-            valueColor={bNominalGap >= 0 ? 'var(--positive)' : 'var(--negative)'}
+            value={<>{bIsPositive ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
+            valueColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             collapsible={collapsible}
             defaultExpanded={defaultExpanded}
             body={
               <>
-                If the second offer arrives in {arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''} at {(percentAboveTA * 100).toFixed(0)}% higher, then you will make an additional{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(Math.abs(bNominalGap))}</strong> in pay, profit sharing, and retention between now and JCBA closing in {jcba} months vs. Voting Yes.
-                {bRetPayoutRow && (
-                  <> This number also includes your Retention Bonus payment in {bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''} from now at {Math.round(pB * 100)}% payout probability.</>
+                {bIsPositive ? (
+                  <>
+                    If the second offer arrives in{' '}
+                    <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, you&apos;d collect{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(bNominalGap)} more</strong> in total pay,
+                    profit sharing, and retention through JCBA closing in{' '}
+                    <Assumption>{jcba} months</Assumption> versus Voting Yes.
+                  </>
+                ) : (
+                  <>
+                    Even if the second offer arrives in{' '}
+                    <Assumption>{arrivalMonths} month{arrivalMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{(percentAboveTA * 100).toFixed(0)}% higher</Assumption>, you&apos;d still be{' '}
+                    <strong style={{ color: 'var(--negative)' }}>{fmt(Math.abs(bNominalGap))} behind</strong>{' '}
+                    Voting Yes through JCBA closing in <Assumption>{jcba} months</Assumption>.
+                    The delayed start on a higher rate doesn&apos;t fully overcome the CBA gap in this window.
+                  </>
                 )}
+                {bRetPayoutRow && (
+                  <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+                    {' '}Includes your Retention Bonus at <Assumption>{bRetPayoutMonths} month{bRetPayoutMonths !== 1 ? 's' : ''}</Assumption>{' '}
+                    at <Assumption>{Math.round(pB * 100)}% payout probability</Assumption>.
+                  </span>
+                )}
+                <CollapsibleBreakdown title="Show how this is calculated (nominal)">
+                  <BreakdownRow label="Pay difference (nominal)" value={`${bPayDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPayDiff))}`} color={bPayDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Profit sharing difference (nominal)" value={`${bPSDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPSDiff))}`} color={bPSDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Retention timing difference (nominal)" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Total (nominal, not discounted)" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
+                  <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
+                    All figures are nominal (not present-value discounted). Verify in the month-by-month detail table below.
+                  </p>
+                </CollapsibleBreakdown>
               </>
             }
           />
@@ -275,15 +272,26 @@ function RiskRewardBreakdown({
             body={
               cWagesShortfall > 0
                 ? <>
-                    If the second offer doesn&apos;t arrive and you earn the current CBA rates until the closing of JCBA in {jcba} months, you&apos;d be missing out on{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal wages and profit sharing vs. Voting Yes.
-                    Additionally, you&apos;d delay your lump sum Retention Bonus payment of{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong>.
+                    Staying on CBA rates through JCBA in{' '}
+                    <Assumption>{jcba} months</Assumption> costs{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal pay and profit sharing,
+                    plus the loss of the Voting Yes retention timing (worth{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong> nominally).
+                    The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
+                    <CollapsibleBreakdown title="Show how this is calculated (nominal)">
+                      <BreakdownRow label="Pay + profit sharing shortfall (nominal)" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                      <BreakdownRow label="Vote Yes retention you forgo (nominal)" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
+                      <BreakdownRow label="Gross nominal loss vs. Voting Yes" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
+                      <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
+                        Nominal, not discounted. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card. Verify in the month-by-month detail table.
+                      </p>
+                    </CollapsibleBreakdown>
                   </>
                 : <>
-                    If the second offer doesn&apos;t arrive, CBA pay rates in this scenario keep your earnings competitive vs. Voting Yes.
-                    You&apos;d still delay your lump sum Retention Bonus payment of{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> until JCBA closes in {jcba} months.
+                    CBA pay rates in this scenario keep your earnings competitive through JCBA in{' '}
+                    <Assumption>{jcba} months</Assumption>.
+                    The main cost is delaying your guaranteed retention bonus payment of{' '}
+                    <Assumption>{fmt(retentionCurrentBalance)}</Assumption>.
                   </>
             }
           />
@@ -300,9 +308,11 @@ function RiskRewardBreakdown({
             defaultExpanded={defaultExpanded}
             body={
               <>
-                Your current Retention Bonus of <strong style={{ color: 'var(--text-muted)' }}>{fmt(retentionCurrentBalance)}</strong> will accrue to{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the {jcba}-month JCBA period.
-                At {Math.round(pC * 100)}% payout probability, that lump sum is expected to pay{' '}
+                Your current Retention Bonus of{' '}
+                <Assumption>{fmt(retentionCurrentBalance)}</Assumption> will accrue to{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the{' '}
+                <Assumption>{jcba}-month</Assumption> JCBA period.
+                At <Assumption>{Math.round(pC * 100)}% payout probability</Assumption>, that lump sum is expected to pay{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.
                 {cNetAfterRetention > 0
                   ? <>
@@ -317,6 +327,10 @@ function RiskRewardBreakdown({
             }
           />
           </div>
+
+        <p className="md:col-span-2 xl:col-span-3 px-1 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+          {assumptionsFootnote}
+        </p>
 
         </div>
     </div>
@@ -342,20 +356,13 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-        </span>
+        <AssumptionsFooter vns={result.voteNoScenario} />
       </div>
     </div>
   )
 }
 
 // ── Compact benchmark card (Average / Worst Case) ─────────────────────────────
-
-const BENCHMARK_SCENARIOS = [
-  { label: 'Average', color: '#3b82f6' },
-  { label: 'Worst Case', color: '#ef4444' },
-] as const
 
 function CompactScenarioCard({ result, label, scenarioColor }: { result: ComparisonResult; label: string; scenarioColor: string }) {
   const [expanded, setExpanded] = useState(false)
@@ -396,18 +403,22 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
 
       {expanded ? (
         <>
-          <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+          <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+            <RiskRewardHeadline result={result} assumptionScope="these" />
+          </div>
+          <RiskRewardBreakdown
+            result={result}
+            collapsible
+            defaultExpanded={false}
+            assumptionsFootnote={<BenchmarkAssumptionsFootnote />}
+          />
           <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-            <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-              Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-            </span>
+            <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
           </div>
         </>
       ) : (
         <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-          <span className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            Assumptions: {fmtAssumptionsFooter(result.voteNoScenario)}
-          </span>
+          <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
         </div>
       )}
     </div>
@@ -416,38 +427,33 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
-export function HeroCards({ results }: Props) {
-  const userResult       = results[0]
+/** Your scenario's full risk/reward breakdown. */
+export function UserRiskRewardCard({ results }: Props) {
+  return <SingleScenarioVerdict result={results[0]} />
+}
+
+/** Industry benchmarks (Average, Worst Case) — rendered separately so callers
+ *  can place other cards (e.g. Vegas Odds) between this and the user's card. */
+export function IndustryBenchmarkCards({ results }: Props) {
   const referenceResults = results.slice(1)
+  const { scenarioAverage, scenarioWorst } = useResultChartColors()
+  const benchmarkColors = [scenarioAverage, scenarioWorst]
+
+  if (referenceResults.length === 0) return null
 
   return (
-    <div className="space-y-4">
-      {/* User's scenario — full risk/reward breakdown */}
-      <SingleScenarioVerdict result={userResult} />
-
-      {/* Industry benchmarks (Average, Worst Case) */}
-      {referenceResults.length > 0 && (
-        <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
-            Industry benchmarks
-          </div>
-          {referenceResults.map((result, i) => {
-            const benchmark = BENCHMARK_SCENARIOS[i]
-            return (
-              <CompactScenarioCard
-                key={i}
-                result={result}
-                label={benchmark?.label ?? `Scenario ${i + 2}`}
-                scenarioColor={benchmark?.color ?? 'var(--text-muted)'}
-              />
-            )
-          })}
-        </div>
-      )}
-
-      <p className="text-xs px-1" style={{ color: 'var(--text-faint)' }}>
-        After the JCBA concludes, all paths converge to the same rates — those years cancel out.
-      </p>
+    <div className="space-y-3">
+      <div className="text-xs font-semibold uppercase tracking-wide px-1" style={{ color: 'var(--text-faint)' }}>
+        Industry benchmarks
+      </div>
+      {referenceResults.map((result, i) => (
+          <CompactScenarioCard
+            key={i}
+            result={result}
+            label={SCENARIO_LABELS[i + 1] ?? `Scenario ${i + 2}`}
+            scenarioColor={benchmarkColors[i] ?? scenarioAverage}
+          />
+      ))}
     </div>
   )
 }

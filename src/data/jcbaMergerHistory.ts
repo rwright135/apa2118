@@ -16,7 +16,7 @@ export const JCBA_MERGER_HISTORY: JcbaMergerRecord[] = [
   {
     id: 'alaska-virgin',
     label: 'Alaska / Virgin America',
-    logoSrcs: ['/airlines/alaska.svg', '/airlines/virgin.svg'],
+    logoSrcs: ['/Alaska%20Logo.png', '/Virgin%20Airlines%20Logo.png'],
     mergerClose: 'December 14, 2016',
     jcbaCompletion: 'November 1, 2017',
     completionNote: 'Binding arbitration implementation',
@@ -25,7 +25,7 @@ export const JCBA_MERGER_HISTORY: JcbaMergerRecord[] = [
   {
     id: 'american-usairways',
     label: 'American / US Airways',
-    logoSrcs: ['/airlines/american.svg'],
+    logoSrcs: ['/AA%20Logo.png', '/US%20Airways%20Logo.png'],
     mergerClose: 'December 9, 2013',
     jcbaCompletion: 'January 30, 2015',
     months: 13.7,
@@ -33,7 +33,7 @@ export const JCBA_MERGER_HISTORY: JcbaMergerRecord[] = [
   {
     id: 'united-continental',
     label: 'United / Continental',
-    logoSrcs: ['/airlines/united.svg'],
+    logoSrcs: ['/United%20Airlines%20Logo.png'],
     mergerClose: 'October 1, 2010',
     jcbaCompletion: 'December 15, 2012',
     months: 26.5,
@@ -41,7 +41,7 @@ export const JCBA_MERGER_HISTORY: JcbaMergerRecord[] = [
   {
     id: 'atlas-southern',
     label: 'Atlas Air / Southern Air',
-    logoSrcs: ['/airlines/atlas.svg'],
+    logoSrcs: ['/Atlas%20Air%20Logo.png'],
     mergerClose: 'April 7, 2016',
     jcbaCompletion: 'September 10, 2021',
     completionNote: 'Binding arbitration implementation',
@@ -68,7 +68,6 @@ export const JCBA_AVERAGE_MATH = {
 
 export const JCBA_SUMMARY_STATS = {
   average: 29.0,
-  median: 20.1,
   shortest: 10.6,
   longest: 65.1,
 }

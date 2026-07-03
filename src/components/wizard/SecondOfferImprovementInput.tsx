@@ -105,7 +105,7 @@ function EconomicIncreaseModal({ open, onClose }: { open: boolean; onClose: () =
         </div>
 
         <div className="overflow-auto px-5 py-4">
-          <AirlineHistoryTable />
+          <AirlineHistoryTable showTimeBetweenColumn={false} />
 
           <CalculationBox title="How we get 13.5% (Average scenario default)">
             <p>{unitedMidpointNote}.</p>

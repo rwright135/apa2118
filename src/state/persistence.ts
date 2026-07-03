@@ -96,6 +96,57 @@ export function clearLocalStorage(): void {
   }
 }
 
+/** Strip the shared-link `?d=` param from the address bar without a navigation. */
+function clearURLParam(): void {
+  try {
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has(URL_PARAM)) return
+    url.searchParams.delete(URL_PARAM)
+    window.history.replaceState(null, '', url.toString())
+  } catch {
+    // history API may be unavailable (e.g. some sandboxed iframes)
+  }
+}
+
+function clearSessionStorage(): void {
+  try {
+    sessionStorage.clear()
+  } catch {
+    // sessionStorage may be unavailable
+  }
+}
+
+/** Best-effort clear of any cookies scoped to this page — the app itself sets
+ *  none, but third-party embeds/analytics loaded on the page might. */
+function clearCookies(): void {
+  try {
+    if (!document.cookie) return
+    for (const cookie of document.cookie.split(';')) {
+      const name = cookie.split('=')[0]?.trim()
+      if (!name) continue
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+    }
+  } catch {
+    // document.cookie may be unavailable (e.g. sandboxed iframe)
+  }
+}
+
+/**
+ * Full "hard reset" — clears every place a previous session could be hiding:
+ * the app's localStorage key, any lingering `?d=` share-link param in the
+ * URL bar, sessionStorage, and cookies. Clearing localStorage alone isn't
+ * enough: if the page was opened from (or a Share link later populated) a
+ * `?d=` URL, that encoded state survives a soft in-app reset and silently
+ * re-hydrates the wizard on the next reload — which looks like "reset
+ * randomly stops working" to a user.
+ */
+export function clearAllStoredData(): void {
+  clearLocalStorage()
+  clearURLParam()
+  clearSessionStorage()
+  clearCookies()
+}
+
 export function loadFromLocalStorage(): Partial<UserInputs> | null {
   try {
     const json = localStorage.getItem(STORAGE_KEY)

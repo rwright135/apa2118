@@ -17,6 +17,14 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
   const contentSteps = WIZARD_STEPS.filter(s => s !== 'welcome' && s !== 'results')
   const contentIndex = contentSteps.indexOf(step as typeof contentSteps[number])
 
+  // A full reload (rather than an in-memory state reset) guarantees every
+  // pending timer, debounced input, and stray component ref is torn down —
+  // this is what makes "Restart" reliable every time, not just the first time.
+  const handleRestart = () => {
+    reset()
+    window.location.reload()
+  }
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [step])
@@ -57,7 +65,7 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
         </span>
 
         <button
-          onClick={reset}
+          onClick={handleRestart}
           className="p-1 rounded-lg transition-colors"
           style={{ color: 'var(--text-muted)' }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-base)')}

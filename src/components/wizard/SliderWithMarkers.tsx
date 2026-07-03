@@ -26,7 +26,12 @@ interface Props {
 const CHIP = 32
 const GAP  = 4
 const ROW_H = CHIP + 6
-const TRACK_GAP = 16   // px clearance between slider thumb and first chip row
+// Clearance between the slider track/thumb and the first chip row. Native
+// range-input thumbs render at very different sizes across browsers (Chrome
+// desktop's is compact, but iOS Safari and Android Chrome render noticeably
+// taller thumbs) — this needs enough headroom that the thumb never overlaps
+// the logo chips on any of them, including on narrow mobile widths.
+const TRACK_GAP = 30
 
 function monthToPct(months: number, min: number, max: number) {
   return ((months - min) / (max - min)) * 100
@@ -139,18 +144,41 @@ function ClusterModal({
   )
 }
 
+function TrackTick({ months, min, max }: { months: number; min: number; max: number }) {
+  const left = monthToPct(months, min, max)
+  return (
+    <div
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        left: `${left}%`,
+        top: '1px',
+        width: '6px',
+        height: '6px',
+        zIndex: 15,
+        transform: 'translateX(-50%)',
+        background: 'var(--text-faint)',
+        border: '1px solid var(--bg-surface)',
+      }}
+    />
+  )
+}
+
 function ClusterChip({
   cluster,
   min,
   max,
+  step,
   isActive,
   onOpen,
+  onJump,
 }: {
   cluster: { members: MarkerRecord[]; avgMonths: number }
   min: number
   max: number
+  step: number
   isActive: boolean
   onOpen: (id: string) => void
+  onJump: (months: number) => void
 }) {
   const multi = cluster.members.length > 1
   const chipW = multi ? cluster.members.length * (CHIP - 4) + (cluster.members.length - 1) * 2 + 8 : CHIP
@@ -165,7 +193,11 @@ function ClusterChip({
       <div className="pointer-events-auto">
         <button
           type="button"
-          onClick={() => onOpen(clusterId)}
+          onClick={() => {
+            const snapped = Math.min(max, Math.max(min, Math.round(cluster.avgMonths / step) * step))
+            onJump(snapped)
+            onOpen(clusterId)
+          }}
           className="flex items-center justify-center gap-0.5 rounded-lg transition-all hover:scale-110 hover:shadow-md focus:outline-none"
           style={{
             width: `${chipW}px`,
@@ -175,7 +207,7 @@ function ClusterChip({
             boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
             padding: '3px',
           }}
-          aria-label={`${cluster.members.map((m) => m.label).join(' & ')} — click for details`}
+          aria-label={`${cluster.members.map((m) => m.label).join(' & ')} — jump slider here and view details`}
         >
           {cluster.members.map((m) => (
             <img
@@ -193,7 +225,7 @@ function ClusterChip({
           ))}
           {multi && (
             <span
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+              className="absolute -bottom-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
               style={{ background: 'var(--gold)', color: '#000' }}
             >
               {cluster.members.length}
@@ -258,6 +290,15 @@ export function SliderWithMarkers({
           style={{ background: 'var(--bg-elevated)', accentColor: 'var(--gold)' }}
         />
 
+        {clusters.map((cluster) => (
+          <TrackTick
+            key={`tick-${cluster.members.map((m) => m.id).join('+')}`}
+            months={cluster.avgMonths}
+            min={min}
+            max={max}
+          />
+        ))}
+
         {clusters.map((cluster) => {
           const clusterId = cluster.members.map((m) => m.id).join('+')
           return (
@@ -266,8 +307,10 @@ export function SliderWithMarkers({
               cluster={cluster}
               min={min}
               max={max}
+              step={step}
               isActive={activeClusterId === clusterId}
               onOpen={setActiveClusterId}
+              onJump={onChange}
             />
           )
         })}

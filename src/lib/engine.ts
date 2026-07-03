@@ -273,6 +273,10 @@ export function buildMonthlyStream(
     let retentionAccrualNote = 0
 
     if (scenarioId === 'A') {
+      if (m < retentionPayoutMonth) {
+        const accrualRate = getRate(effectiveSeat, longevity, 'CBA')
+        retentionAccrualNote = getMonthlyRetentionAccrual(accrualRate)
+      }
       if (m === retentionPayoutMonth) {
         retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
