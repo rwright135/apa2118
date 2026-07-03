@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { ComparisonResult } from '../../lib/types'
 import { computeBettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption } from './Assumption'
 
 interface Props { results: ComparisonResult[] }
 
@@ -115,10 +114,9 @@ function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResu
 
       {/* The bet */}
       <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          The bet: risk <strong style={{ color: 'var(--text-base)' }}>{fmt(Math.abs(odds.risk))}</strong> to win{' '}
-          <strong style={{ color: 'var(--text-base)' }}>{fmt(Math.abs(odds.reward))}</strong> on a{' '}
-          <Assumption>{Math.round(odds.probability * 100)}% chance</Assumption> the 2nd offer arrives.
+        <p className="text-xs leading-relaxed text-center" style={{ color: 'var(--text-muted)' }}>
+          Risking <strong style={{ color: 'var(--negative)' }}>{fmt(Math.abs(odds.risk))}</strong> to win{' '}
+          <strong style={{ color: 'var(--positive)' }}>{fmt(Math.abs(odds.reward))}</strong>
         </p>
       </div>
     </div>
