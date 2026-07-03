@@ -199,6 +199,8 @@ function RiskRewardBreakdown({
     bPSDiff,
     bRetDiff,
     bNominalGap,
+    bPayPlusPS_waiting,
+    bPayPlusPS_afterOffer,
     bRetPayoutRow,
     bRetPayoutMonths,
     cPayDiff,
@@ -253,12 +255,20 @@ function RiskRewardBreakdown({
                   </span>
                 )}
                 <CollapsibleBreakdown title="Show how this is calculated (nominal)">
-                  <BreakdownRow label="Pay difference (nominal)" value={`${bPayDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPayDiff))}`} color={bPayDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
-                  <BreakdownRow label="Profit sharing difference (nominal)" value={`${bPSDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bPSDiff))}`} color={bPSDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow
+                    label={`Pay + PS lost waiting (months 1–${arrivalMonths})`}
+                    value={`${bPayPlusPS_waiting >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_waiting))}`}
+                    color={bPayPlusPS_waiting >= 0 ? 'var(--positive)' : 'var(--negative)'}
+                  />
+                  <BreakdownRow
+                    label={`Pay + PS gained after offer (months ${arrivalMonths + 1}–${jcba})`}
+                    value={`${bPayPlusPS_afterOffer >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_afterOffer))}`}
+                    color={bPayPlusPS_afterOffer >= 0 ? 'var(--positive)' : 'var(--negative)'}
+                  />
                   <BreakdownRow label="Retention timing difference (nominal)" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
                   <BreakdownRow label="Total (nominal, not discounted)" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
                   <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                    All figures are nominal (not present-value discounted). Verify in the month-by-month detail table below.
+                    Pay + PS combined by phase. Nominal (not discounted). Verify in the month-by-month detail table below.
                   </p>
                 </CollapsibleBreakdown>
               </>

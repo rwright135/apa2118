@@ -19,6 +19,23 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const bRetDiff  = scenarioB.totalRetention     - scenarioA.totalRetention
   const bNominalGap = bPayDiff + bPSDiff + bRetDiff
 
+  // Split the pay+PS difference into two phases for the breakdown:
+  //   1. Waiting period (months 0 → arrivalMonths): B is on CBA, A is on TA — always a loss
+  //   2. After offer (months arrivalMonths → jcba): B is on bridged TA (above A) — should be a gain
+  const rowsA = scenarioA.rows
+  let bPayPlusPS_waiting = 0
+  let bPayPlusPS_afterOffer = 0
+  for (const rowB of scenarioB.rows) {
+    if (rowB.monthIndex >= jcba) break
+    const rowA = rowsA[rowB.monthIndex]
+    const diff = (rowB.grossPay + rowB.profitSharingCash) - (rowA.grossPay + rowA.profitSharingCash)
+    if (rowB.monthIndex < arrivalMonths) {
+      bPayPlusPS_waiting += diff
+    } else {
+      bPayPlusPS_afterOffer += diff
+    }
+  }
+
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
@@ -56,6 +73,8 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     bPSDiff,
     bRetDiff,
     bNominalGap,
+    bPayPlusPS_waiting,
+    bPayPlusPS_afterOffer,
     bRetPayoutRow,
     bRetPayoutMonths,
     // Scenario C vs A breakdown (all nominal)
