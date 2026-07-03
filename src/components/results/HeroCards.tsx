@@ -192,6 +192,7 @@ function RiskRewardBreakdown({
     arrivalMonths,
     percentAboveTA,
     retentionCurrentBalance,
+    investmentRate,
     pB,
     pC,
     bPayDiff,
@@ -207,6 +208,8 @@ function RiskRewardBreakdown({
     cNetAfterRetention,
     cRetAccrued,
     cExpectedRetentionPayout,
+    cExpectedRetentionPayoutPV,
+    cRetPayoutMonths,
   } = computeRiskRewardMetrics(result)
 
   const bIsPositive = bNominalGap >= 0
@@ -313,7 +316,10 @@ function RiskRewardBreakdown({
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetAccrued)}</strong> during the{' '}
                 <Assumption>{jcba}-month</Assumption> JCBA period.
                 At <Assumption>{Math.round(pC * 100)}% payout probability</Assumption>, that lump sum is expected to pay{' '}
-                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.{' '}
+                Discounted back <Assumption>{cRetPayoutMonths} months</Assumption> at{' '}
+                <Assumption>{Math.round(investmentRate * 100)}%</Assumption>, that payout is worth{' '}
+                <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayoutPV)}</strong> in today&apos;s dollars.
                 {cNetAfterRetention > 0
                   ? <>
                       {' '}So while the retention bonus will make you partially whole, you&apos;d still be roughly{' '}

@@ -1,4 +1,5 @@
 import type { ComparisonResult } from './types'
+import { discountFactor } from './engine'
 
 /**
  * Core risk/reward metrics shared by the results screen's headline cards and
@@ -11,6 +12,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
   const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
+  const investmentRate = result.inputs.investmentRate
 
   const bPayDiff  = scenarioB.totalGrossPay     - scenarioA.totalGrossPay
   const bPSDiff   = scenarioB.totalProfitSharing - scenarioA.totalProfitSharing
@@ -37,6 +39,8 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   }
 
   const cExpectedRetentionPayout = cRetAccrued * pC
+  // Present value of the expected retention payout, discounted from its payout date back to today
+  const cExpectedRetentionPayoutPV = cExpectedRetentionPayout * discountFactor(investmentRate, cRetPayoutMonths)
   const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
 
   return {
@@ -44,6 +48,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     arrivalMonths,
     percentAboveTA,
     retentionCurrentBalance,
+    investmentRate,
     pB,
     pC,
     // Scenario B vs A breakdown (all nominal)
@@ -61,5 +66,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     cNetAfterRetention,
     cRetAccrued,
     cExpectedRetentionPayout,
+    cExpectedRetentionPayoutPV,
+    cRetPayoutMonths,
   }
 }
