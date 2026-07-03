@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ComparisonResult } from '../../lib/types'
-import { computeBettingOdds, type BettingOdds } from '../../lib/bettingOdds'
+import { computeBettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
 import { Assumption } from './Assumption'
 
@@ -50,55 +50,6 @@ function TeamCrest({ src, fallbackLabel, accent }: { src: string; fallbackLabel:
   )
 }
 
-// ── Verdict banner ────────────────────────────────────────────────────────────
-
-const VERDICT_COPY: Record<BettingOdds['verdict'], { label: string; text: (o: BettingOdds) => string; color: string; bg: string }> = {
-  lock: {
-    label: 'FREE ROLL',
-    text: () => 'There\'s no real downside here. Even in the worst case, Voting No comes out ahead of Voting Yes.',
-    color: 'var(--positive)',
-    bg: 'rgba(34,197,94,0.08)',
-  },
-  trap: {
-    label: 'BAD BEAT',
-    text: () => 'Even if the 2nd offer arrives, Voting No doesn\'t pay off. There\'s no upside worth betting on.',
-    color: 'var(--negative)',
-    bg: 'rgba(239,68,68,0.08)',
-  },
-  value: {
-    label: 'VALUE BET',
-    text: (o) => {
-      const assumed = Math.round(o.probability * 100)
-      const needed = o.breakeven !== null ? Math.round(o.breakeven * 100) : null
-      if (needed !== null) {
-        return `You assume a ${assumed}% chance of a 2nd offer, above the ~${needed}% needed for Voting No to break even. Vegas would take this bet.`
-      }
-      return `Your assumed odds beat the break-even line by ${Math.round(o.edgePoints ?? 0)} points. Vegas would take this bet.`
-    },
-    color: 'var(--positive)',
-    bg: 'rgba(34,197,94,0.08)',
-  },
-  longshot: {
-    label: 'LONG SHOT',
-    text: (o) => {
-      const assumed = Math.round(o.probability * 100)
-      const needed = o.breakeven !== null ? Math.round(o.breakeven * 100) : null
-      if (needed !== null) {
-        return `You assume a ${assumed}% chance of a 2nd offer. Voting No needs about a ${needed}% chance to break even. The math favors Voting Yes.`
-      }
-      return `Your assumed odds fall ${Math.round(Math.abs(o.edgePoints ?? 0))} points short of break-even. The math favors Voting Yes.`
-    },
-    color: 'var(--warning)',
-    bg: 'rgba(245,158,11,0.08)',
-  },
-  coinflip: {
-    label: 'COIN FLIP',
-    text: () => 'This bet is close to break-even. Reasonable people could call it either way.',
-    color: 'var(--text-muted)',
-    bg: 'var(--bg-elevated)',
-  },
-}
-
 // ── Explanation callout ───────────────────────────────────────────────────────
 
 function HowToReadThis() {
@@ -112,7 +63,7 @@ function HowToReadThis() {
         The moneyline below is just a different way of showing the dollar risk and reward above — like a
         sportsbook price, it&apos;s set by the payout, not by how likely you think a second offer is. A big
         negative number means you&apos;d be risking a lot to win a little, a bad price no matter how
-        confident you feel.         Compare your assumed chance of a 2nd offer to what Voting No would need to break even: if yours
+        confident you feel. Compare your assumed chance of a 2nd offer to what Voting No would need to break even: if yours
         is higher, the math says Voting No is worth the bet.
       </span>
     </div>
@@ -121,7 +72,6 @@ function HowToReadThis() {
 
 function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResult; showTeamCrests: boolean }) {
   const odds = computeBettingOdds(result)
-  const verdict = VERDICT_COPY[odds.verdict]
 
   return (
     <div className="space-y-4">
@@ -171,19 +121,6 @@ function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResu
           <strong style={{ color: 'var(--text-base)' }}>{fmt(Math.abs(odds.reward))}</strong> on a{' '}
           <Assumption>{Math.round(odds.probability * 100)}% chance</Assumption> the 2nd offer arrives.
         </p>
-      </div>
-
-      {/* Verdict */}
-      <div
-        className="rounded-lg px-3 py-2.5 flex items-start gap-2"
-        style={{ background: verdict.bg, border: `1px solid ${verdict.color}` }}
-      >
-        <span className="text-xs font-black uppercase tracking-wide shrink-0" style={{ color: verdict.color }}>
-          {verdict.label}
-        </span>
-        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          {verdict.text(odds)}
-        </span>
       </div>
     </div>
   )
