@@ -138,7 +138,7 @@ export function StepPayRaise() {
               <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--text-faint)' }}>Rate</th>
               <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--positive)' }}>Monthly Raise</th>
               {pct > 0 && (
-                <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--gold)' }}>Saved/Mo</th>
+                <th className="px-4 py-2.5 text-right text-xs font-medium" style={{ color: 'var(--gold)' }}>Savings/mon</th>
               )}
             </tr>
           </thead>
