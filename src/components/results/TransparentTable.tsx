@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
 import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
-import * as XLSX from 'xlsx'
 
 interface Props { results: ComparisonResult[] }
 
@@ -180,7 +179,8 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
   }))
 }
 
-function exportToXLSX(result: ComparisonResult) {
+async function exportToXLSX(result: ComparisonResult) {
+  const XLSX = await import('xlsx')
   const p = result.voteNoScenario.probability
   const jcba = result.voteNoScenario.jcbaDurationMonths
 
