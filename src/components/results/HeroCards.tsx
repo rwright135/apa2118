@@ -293,7 +293,7 @@ function RiskRewardBreakdown({
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
                     <CollapsibleBreakdown title="Show how this is calculated (nominal)">
                       <BreakdownRow label="Pay + profit sharing shortfall (nominal)" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
-                      <BreakdownRow label="Vote Yes retention you forgo (nominal)" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
+                      <BreakdownRow label="Retention Bonus" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
                       <BreakdownRow label="Gross nominal loss vs. Voting Yes" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
                       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
                         Nominal, not discounted. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card. Verify in the month-by-month detail table.
