@@ -24,10 +24,10 @@ export function StepAdvanced() {
       title="Post-JCBA Pay Assumptions"
       subtitle={
         <>
-          Ratifying any bridge agreement — this offer or a future one — gives the negotiating
+          Ratifying any bridge agreement, whether this offer or a future one, gives the negotiating
           committee a stronger position: JCBA rates land {upliftPct}% above whatever deal you
-          ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead —
-          you estimate how much lower that outcome lands below Vote Yes.
+          ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead.
+          You estimate how much lower that outcome lands below Vote Yes.
         </>
       }
       onBack={prevStep}
