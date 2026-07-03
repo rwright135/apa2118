@@ -60,11 +60,10 @@ function HowToReadThis() {
     >
       <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
       <span style={{ color: 'var(--text-muted)' }}>
-        The moneyline below is just a different way of showing the dollar risk and reward above — like a
-        sportsbook price, it&apos;s set by the payout, not by how likely you think a second offer is. A big
-        negative number means you&apos;d be risking a lot to win a little, a bad price no matter how
-        confident you feel. Compare your assumed chance of a 2nd offer to what Voting No would need to break even: if yours
-        is higher, the math says Voting No is worth the bet.
+        The money line below is just a different way of showing the dollar risk and reward. On a sports book,
+        the money line pricing is set by the payout. A big negative number means you&apos;re risking a lot to win
+        a little. In Vegas, if the odds of picking Team A are -200, you&apos;d have to wager $200 to win $100. On
+        the contrary, underdog teams may pay out +200, meaning you&apos;d be betting $100 to win $200.
       </span>
     </div>
   )
