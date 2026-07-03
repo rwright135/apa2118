@@ -11,7 +11,18 @@ function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionCashFlow' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
+/** Monthly RB accrual (rate × 85 hrs × 35%) or payout lump when applicable. */
+function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boolean } {
+  if (row.retentionCashFlow > 0.01) {
+    return { amount: row.retentionCashFlow, isPayout: true }
+  }
+  if (row.retentionAccrualNote > 0.01) {
+    return { amount: row.retentionAccrualNote, isPayout: false }
+  }
+  return { amount: 0, isPayout: false }
+}
+
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
@@ -162,7 +173,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
     'Gross Pay':        Math.round(r.grossPay * weight),
     '401k Contrib':     Math.round(r.k401Contribution * weight),
     'Profit Share':     Math.round(r.profitSharingCash * weight),
-    'Retention':        Math.round(r.retentionCashFlow * weight),
+    'Retention Accrual': Math.round((r.retentionCashFlow > 0.01 ? r.retentionCashFlow : r.retentionAccrualNote) * weight),
     'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
     'Present Value':    Math.round(r.presentValue * weight),
     'Cumulative PV':    Math.round(r.cumulativePV * weight),
@@ -264,7 +275,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'grossPay',             label: 'Gross Pay' },
     { key: 'k401Contribution',     label: '401(k) contrib' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
-    { key: 'retentionCashFlow',    label: 'Retention' },
+    { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'brokerageSavingsCash', label: 'Brokerage', gold: true, voteYesOnly: false },
     { key: 'presentValue',         label: 'PV', gold: true },
     { key: 'cumulativePV',         label: 'Cum. Total PV', gold: true },
@@ -364,6 +375,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
                   {col.key === 'brokerageSavingsCash' ? (
                     <span title="Fraction of your raise saved to a brokerage account, compounded to retirement">💼 {col.label}</span>
+                  ) : col.key === 'retentionAccrual' ? (
+                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
                   ) : col.label}
                 </th>
               ))}
@@ -430,6 +443,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
                     {columns.map(col => {
+                      if (col.key === 'retentionAccrual') {
+                        const { amount, isPayout } = getRetentionTableCell(row)
+                        const val = amount * weight
+                        return (
+                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
+                            style={{
+                              color: isPayout ? 'var(--positive)' : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
+                              fontWeight: isPayout ? 600 : 400,
+                            }}
+                          >
+                            {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+                          </td>
+                        )
+                      }
                       const raw = (row as unknown as Record<string, number>)[col.key]
                       const val = raw * weight
                       return (

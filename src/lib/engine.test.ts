@@ -146,6 +146,15 @@ describe('buildMonthlyStream - Scenario A', () => {
     const oct2026 = rows.find(r => r.year === 2026 && r.month === 9)
     expect(oct2026!.retentionCashFlow).toBe(50000)
   })
+
+  it('accrues RB at 85 fixed hours before payout, independent of monthly hours', () => {
+    const inputs = makeInputs({ extraHoursAboveMMG: 0 })
+    const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
+    const jul2026 = rows[0]
+    const expected = getMonthlyRetentionAccrual(getRate('FO', 4, 'CBA'))
+    expect(jul2026.retentionAccrualNote).toBeCloseTo(expected, 2)
+    expect(jul2026.totalHours).toBe(70)
+  })
 })
 
 describe('buildMonthlyStream - Scenario C', () => {

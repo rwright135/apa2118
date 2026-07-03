@@ -64,6 +64,8 @@ export function buildAllScenarios(inputs: UserInputs, scenarioOverride?: VoteNoS
       k401Contribution: rowB.k401Contribution * p + rowC.k401Contribution * (1 - p),
       profitSharingCash: rowB.profitSharingCash * p + rowC.profitSharingCash * (1 - p),
       retentionCashFlow: rowB.retentionCashFlow * p + rowC.retentionCashFlow * (1 - p),
+      retentionAccrualNote: rowB.retentionAccrualNote * p + rowC.retentionAccrualNote * (1 - p),
+      retentionAtRetirement: rowB.retentionAtRetirement * p + rowC.retentionAtRetirement * (1 - p),
       presentValue:     rowB.presentValue     * p + rowC.presentValue     * (1 - p),
       presentValue401k: rowB.presentValue401k * p + rowC.presentValue401k * (1 - p),
       cumulativePV:     rowB.cumulativePV     * p + rowC.cumulativePV     * (1 - p),
