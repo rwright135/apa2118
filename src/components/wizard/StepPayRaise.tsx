@@ -36,6 +36,7 @@ function fmtRate(n: number) {
 
 interface TierRow {
   label: string
+  dosLabel?: string
   sublabel: string
   rate: number
   raiseDollarsPerHr: number
@@ -63,28 +64,32 @@ export function StepPayRaise() {
 
   const tiers: TierRow[] = [
     {
-      label: 'Current (CBA)',
+      label: 'Current',
+      dosLabel: '(CBA)',
       sublabel: 'What you earn today',
       rate: cbaRate,
       raiseDollarsPerHr: 0,
       raiseMonthly: 0,
     },
     {
-      label: 'Jul 2026 (DOS)',
+      label: 'Jul 2026',
+      dosLabel: '(DOS)',
       sublabel: 'Effective July 1 · includes back pay',
       rate: dosRate,
       raiseDollarsPerHr: dosRate - cbaRate,
       raiseMonthly: (dosRate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2027 (DOS+6 Months)',
+      label: 'Jan 2027',
+      dosLabel: '(DOS+6 Months)',
       sublabel: `Longevity year ${lonAt2027}`,
       rate: jan27Rate,
       raiseDollarsPerHr: jan27Rate - cbaRate,
       raiseMonthly: (jan27Rate - cbaRate) * mmg,
     },
     {
-      label: 'Jan 2028 (DOS+18 Months)',
+      label: 'Jan 2028',
+      dosLabel: '(DOS+18 Months)',
       sublabel: `Longevity year ${lonAt2028} · final tier`,
       rate: jan28Rate,
       raiseDollarsPerHr: jan28Rate - cbaRate,
@@ -155,8 +160,13 @@ export function StepPayRaise() {
                   }}
                 >
                   <td className="px-4 py-3">
-                    <div className="font-semibold leading-snug" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
+                    <div className="font-semibold leading-snug whitespace-nowrap" style={{ color: isCurrent ? 'var(--text-muted)' : 'var(--text-base)' }}>
                       {tier.label}
+                      {tier.dosLabel && (
+                        <span className="text-[10px] sm:text-xs font-normal ml-0.5" style={{ color: 'var(--text-faint)' }}>
+                          {tier.dosLabel}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
