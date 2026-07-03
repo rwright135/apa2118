@@ -44,8 +44,8 @@ export function StepAdvanced() {
           <ScenarioColorCard scenarioId="B">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = bridge offer rates +{' '}
-              {upliftPct}%. Since the bridge offer already beats TA, the JCBA starting point is even higher
-              — compounding the advantage.
+              {upliftPct}%. Since the bridge offer already beats TA, the JCBA starting point is even higher,
+              compounding the advantage.
             </p>
           </ScenarioColorCard>
 
