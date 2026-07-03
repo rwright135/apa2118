@@ -135,10 +135,9 @@ function JcbaHistoryModal({ open, onClose }: { open: boolean; onClose: () => voi
             <p>({monthValues.map(formatTimelineMonths).join(' + ')}) ÷ {carrierCount} = <strong style={{ color: 'var(--text-base)' }}>{formatTimelineMonths(months)} months</strong></p>
           </CalculationBox>
 
-          <div className="rounded-xl p-4 mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+          <div className="rounded-xl p-4 mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
             {([
               ['Average (all 4)', JCBA_SUMMARY_STATS.average],
-              ['Median', JCBA_SUMMARY_STATS.median],
               ['Shortest', JCBA_SUMMARY_STATS.shortest],
               ['Longest', JCBA_SUMMARY_STATS.longest],
             ] as const).map(([label, val]) => (

@@ -68,7 +68,6 @@ export const JCBA_AVERAGE_MATH = {
 
 export const JCBA_SUMMARY_STATS = {
   average: 29.0,
-  median: 20.1,
   shortest: 10.6,
   longest: 65.1,
 }
