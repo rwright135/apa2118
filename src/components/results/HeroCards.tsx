@@ -287,14 +287,14 @@ function RiskRewardBreakdown({
                 ? <>
                     Staying on CBA rates through JCBA in{' '}
                     <Assumption>{jcba} months</Assumption> costs{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in nominal pay and profit sharing,
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay and profit sharing,
                     plus the loss of the Voting Yes retention timing (worth{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong> nominally).
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>).
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
-                    <CollapsibleBreakdown title="Show how this is calculated (nominal)">
-                      <BreakdownRow label="Pay + profit sharing shortfall (nominal)" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                    <CollapsibleBreakdown title="Show how this is calculated">
+                      <BreakdownRow label="Pay + profit sharing shortfall" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
                       <BreakdownRow label="Retention Bonus" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
-                      <BreakdownRow label="Gross nominal loss vs. Voting Yes" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
+                      <BreakdownRow label="Total Nominal Value" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
                       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
                         Nominal, not discounted. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card. Verify in the month-by-month detail table.
                       </p>
