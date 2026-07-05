@@ -120,7 +120,7 @@ export function StepPayRaise() {
   return (
     <WizardLayout
       step="payRaise"
-      title="Investing your Bridge Agreement Pay Raise"
+      title="Investing your Pay Raise"
       subtitle="How much of your raise will you invest? Saved to a brokerage account and compounded to retirement."
       onBack={prevStep}
     >
