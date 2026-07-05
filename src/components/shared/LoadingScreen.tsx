@@ -62,7 +62,7 @@ export function LoadingScreen() {
           }}
         />
         <img
-          src="/APA Teamsters Local 2118 Logo.png"
+          src="/APA Teamsters Local 2118 Logo.webp"
           alt="APA Teamsters Local 2118"
           style={{
             width: 120,

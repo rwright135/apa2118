@@ -45,7 +45,7 @@ export function ResultsScreen() {
 
           <div className="flex items-center gap-1">
             <img
-              src="/APA Teamsters Local 2118 Logo.png"
+              src="/APA Teamsters Local 2118 Logo.webp"
               alt=""
               className="w-6 h-6 object-contain opacity-80"
               onError={(e) => { e.currentTarget.src = '/teamsters-logo.svg'; e.currentTarget.onerror = null }}
