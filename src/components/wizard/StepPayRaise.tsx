@@ -121,7 +121,7 @@ export function StepPayRaise() {
     <WizardLayout
       step="payRaise"
       title="Investing your Pay Raise"
-      subtitle="How much of your raise will you invest? Saved to a brokerage account and compounded to retirement."
+      subtitle="Whether you vote Yes on this proposal or No and accept a later one, you'll earn more during the interim period before a JCBA is concluded. How much of that raise will you save or invest? You don't have to put it in the stock market — but if you're not planning to set any aside, you're assuming you'll spend every dollar of it."
       onBack={prevStep}
     >
       <SliderInput
