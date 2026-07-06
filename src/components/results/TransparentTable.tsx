@@ -305,15 +305,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // Compute the post-JCBA multiplier for this scenario to show in the banner
   const penalty = result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15
   const vns = result.voteNoScenario
-  const postJcbaMultiplier =
-    activeTab === 'YES' ? 1 + 0.20
-    : activeTab === 'B' || activeTab === 'NO' ? (1 + vns.percentAboveTA) * 1.20
-    : (1 + 0.20) * (1 - penalty)
+  const upliftPct = Math.round(0.20 * 100)
+  const penaltyPct = Math.round(penalty * 100)
   const postJcbaLabel =
-    activeTab === 'YES' ? `TA × 1.20 (+20%)`
-    : activeTab === 'B' ? `Bridge offer × 1.20 (~${Math.round(postJcbaMultiplier * 100)}% of TA)`
-    : activeTab === 'NO' ? `Blended (Offer/JCBA weighted)`
-    : `TA × 1.20 × (1−${Math.round(penalty * 100)}%) = ${Math.round(postJcbaMultiplier * 100)}% of TA`
+    activeTab === 'YES' ? `TA+${upliftPct}%`
+    : activeTab === 'B' ? `Offer+${upliftPct}%`
+    : activeTab === 'NO' ? 'Blended'
+    : `TA+${Math.round(upliftPct * (1 - penalty))}%`
 
   const allTableRows = [...preJcbaRows, ...postJcbaRows]
 
@@ -613,7 +611,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   {isJcbaBoundary && (
                     <tr key={`jcba-${i}`} style={{ background: 'rgba(34,197,94,0.08)', borderTop: '2px solid rgba(34,197,94,0.4)' }}>
                       <td colSpan={15} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
-                        ── JCBA ratified (month {jcbaMonth}) — post-JCBA rates apply: {postJcbaLabel} ──
+                        JCBA Ratified (Month {jcbaMonth}) Post-JCBA Rate: {postJcbaLabel}
                       </td>
                     </tr>
                   )}
