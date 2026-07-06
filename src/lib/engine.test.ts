@@ -154,7 +154,11 @@ describe('buildMonthlyStream - Scenario A', () => {
     // Vote Yes ratifies the TA immediately, so the RB program is frozen at the
     // pre-existing balance for every month — no monthly accrual ever occurs.
     expect(rows.every(r => r.retentionAccrualNote === 0)).toBe(true)
-    expect(rows.every(r => r.retentionRunningBalance === 50000)).toBe(true)
+    // Payout is Oct 2026 = month index 3. Balance shows the frozen total up to
+    // and including the payout month, then drops to $0 — it's already been paid.
+    const payoutMonth = rows.find(r => r.retentionCashFlow > 0)!.monthIndex
+    expect(rows.filter(r => r.monthIndex <= payoutMonth).every(r => r.retentionRunningBalance === 50000)).toBe(true)
+    expect(rows.filter(r => r.monthIndex > payoutMonth).every(r => r.retentionRunningBalance === 0)).toBe(true)
   })
 })
 
@@ -220,6 +224,10 @@ describe('buildMonthlyStream - Scenario C', () => {
     }
     // Payout = frozen balance × probability
     expect(payoutRow.retentionCashFlow).toBeCloseTo(frozenBalance * inputs.retentionPayoutProbabilityC, 2)
+    // After the payout, the running balance drops to $0 — it's already been paid.
+    const afterPayout = rows.filter(r => r.monthIndex > payoutRow.monthIndex)
+    expect(afterPayout.length).toBeGreaterThan(0)
+    expect(afterPayout.every(r => r.retentionRunningBalance === 0)).toBe(true)
   })
 })
 

@@ -280,7 +280,8 @@ export function buildMonthlyStream(
       if (m === retentionPayoutMonth) {
         retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
-      retentionRunningBalance = inputs.retentionCurrentBalance ?? 0
+      // Once paid out, the balance is $0 — it's already in the pilot's pocket.
+      retentionRunningBalance = m <= retentionPayoutMonth ? (inputs.retentionCurrentBalance ?? 0) : 0
     } else {
       // Vote No: accrual continues under the CBA until the new agreement is
       // ratified (2nd offer arrival for B, JCBA conclusion for C), then freezes
@@ -299,7 +300,8 @@ export function buildMonthlyStream(
           : inputs.retentionPayoutProbabilityC
         retentionCashFlow = retentionAccruedBalance * prob
       }
-      retentionRunningBalance = retentionAccruedBalance
+      // Once paid out, the balance is $0 — it's already in the pilot's pocket.
+      retentionRunningBalance = m <= retentionPayoutMonth ? retentionAccruedBalance : 0
     }
 
     // Retention compounded to retirement: treat the lump-sum payout as invested from receipt date.
