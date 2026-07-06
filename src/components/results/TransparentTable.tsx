@@ -641,13 +641,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         )}
                         <span className="font-medium" style={{ color: 'var(--text-muted)' }}>{MONTHS_SHORT[row.month]} {row.year}</span>
                       </div>
-                      {isBlendedTab && (
-                        <div className="text-[10px] whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>
-                          <span style={{ color: '#a855f7' }}>{Math.round(p * 100)}% Offer</span>
-                          {' · '}
-                          <span style={{ color: 'var(--negative)' }}>{Math.round((1 - p) * 100)}% JCBA</span>
-                        </div>
-                      )}
                     </td>
                     <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(row.effectiveSeat)}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
