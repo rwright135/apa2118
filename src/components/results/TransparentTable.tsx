@@ -224,7 +224,6 @@ async function exportToXLSX(result: ComparisonResult) {
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
-  const [applyWeight, setApplyWeight]     = useState(true)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
@@ -243,10 +242,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     summary.retirementBalanceAt65 + summary.retirementRetentionBalance + summary.retirementBrokerageBalance
 
   const p = result.voteNoScenario.probability
-  // Weight to apply when "show probability-weighted" is on
+  // Probability weight this raw scenario carries in the blended Vote No.
   const scenarioWeight = activeTab === 'B' ? p : activeTab === 'C' ? 1 - p : 1
   const isScenarioTab  = activeTab === 'B' || activeTab === 'C'
-  const weight = (isScenarioTab && applyWeight) ? scenarioWeight : 1
 
   const preJcbaRows = rows.slice(0, jcbaMonth)
   // Retention for Scenario C pays ~60 days after JCBA; include those post-JCBA months in the table.
@@ -283,6 +281,68 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'presentValue',         label: 'Row PV', gold: true },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
   ]
+
+  // Renders the dollar-value columns for a row at a given weight. Used once at
+  // 100% (nominal) and, on raw scenario tabs, a second time at the scenario's
+  // probability weight — as two separate rows rather than a silent toggle, so
+  // it's always clear which numbers are nominal and which are weighted.
+  function renderValueCells(row: MonthlyRow, rowWeight: number, variant: 'nominal' | 'weighted' = 'nominal') {
+    const padding = variant === 'weighted' ? 'px-3 py-1.5' : 'px-3 py-2'
+    const italic  = variant === 'weighted'
+    return columns.map(col => {
+      if (col.key === 'retentionAccrual') {
+        const { amount, isPayout } = getRetentionTableCell(row)
+        const val = amount * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{
+              color: isPayout ? 'var(--positive)' : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
+              fontWeight: isPayout ? 600 : 400,
+              fontStyle: italic ? 'italic' : undefined,
+            }}
+          >
+            {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'retentionTotal') {
+        const val = row.retentionRunningBalance * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'nominalTotal') {
+        const { amount: retentionAmount } = getRetentionTableCell(row)
+        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount + row.brokerageSavingsCash) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
+      const raw = (row as unknown as Record<string, number>)[col.key]
+      const val = raw * rowWeight
+      return (
+        <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+          style={{
+            color: col.gold
+              ? (col.key === 'cumulativePV' ? 'var(--gold)' : 'var(--text-base)')
+              : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
+            fontWeight: col.key === 'cumulativePV' && !italic ? 600 : 400,
+            fontStyle: italic ? 'italic' : undefined,
+          }}
+        >
+          {val !== 0 ? fmt(val) : '—'}
+        </td>
+      )
+    })
+  }
 
   return (
     <div>
@@ -325,40 +385,17 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           ))}
         </div>
 
-        {/* Probability weight note + toggle — only on raw scenario tabs */}
+        {/* Probability weight note — only on raw scenario tabs */}
         {isScenarioTab && (
-          <div className="mt-3 flex items-start justify-between gap-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-            <div className="min-w-0">
-              <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                Raw scenario — no probability weighting applied
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                These are the full numbers if this outcome occurs.
-                This scenario has a <strong>{Math.round(scenarioWeight * 100)}%</strong> probability weighting in the blended Vote No.
-                {' '}Turn on the slider to see the numbers that make up the Vote No (Blended) Option.
-              </div>
+          <div className="mt-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Nominal scenario, plus its weighted contribution to Vote No (blended)
             </div>
-            <button
-              type="button"
-              onClick={() => setApplyWeight(v => !v)}
-              className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={
-                applyWeight
-                  ? { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)', color: 'var(--gold)' }
-                  : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-              }
-            >
-              <span
-                className="w-7 h-4 rounded-full relative transition-colors"
-                style={{ background: applyWeight ? 'var(--gold)' : 'var(--border)' }}
-              >
-                <span
-                  className="absolute top-0.5 w-3 h-3 rounded-full transition-all"
-                  style={{ background: 'white', left: applyWeight ? '14px' : '2px' }}
-                />
-              </span>
-              Apply {Math.round(scenarioWeight * 100)}% weight
-            </button>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+              Each month below shows the full (nominal) numbers if this outcome occurs. The italic row directly underneath
+              shows that same month scaled by this scenario's <strong>{Math.round(scenarioWeight * 100)}%</strong> probability
+              weighting — its actual contribution to the Vote No (Blended) total.
+            </div>
           </div>
         )}
       </div>
@@ -453,58 +490,27 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
-                    {columns.map(col => {
-                      if (col.key === 'retentionAccrual') {
-                        const { amount, isPayout } = getRetentionTableCell(row)
-                        const val = amount * weight
-                        return (
-                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
-                            style={{
-                              color: isPayout ? 'var(--positive)' : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
-                              fontWeight: isPayout ? 600 : 400,
-                            }}
-                          >
-                            {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
-                          </td>
-                        )
-                      }
-                      if (col.key === 'retentionTotal') {
-                        const val = row.retentionRunningBalance * weight
-                        return (
-                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
-                            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)' }}
-                          >
-                            {val !== 0 ? fmt(val) : '—'}
-                          </td>
-                        )
-                      }
-                      if (col.key === 'nominalTotal') {
-                        const { amount: retentionAmount } = getRetentionTableCell(row)
-                        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount + row.brokerageSavingsCash) * weight
-                        return (
-                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
-                            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: 500 }}
-                          >
-                            {val !== 0 ? fmt(val) : '—'}
-                          </td>
-                        )
-                      }
-                      const raw = (row as unknown as Record<string, number>)[col.key]
-                      const val = raw * weight
-                      return (
-                        <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
-                          style={{
-                            color: col.gold
-                              ? (col.key === 'cumulativePV' ? 'var(--gold)' : 'var(--text-base)')
-                              : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
-                            fontWeight: col.key === 'cumulativePV' ? 600 : 400,
-                          }}
-                        >
-                          {val !== 0 ? fmt(val) : '—'}
-                        </td>
-                      )
-                    })}
+                    {renderValueCells(row, 1, 'nominal')}
                   </tr>
+                  {isScenarioTab && (
+                    <tr
+                      key={`${row.year}-${row.month}-weighted`}
+                      style={{ background: 'var(--bg-elevated)' }}
+                    >
+                      <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
+                      <td
+                        className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
+                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
+                      >
+                        ↳ × {Math.round(scenarioWeight * 100)}%
+                      </td>
+                      <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      {renderValueCells(row, scenarioWeight, 'weighted')}
+                    </tr>
+                  )}
                 </>
               )
             })}
@@ -537,34 +543,49 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
             Pre-JCBA Total PV
             <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-              (pay + PS + retention + 401k + brokerage){applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+              (pay + PS + retention + 401k + brokerage)
             </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.preJcbaTotal * weight)}
+            {fmt(summary.preJcbaTotal)}
           </div>
+          {isScenarioTab && (
+            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
+              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(summary.preJcbaTotal * scenarioWeight)}</span>
+            </div>
+          )}
         </div>
         <div>
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            Full-career pay + profit sharing (nominal){applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            Full-career pay + profit sharing (nominal)
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
-            {fmt(fullCareerPayNominal * weight)}
+            {fmt(fullCareerPayNominal)}
           </div>
+          {isScenarioTab && (
+            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
+              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(fullCareerPayNominal * scenarioWeight)}</span>
+            </div>
+          )}
         </div>
         <div>
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            Total retirement savings @ 65{applyWeight && isScenarioTab ? ` × ${Math.round(scenarioWeight * 100)}%` : ''}
+            Total retirement savings @ 65
             <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
               (401k + retention + brokerage)
             </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(totalRetirementSavingsNominal * weight)}
+            {fmt(totalRetirementSavingsNominal)}
           </div>
+          {isScenarioTab && (
+            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
+              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(totalRetirementSavingsNominal * scenarioWeight)}</span>
+            </div>
+          )}
         </div>
         <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-          {applyWeight && isScenarioTab ? `Weighted contribution to Vote No (blended) ↑` : 'Matches Your Full Breakdown above ↑'}
+          Matches Your Full Breakdown above ↑
         </div>
       </div>
 
