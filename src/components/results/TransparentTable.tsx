@@ -162,7 +162,7 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
 
 // ── XLSX export ───────────────────────────────────────────────────────────────
 
-function buildSheetRows(rows: MonthlyRow[], weight: number) {
+function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) {
   // Mirrors the in-app table: Nominal / Row PV / Cumulative PV are built from
   // Gross Pay + 401(k) + Profit Share + RB Accrual-or-Payout (NOT Brokerage,
   // which is already counted inside Gross Pay). Row PV = Nominal discounted
@@ -174,6 +174,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
     const rowPV = nominalTotal * r.discountFactor
     cumulativeNominalPV += rowPV
     return {
+      ...(component ? { Component: component } : {}),
       Month:              `${MONTHS_SHORT[r.month]} ${r.year}`,
       Seat:               r.effectiveSeat,
       Longevity:          r.longevity,
@@ -190,6 +191,24 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
       'Cumulative PV':    Math.round(cumulativeNominalPV * weight),
     }
   })
+}
+
+// The "Vote No (blended)" sheet interleaves all three rows per month — the
+// blended summary, plus its Vote No (Offer) and Vote No (JCBA) probability-
+// weighted components — so the full breakdown is visible without needing to
+// cross-reference the separate per-scenario sheets.
+function buildBlendedSheetRows(blendedRows: MonthlyRow[], bRows: MonthlyRow[], cRows: MonthlyRow[], p: number) {
+  const blended = buildSheetRows(blendedRows, 1, 'Vote No (Blended)')
+  const offer   = buildSheetRows(bRows, p, 'Vote No (Offer)')
+  const jcba    = buildSheetRows(cRows, 1 - p, 'Vote No (JCBA)')
+  const maxLen  = Math.max(blended.length, offer.length, jcba.length)
+  const merged: typeof blended = []
+  for (let i = 0; i < maxLen; i++) {
+    if (blended[i]) merged.push(blended[i])
+    if (offer[i])   merged.push(offer[i])
+    if (jcba[i])    merged.push(jcba[i])
+  }
+  return merged
 }
 
 async function exportToXLSX(result: ComparisonResult) {
@@ -222,9 +241,14 @@ async function exportToXLSX(result: ComparisonResult) {
   })
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryData), 'Summary')
 
-  // One sheet per scenario
+  // One sheet per scenario. "Vote No (blended)" interleaves all three rows
+  // per month (Blended, Offer, JCBA) so the full breakdown downloads together.
+  const bRows = allSummaries.find(s => s.scenarioId === 'B')!.rows
+  const cRows = allSummaries.find(s => s.scenarioId === 'C')!.rows
   for (const { name, rows, weight } of sheets) {
-    const data = buildSheetRows(rows, weight)
+    const data = name === 'Vote No (blended)'
+      ? buildBlendedSheetRows(rows, bRows, cRows, p)
+      : buildSheetRows(rows, weight)
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), name)
   }
 
@@ -236,6 +260,7 @@ async function exportToXLSX(result: ComparisonResult) {
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
+  const [blendedExpanded, setBlendedExpanded] = useState(false)
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
@@ -490,18 +515,39 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           </div>
         )}
 
-        {/* Component breakdown note — only on the blended tab */}
+        {/* Component breakdown toggle — only on the blended tab */}
         {isBlendedTab && (
-          <div className="mt-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-            <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              Each month is broken into its two probability-weighted components
+          <button
+            type="button"
+            onClick={() => setBlendedExpanded(v => !v)}
+            className="mt-3 w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+          >
+            <div className="min-w-0">
+              <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                {blendedExpanded ? 'Showing each month\u2019s probability-weighted components' : 'Showing the blended summary per month'}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                {blendedExpanded ? (
+                  <>
+                    <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> at <strong>{Math.round(p * 100)}%</strong> probability,
+                    plus <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> at <strong>{Math.round((1 - p) * 100)}%</strong> probability
+                    — together these two rows sum to the blended total for that month.
+                  </>
+                ) : (
+                  <>Click to break each month down into its <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> and{' '}
+                  <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> probability-weighted components.</>
+                )}
+              </div>
             </div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-              <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> at <strong>{Math.round(p * 100)}%</strong> probability,
-              plus <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> at <strong>{Math.round((1 - p) * 100)}%</strong> probability
-              — together these two rows sum to the blended total for that month.
-            </div>
-          </div>
+            <svg
+              width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className="shrink-0 transition-transform"
+              style={{ color: 'var(--text-faint)', transform: blendedExpanded ? 'rotate(180deg)' : 'none' }}
+            >
+              <path d="M4 6l4 4 4-4" />
+            </svg>
+          </button>
         )}
       </div>
 
@@ -573,7 +619,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       </td>
                     </tr>
                   )}
-                  {isBlendedTab && rowB && rowC ? (
+                  {isBlendedTab && blendedExpanded && rowB && rowC ? (
                     <>
                       <tr
                         key={`${row.year}-${row.month}-offer`}
