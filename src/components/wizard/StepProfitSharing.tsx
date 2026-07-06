@@ -46,7 +46,7 @@ export function StepProfitSharing() {
     <WizardLayout
       step="profitSharing"
       title="What was your last profit sharing bonus check?"
-      subtitle="Enter the amount of your most recent profit sharing payment. We'll automatically multiply by 2 to get your annual total."
+      subtitle="Enter the estimated amount of your most recent profit sharing payment. We'll automatically multiply by 2 to get your annual total."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
@@ -149,6 +149,9 @@ export function StepProfitSharing() {
 
       </div>
       <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        *We realize profit sharing payouts change semi-annually based on company performance. The amount you enter here is a simplistic best guess for the average profit-sharing check you expect.
+      </p>
     </WizardLayout>
   )
 }
