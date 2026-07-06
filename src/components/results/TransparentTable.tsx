@@ -170,9 +170,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   // Compute the post-JCBA multiplier for this scenario to show in the banner
   const penalty = result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15
-  const vns = result.voteNoScenario
   const upliftPct = Math.round(0.20 * 100)
-  const penaltyPct = Math.round(penalty * 100)
   const postJcbaLabel =
     activeTab === 'YES' ? `TA+${upliftPct}%`
     : activeTab === 'B' ? `Offer+${upliftPct}%`
