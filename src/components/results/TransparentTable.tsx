@@ -265,7 +265,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'retentionTotal',       label: 'RB Total' },
     { key: 'nominalTotal',         label: 'Nominal' },
-    { key: 'cumulativeNominal',    label: 'Cumulative Nominal' },
+    { key: 'cumulativeNominal',    label: 'Cumulative' },
     { key: 'presentValue',         label: 'Row PV' },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
     { key: 'brokerageSavingsCash', label: 'Savings' },
@@ -492,7 +492,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'nominalTotal' ? (
                     <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
                   ) : col.key === 'cumulativeNominal' ? (
-                    <span title="Running total of the Nominal column from month 0 through this month — total undiscounted pay earned so far.">Cumulative Nominal</span>
+                    <span title="Running total of the Nominal column from month 0 through this month — total undiscounted pay earned so far.">Cumulative</span>
                   ) : col.key === 'brokerageSavingsCash' ? (
                     <span title="The portion of your monthly raise redirected to a taxable brokerage account. Already counted in Gross Pay — shown here for reference only and excluded from Nominal/Row PV/Cumulative PV.">Savings</span>
                   ) : col.key === 'brokerageInterest' ? (
