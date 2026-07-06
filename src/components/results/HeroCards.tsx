@@ -195,30 +195,37 @@ function CollapsibleBreakdown({ title, children }: { title: string; children: Re
   )
 }
 
+function fmtPlain(n: number) {
+  return `$${Math.round(n).toLocaleString('en-US')}`
+}
+
 function PlainTermsCallout({ cNetAfterRetention }: { cNetAfterRetention: number }) {
   const isNegative = cNetAfterRetention > 0
   return (
     <div
       className="mt-3 rounded-xl px-4 py-3"
       style={{
-        background: isNegative ? 'rgba(245,158,11,0.10)' : 'rgba(34,197,94,0.10)',
-        border: `1.5px solid ${isNegative ? 'rgba(245,158,11,0.35)' : 'rgba(34,197,94,0.35)'}`,
+        background: isNegative ? 'rgba(239,68,68,0.14)' : 'rgba(34,197,94,0.14)',
+        border: `1.5px solid ${isNegative ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
+        boxShadow: isNegative
+          ? '0 0 28px rgba(239,68,68,0.28), inset 0 1px 0 rgba(255,255,255,0.1)'
+          : '0 0 28px rgba(34,197,94,0.28), inset 0 1px 0 rgba(255,255,255,0.1)',
       }}
     >
-      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: isNegative ? 'var(--warning)' : 'var(--positive)' }}>
+      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: isNegative ? 'var(--negative)' : 'var(--positive)' }}>
         In Plain Terms
       </div>
       <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
         {isNegative ? (
           <>
             If you vote No and no second offer ever comes, you&apos;ll end up roughly{' '}
-            <span style={{ color: 'var(--warning)', fontWeight: 700 }}>{fmt(cNetAfterRetention)} worse off</span>{' '}
+            <span style={{ color: 'var(--negative)', fontWeight: 700 }}>{fmtPlain(cNetAfterRetention)} worse off</span>{' '}
             than if you had voted Yes — even after your retention bonus.
           </>
         ) : (
           <>
             Even if you vote No and no second offer ever comes, you&apos;d still come out roughly{' '}
-            <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmt(Math.abs(cNetAfterRetention))} ahead</span>{' '}
+            <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmtPlain(Math.abs(cNetAfterRetention))} ahead</span>{' '}
             of Voting Yes — your retention bonus more than covers the difference.
           </>
         )}
