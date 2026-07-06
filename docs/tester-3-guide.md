@@ -7,7 +7,7 @@
 You will complete four things:
 1. Verify the assumptions and formulas built into the tool against the actual contract documents
 2. Scenario A, Pass 1 — enter inputs, run with defaults, audit the XLSX
-3. Scenario A, Pass 2 — change specific sliders, re-run, re-audit
+3. Scenario A, Pass 2 — change the investment/discount rate to 11% and adjust Vote No sliders, re-run, re-audit
 4. Scenario B, Pass 1 and Pass 2 — repeat for a different pilot profile
 
 Your scenarios are the most retention-heavy of the three testers. Scenario A tests whether the longevity cap works correctly for a senior CA. Scenario B puts the retention accrual formula under maximum stress — a long JCBA where the pilot increments through multiple longevity years before the payout fires.
@@ -213,6 +213,7 @@ Diff column, conditional formatting.
 ### Pass 2 — Vote No, Long Timeline, Low Confidence in Payout
 
 Edit inputs and change:
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 20%
 - **JCBA duration:** 36 months
 - **Second offer arrival:** 24 months
@@ -238,7 +239,7 @@ Monthly accrual from September 2026 onward: $232.00 × 85 × 0.35 = (compute thi
 ```
 The total accrual runs for approximately 38 months (36 JCBA + 2 months to payout). Compute the expected final balance and compare to the Retention column in the payout row.
 
-Multiply the final balance by 35% (the payout probability you set). Compare to what the Worth the Risk card shows as the expected retention payout.
+Multiply the final balance by 35% (the payout probability you set). Compare to what the Worth the Risk card shows as the expected retention payout. Confirm the card's discounted present-value figure reflects 11% discounting, not the 8% from Pass 1.
 
 ---
 
@@ -364,6 +365,7 @@ For 401k: should be 10% throughout on Vote No (JCBA). No 15% step-up. The 401k r
 ### Pass 2 — Long JCBA, Aggressive Retention Accrual
 
 Edit inputs and change:
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **JCBA duration:** 42 months (maximum practical scenario)
 - **Probability of second offer:** 20%
 - **Payout probability if no offer:** 55%
@@ -374,6 +376,7 @@ Repeat the accrual lookup check and running balance check for the full 44-row sp
 - The longevity column increments in June of each year through June 2030 if the timeline is long enough
 - The accrual amount updates each time
 - The final balance times 55% matches the Worth the Risk card
+- Row PV uses 11% discounting in Pass 2 (`Nominal / (1 + 0.11/12)^monthIndex`), not 8%
 
 Also check: Does the tool's Worth the Risk card update when you change the "payout probability if no offer" slider? It should. If the card shows the same payout regardless of the slider, the slider is not connected to the calculation.
 

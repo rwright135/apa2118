@@ -138,7 +138,8 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
     <div>
       <div className="flex items-start justify-between gap-3 mb-3">
         <label className="block text-sm flex-1" style={{ color: 'var(--text-muted)' }}>
-          If we receive a second offer, how many months from July will it take until it is ratified and implemented?
+          If we receive a second offer, how many months from July will it take until it is{' '}
+          <span className="underline underline-offset-2">ratified and implemented</span>?
         </label>
         <button
           type="button"
@@ -159,7 +160,7 @@ export function SecondOfferArrivalInput({ value, min, max, onChange }: Props) {
         onChange={onChange}
         formatValue={(v) => `${v} months`}
         markers={markers}
-        footnote="Click a logo to jump the slider to that timeline and see historical details. * FedEx excluded from the 13.3-month industry average as an outlier."
+        footnote="Click a logo to jump the slider to that timeline and see historical details. FedEx excluded from the 13.3-month industry average as an outlier."
       />
 
       <AirlineHistoryModal open={modalOpen} onClose={() => setModalOpen(false)} />

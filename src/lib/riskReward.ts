@@ -16,8 +16,9 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
 
   const bPayDiff  = scenarioB.totalGrossPay     - scenarioA.totalGrossPay
   const bPSDiff   = scenarioB.totalProfitSharing - scenarioA.totalProfitSharing
+  const b401kDiff = scenarioB.total401kContributions - scenarioA.total401kContributions
   const bRetDiff  = scenarioB.totalRetention     - scenarioA.totalRetention
-  const bNominalGap = bPayDiff + bPSDiff + bRetDiff
+  const bNominalGap = bPayDiff + bPSDiff + b401kDiff + bRetDiff
 
   // Split the pay+PS difference into two phases for the breakdown:
   //   1. Waiting period (months 0 → arrivalMonths): B is on CBA, A is on TA — always a loss
@@ -40,8 +41,8 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
   const cPayDiff =
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing)
+    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.total401kContributions) -
+    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing + scenarioC.total401kContributions)
   const cWagesShortfall = cPayDiff // alias kept for backwards compatibility
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
@@ -71,6 +72,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     // Scenario B vs A breakdown (all nominal)
     bPayDiff,
     bPSDiff,
+    b401kDiff,
     bRetDiff,
     bNominalGap,
     bPayPlusPS_waiting,

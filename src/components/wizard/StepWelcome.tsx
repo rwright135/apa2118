@@ -43,7 +43,7 @@ export function StepWelcome() {
         {/* Logo */}
         <div className="mb-6">
           <img
-            src="/APA Teamsters Local 2118 Logo.png"
+            src="/APA Teamsters Local 2118 Logo.webp"
             alt="Teamsters Local 2118"
             className="w-32 h-32 object-contain drop-shadow-lg"
             onError={(e) => {
@@ -154,7 +154,7 @@ export function StepWelcome() {
         )}
 
         <p className="mt-6 text-xs" style={{ color: 'var(--text-faint)' }}>
-          Version 1.4
+          Version 1.5
         </p>
 
       </div>

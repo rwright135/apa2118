@@ -3,7 +3,7 @@ import type { ComparisonResult } from '../../lib/types'
 import { SCENARIO_LABELS } from '../../lib/resultColors'
 import { computeRiskRewardMetrics } from '../../lib/riskReward'
 import { HelpButton } from '../shared/HelpButton'
-import { Assumption, AssumptionsFooter, AssumptionsFootnote, BenchmarkAssumptionsFootnote } from './Assumption'
+import { Assumption, AssumptionsFooter } from './Assumption'
 import { useResultChartColors } from './useResultChartColors'
 
 interface Props { results: ComparisonResult[] }
@@ -180,12 +180,10 @@ function RiskRewardBreakdown({
   result,
   collapsible = false,
   defaultExpanded = true,
-  assumptionsFootnote = <AssumptionsFootnote />,
 }: {
   result: ComparisonResult
   collapsible?: boolean
   defaultExpanded?: boolean
-  assumptionsFootnote?: React.ReactNode
 }) {
   const {
     jcba,
@@ -196,6 +194,7 @@ function RiskRewardBreakdown({
     pB,
     pC,
     bRetDiff,
+    b401kDiff,
     bNominalGap,
     bPayPlusPS_waiting,
     bPayPlusPS_afterOffer,
@@ -258,15 +257,16 @@ function RiskRewardBreakdown({
                     value={`${bPayPlusPS_waiting >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_waiting))}`}
                     color={bPayPlusPS_waiting >= 0 ? 'var(--positive)' : 'var(--negative)'}
                   />
+                  <BreakdownRow label="Additional retention bonus accumulation" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
                   <BreakdownRow
                     label={`Pay + PS gained after offer (months ${arrivalMonths + 1}–${jcba})`}
                     value={`${bPayPlusPS_afterOffer >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_afterOffer))}`}
                     color={bPayPlusPS_afterOffer >= 0 ? 'var(--positive)' : 'var(--negative)'}
                   />
-                  <BreakdownRow label="Retention timing difference" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
-                  <BreakdownRow label="Total Nominal Value" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
+                  <BreakdownRow label="401(k) DC difference" value={`${b401kDiff >= 0 ? '+' : '−'}${fmt(Math.abs(b401kDiff))}`} color={b401kDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Pre-JCBA Total" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
                   <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                    Verify in the month-by-month detail table below.
+                    Pre-JCBA nominal (pay + PS + 401k + retention). Verify in the month-by-month detail table.
                   </p>
                 </CollapsibleBreakdown>
               </>
@@ -285,16 +285,17 @@ function RiskRewardBreakdown({
                 ? <>
                     Staying on CBA rates through JCBA in{' '}
                     <Assumption>{jcba} months</Assumption> costs{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay and profit sharing,
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay, profit sharing, and 401(k) during the pre-JCBA window,
                     plus the loss of the Voting Yes retention timing (worth{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>).
+                    Post-JCBA, Vote Yes earns ~20% above TA vs ~{Math.round((1 + 0.20) * (1 - (result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15)) * 100 - 100)}% for this path — that ongoing gap appears in the cumulative chart and table.
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
                     <CollapsibleBreakdown title="Show how this is calculated">
-                      <BreakdownRow label="Pay + profit sharing shortfall" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
-                      <BreakdownRow label="Retention Bonus" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
-                      <BreakdownRow label="Total Nominal Value" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
+                      <BreakdownRow label={`Pre-JCBA Pay + PS + 401(k) shortfall (months 0–${jcba})`} value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                      <BreakdownRow label="Retention Bonus timing" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
+                      <BreakdownRow label="Pre-JCBA Nominal Total" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
                       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                        Nominal, not discounted. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card. Verify in the month-by-month detail table.
+                        Pre-JCBA pay + profit sharing + 401(k) DC (excludes post-JCBA months). The month-by-month table's Cumulative column is higher because it adds post-JCBA months where Vote Yes continues to out-earn this path. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card.
                       </p>
                     </CollapsibleBreakdown>
                   </>
@@ -325,7 +326,7 @@ function RiskRewardBreakdown({
                 <Assumption>{jcba}-month</Assumption> JCBA period.
                 At <Assumption>{Math.round(pC * 100)}% payout probability</Assumption>, that lump sum is expected to pay{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.{' '}
-                Discounted back <Assumption>{cRetPayoutMonths} months</Assumption> at{' '}
+                Discounted back {cRetPayoutMonths} months at{' '}
                 <Assumption>{Math.round(investmentRate * 100)}%</Assumption>, that payout is worth{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayoutPV)}</strong> in today&apos;s dollars.
                 {cNetAfterRetention > 0
@@ -341,10 +342,6 @@ function RiskRewardBreakdown({
             }
           />
           </div>
-
-        <p className="md:col-span-2 xl:col-span-3 px-1 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-          {assumptionsFootnote}
-        </p>
 
         </div>
     </div>
@@ -370,7 +367,12 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter vns={result.voteNoScenario} />
+        <AssumptionsFooter
+          vns={result.voteNoScenario}
+          investmentRate={result.inputs.investmentRate}
+          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+        />
       </div>
     </div>
   )
@@ -384,8 +386,8 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
   return (
     <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
       <div
-        className="flex items-center justify-between px-5 py-3 border-b"
-        style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+        className="flex items-center justify-between px-5 py-3"
+        style={{ background: 'var(--bg-surface)' }}
       >
         <button
           type="button"
@@ -415,26 +417,27 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
         </div>
       </div>
 
-      {expanded ? (
-        <>
-          <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-            <RiskRewardHeadline result={result} assumptionScope="these" />
-          </div>
-          <RiskRewardBreakdown
-            result={result}
-            collapsible
-            defaultExpanded={false}
-            assumptionsFootnote={<BenchmarkAssumptionsFootnote />}
-          />
-          <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-            <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
-          </div>
-        </>
-      ) : (
-        <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-          <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
-        </div>
+      <div className="px-5 pt-1 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
+        <RiskRewardHeadline result={result} assumptionScope="these" />
+      </div>
+
+      {expanded && (
+        <RiskRewardBreakdown
+          result={result}
+          collapsible
+          defaultExpanded={false}
+        />
       )}
+
+      <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
+        <AssumptionsFooter
+          vns={result.voteNoScenario}
+          investmentRate={result.inputs.investmentRate}
+          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+          underlineValues={false}
+        />
+      </div>
     </div>
   )
 }

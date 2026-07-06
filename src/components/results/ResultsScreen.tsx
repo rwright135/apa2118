@@ -3,7 +3,6 @@ import { useStore } from '../../state/store'
 import { BaselineInputCards } from './BaselineInputCards'
 import { UserRiskRewardCard, IndustryBenchmarkCards } from './HeroCards'
 import { BettingOddsCard } from './BettingOddsCard'
-import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
 import { ShareSheet } from './ShareSheet'
@@ -45,7 +44,7 @@ export function ResultsScreen() {
 
           <div className="flex items-center gap-1">
             <img
-              src="/APA Teamsters Local 2118 Logo.png"
+              src="/APA Teamsters Local 2118 Logo.webp"
               alt=""
               className="w-6 h-6 object-contain opacity-80"
               onError={(e) => { e.currentTarget.src = '/teamsters-logo.svg'; e.currentTarget.onerror = null }}
@@ -68,8 +67,6 @@ export function ResultsScreen() {
           <BettingOddsCard results={results} />
           <IndustryBenchmarkCards results={results} />
         </div>
-
-        <ScenarioBreakdown results={results} />
 
         <div
           id="results-export-end"

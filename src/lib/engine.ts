@@ -113,7 +113,7 @@ export function get401kRate(scenarioId: ScenarioId, date: Date): number {
 // ─── Discounting ──────────────────────────────────────────────────────────────
 
 export function discountFactor(annualRate: number, months: number): number {
-  return 1 / Math.pow(1 + annualRate, months / 12)
+  return 1 / Math.pow(1 + annualRate / 12, months)
 }
 
 export function futureValue(
@@ -121,7 +121,7 @@ export function futureValue(
   annualRate: number,
   months: number
 ): number {
-  return presentAmount * Math.pow(1 + annualRate, months / 12)
+  return presentAmount * Math.pow(1 + annualRate / 12, months)
 }
 
 // ─── Profit sharing ───────────────────────────────────────────────────────────
@@ -271,20 +271,28 @@ export function buildMonthlyStream(
 
     let retentionCashFlow = 0
     let retentionAccrualNote = 0
+    let retentionRunningBalance: number
 
     if (scenarioId === 'A') {
-      if (m < retentionPayoutMonth) {
-        const accrualRate = getRate(effectiveSeat, longevity, 'CBA')
-        retentionAccrualNote = getMonthlyRetentionAccrual(accrualRate)
-      }
+      // Vote Yes ratifies the new contract immediately (Jul 1, 2026), so the
+      // retention bonus program is frozen from day one — no further accrual.
+      // The pre-existing balance is simply paid out ~90 days later (Oct 1).
       if (m === retentionPayoutMonth) {
         retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
+      // Once paid out, the balance is $0 — it's already in the pilot's pocket.
+      retentionRunningBalance = m <= retentionPayoutMonth ? (inputs.retentionCurrentBalance ?? 0) : 0
     } else {
-      const currentRate = getRate(effectiveSeat, longevity, 'CBA')
-      const monthlyAccrual = getMonthlyRetentionAccrual(currentRate)
-      retentionAccruedBalance += monthlyAccrual
-      retentionAccrualNote = monthlyAccrual
+      // Vote No: accrual continues under the CBA until the new agreement is
+      // ratified (2nd offer arrival for B, JCBA conclusion for C), then freezes
+      // during the ~60-day administrative payout window before the lump sum pays out.
+      const ratificationMonth = scenarioId === 'B' ? vns.arrivalMonths : jcbaMonth
+      if (m < ratificationMonth) {
+        const currentRate = getRate(effectiveSeat, longevity, 'CBA')
+        const monthlyAccrual = getMonthlyRetentionAccrual(currentRate)
+        retentionAccruedBalance += monthlyAccrual
+        retentionAccrualNote = monthlyAccrual
+      }
 
       if (m === retentionPayoutMonth) {
         const prob = scenarioId === 'B'
@@ -292,11 +300,13 @@ export function buildMonthlyStream(
           : inputs.retentionPayoutProbabilityC
         retentionCashFlow = retentionAccruedBalance * prob
       }
+      // Once paid out, the balance is $0 — it's already in the pilot's pocket.
+      retentionRunningBalance = m <= retentionPayoutMonth ? retentionAccruedBalance : 0
     }
 
     // Retention compounded to retirement: treat the lump-sum payout as invested from receipt date.
     const retentionAtRetirement = retentionCashFlow > 0
-      ? retentionCashFlow * Math.pow(1 + rate, (totalMonths - m) / 12)
+      ? retentionCashFlow * Math.pow(1 + rate / 12, totalMonths - m)
       : 0
 
     // Brokerage savings: fraction of the gross monthly raise vs. CBA invested externally.
@@ -306,13 +316,13 @@ export function buildMonthlyStream(
     const brokSavingsPct = inputs.brokerageSavingsPct ?? 0
     const brokerageSavingsCash = Math.max(0, monthlyRaise) * brokSavingsPct
 
-    const fvBrokerageAtRetirement = brokerageSavingsCash * Math.pow(1 + rate, (totalMonths - m) / 12)
+    const fvBrokerageAtRetirement = brokerageSavingsCash * Math.pow(1 + rate / 12, totalMonths - m)
     const brokerageSavingsPV = fvBrokerageAtRetirement * discountFactor(rate, totalMonths)
 
     const df = discountFactor(rate, m)
     const pv = (grossPay + profitSharingCash + retentionCashFlow) * df
 
-    const fv401kAtRetirement = k401Contribution * Math.pow(1 + rate, (totalMonths - m) / 12)
+    const fv401kAtRetirement = k401Contribution * Math.pow(1 + rate / 12, totalMonths - m)
     const pv401kFromRetirement = fv401kAtRetirement * discountFactor(rate, totalMonths)
 
     cumulativePV += pv + pv401kFromRetirement + brokerageSavingsPV
@@ -334,6 +344,7 @@ export function buildMonthlyStream(
       profitSharingCash,
       retentionCashFlow,
       retentionAccrualNote,
+      retentionRunningBalance,
       retentionAtRetirement,
       brokerageSavingsCash,
       brokerageSavingsPV,
@@ -388,7 +399,7 @@ export function buildScenarioSummary(
 
   const retirementBalanceAt65 = rows.reduce((sum, r) => {
     const monthsToRetirement = totalMonths - r.monthIndex
-    return sum + r.k401Contribution * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
+    return sum + r.k401Contribution * Math.pow(1 + inputs.investmentRate / 12, monthsToRetirement)
   }, 0)
 
   // Pre-JCBA window only — this is the only period that differs between scenarios.
@@ -427,12 +438,17 @@ export function buildScenarioSummary(
   const brokerageSavingsPV    = rows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
   const retirementBrokerageBalance = rows.reduce((sum, r) => {
     const monthsToRetirement = totalMonths - r.monthIndex
-    return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
+    return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate / 12, monthsToRetirement)
   }, 0)
 
-  // Include brokerage savings PV in the headline pre-JCBA total
-  const preJcbaBrokeragePV = preJcbaRows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
-  const preJcbaTotalWithBrokerage = preJcbaTotal + preJcbaBrokeragePV
+  // NOTE: Brokerage savings are deliberately excluded from preJcbaTotal.
+  // brokerageSavingsCash is a percentage of the raise that's already fully
+  // counted inside grossPay (see brokerageSavingsCash computation above) — it's
+  // a hypothetical redirection of pay the pilot already earned, not new money.
+  // Adding its PV on top of pay's PV would double-count those same dollars.
+  // Brokerage's real, non-overlapping value shows up as a nominal FUTURE VALUE
+  // in retirementBrokerageBalance ("Total Retirement Savings @ 65" below) —
+  // the payoff of investing that money instead of spending it.
 
   const steadyStateIndex = detectSteadyState(rows)
 
@@ -443,7 +459,7 @@ export function buildScenarioSummary(
     rows,
     totalRows: rows.length,
     steadyStateIndex,
-    preJcbaTotal: preJcbaTotalWithBrokerage,
+    preJcbaTotal,
     presentValueTotal,
     retirementBalanceAt65,
     retirementBalancePV,

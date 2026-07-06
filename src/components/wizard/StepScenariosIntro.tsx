@@ -11,7 +11,7 @@ export function StepScenariosIntro() {
     <WizardLayout
       step="scenariosIntro"
       title="The Scenarios This Calculator Uses"
-      subtitle="Every comparison in this tool is built from three paths through the decision window. Vote No results blend Scenarios B and C based on your assumptions later in the wizard."
+      subtitle="Every comparison in this tool is built from three paths through the decision window, but your vote produces a binary outcome. Voting Yes reflects Scenario A. Voting No blends Scenarios B and C with probability weights based on your assumptions later in the wizard."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">

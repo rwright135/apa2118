@@ -33,6 +33,7 @@ export function buildAllScenarios(inputs: UserInputs, scenarioOverride?: VoteNoS
       if (row.monthIndex < jcba) return row
       return {
         ...row,
+        hourlyRate:       row.hourlyRate       * multiplier,
         grossPay:         row.grossPay         * multiplier,
         presentValue:     row.presentValue     * multiplier,
         k401Contribution: row.k401Contribution * multiplier,
@@ -65,6 +66,7 @@ export function buildAllScenarios(inputs: UserInputs, scenarioOverride?: VoteNoS
       profitSharingCash: rowB.profitSharingCash * p + rowC.profitSharingCash * (1 - p),
       retentionCashFlow: rowB.retentionCashFlow * p + rowC.retentionCashFlow * (1 - p),
       retentionAccrualNote: rowB.retentionAccrualNote * p + rowC.retentionAccrualNote * (1 - p),
+      retentionRunningBalance: rowB.retentionRunningBalance * p + rowC.retentionRunningBalance * (1 - p),
       retentionAtRetirement: rowB.retentionAtRetirement * p + rowC.retentionAtRetirement * (1 - p),
       presentValue:     rowB.presentValue     * p + rowC.presentValue     * (1 - p),
       presentValue401k: rowB.presentValue401k * p + rowC.presentValue401k * (1 - p),

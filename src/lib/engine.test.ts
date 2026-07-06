@@ -82,8 +82,9 @@ describe('discountFactor', () => {
   it('returns 1 at month 0', () => {
     expect(discountFactor(0.08, 0)).toBeCloseTo(1, 5)
   })
-  it('returns correct value at 12 months', () => {
-    expect(discountFactor(0.08, 12)).toBeCloseTo(1 / 1.08, 4)
+  it('discounts using monthly compounding: 1 / (1 + rate/12)^months', () => {
+    expect(discountFactor(0.08, 12)).toBeCloseTo(1 / Math.pow(1 + 0.08 / 12, 12), 6)
+    expect(discountFactor(0.08, 2)).toBeCloseTo(1 / Math.pow(1 + 0.08 / 12, 2), 6)
   })
 })
 
@@ -147,13 +148,17 @@ describe('buildMonthlyStream - Scenario A', () => {
     expect(oct2026!.retentionCashFlow).toBe(50000)
   })
 
-  it('accrues RB at 85 fixed hours before payout, independent of monthly hours', () => {
-    const inputs = makeInputs({ extraHoursAboveMMG: 0 })
+  it('never accrues after ratification — RB is frozen from day one (Vote Yes)', () => {
+    const inputs = makeInputs()
     const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
-    const jul2026 = rows[0]
-    const expected = getMonthlyRetentionAccrual(getRate('FO', 4, 'CBA'))
-    expect(jul2026.retentionAccrualNote).toBeCloseTo(expected, 2)
-    expect(jul2026.totalHours).toBe(70)
+    // Vote Yes ratifies the TA immediately, so the RB program is frozen at the
+    // pre-existing balance for every month — no monthly accrual ever occurs.
+    expect(rows.every(r => r.retentionAccrualNote === 0)).toBe(true)
+    // Payout is Oct 2026 = month index 3. Balance shows the frozen total up to
+    // and including the payout month, then drops to $0 — it's already been paid.
+    const payoutMonth = rows.find(r => r.retentionCashFlow > 0)!.monthIndex
+    expect(rows.filter(r => r.monthIndex <= payoutMonth).every(r => r.retentionRunningBalance === 50000)).toBe(true)
+    expect(rows.filter(r => r.monthIndex > payoutMonth).every(r => r.retentionRunningBalance === 0)).toBe(true)
   })
 })
 
@@ -193,6 +198,37 @@ describe('buildMonthlyStream - Scenario C', () => {
     // Amount = accrued balance × probability (0.90)
     expect(retentionRow!.retentionCashFlow).toBeGreaterThan(0)
   })
+
+  it('accrues RB at 85 fixed hours before ratification, independent of monthly hours', () => {
+    const inputs = makeInputs({ extraHoursAboveMMG: 0 })
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    const jul2026 = rows[0]
+    const expected = getMonthlyRetentionAccrual(getRate('FO', 4, 'CBA'))
+    expect(jul2026.retentionAccrualNote).toBeCloseTo(expected, 2)
+    expect(jul2026.totalHours).toBe(70)
+  })
+
+  it('freezes RB accrual between JCBA ratification and the payout month', () => {
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    const jcbaMonth = DEFAULT_VNS.jcbaDurationMonths // 24
+    const payoutRow = rows.find(r => r.retentionCashFlow > 0)!
+    // Accrual stops right at ratification (JCBA month) — no more growth after this point.
+    expect(rows[jcbaMonth].retentionAccrualNote).toBe(0)
+    // Every month between ratification and payout is frozen (no accrual), and the
+    // running balance stays flat until the lump sum pays out.
+    const frozenBalance = rows[jcbaMonth].retentionRunningBalance
+    for (let m = jcbaMonth; m < payoutRow.monthIndex; m++) {
+      expect(rows[m].retentionAccrualNote).toBe(0)
+      expect(rows[m].retentionRunningBalance).toBeCloseTo(frozenBalance, 2)
+    }
+    // Payout = frozen balance × probability
+    expect(payoutRow.retentionCashFlow).toBeCloseTo(frozenBalance * inputs.retentionPayoutProbabilityC, 2)
+    // After the payout, the running balance drops to $0 — it's already been paid.
+    const afterPayout = rows.filter(r => r.monthIndex > payoutRow.monthIndex)
+    expect(afterPayout.length).toBeGreaterThan(0)
+    expect(afterPayout.every(r => r.retentionRunningBalance === 0)).toBe(true)
+  })
 })
 
 describe('buildScenarioSummary - Scenario C retention in preJcbaTotal', () => {
@@ -213,6 +249,35 @@ describe('buildScenarioSummary - Scenario C retention in preJcbaTotal', () => {
       .filter(r => r.monthIndex < DEFAULT_VNS.jcbaDurationMonths)
       .reduce((sum, r) => sum + r.presentValue + r.presentValue401k, 0)
     expect(summary.preJcbaTotal).toBeCloseTo(preJcbaRowsOnlyPV + expectedPostJcbaRetentionPV, 2)
+  })
+})
+
+describe('buildScenarioSummary - brokerage savings excluded from preJcbaTotal', () => {
+  it('preJcbaTotal is unchanged by brokerageSavingsPct (avoids double-counting pay)', () => {
+    // Scenario A has a raise vs CBA from day one, so brokerageSavingsCash > 0
+    // whenever brokerageSavingsPct > 0. brokerageSavingsCash is just a slice of
+    // grossPay (already counted in preJcbaTotal), so changing the savings %
+    // must NOT change preJcbaTotal — otherwise the same dollars are counted twice.
+    const inputsNoBrokerage = makeInputs({ brokerageSavingsPct: 0 })
+    const inputsWithBrokerage = makeInputs({ brokerageSavingsPct: 0.33 })
+
+    const rowsNoBrokerage = buildMonthlyStream(inputsNoBrokerage, 'A', DEFAULT_VNS)
+    const rowsWithBrokerage = buildMonthlyStream(inputsWithBrokerage, 'A', DEFAULT_VNS)
+
+    // Sanity check: brokerage savings actually differ between the two runs.
+    const totalBrokerageNo = rowsNoBrokerage.reduce((s, r) => s + r.brokerageSavingsCash, 0)
+    const totalBrokerageWith = rowsWithBrokerage.reduce((s, r) => s + r.brokerageSavingsCash, 0)
+    expect(totalBrokerageWith).toBeGreaterThan(totalBrokerageNo)
+
+    const summaryNoBrokerage = buildScenarioSummary(rowsNoBrokerage, 'A', 'Vote Yes', 'desc', inputsNoBrokerage, DEFAULT_VNS.jcbaDurationMonths)
+    const summaryWithBrokerage = buildScenarioSummary(rowsWithBrokerage, 'A', 'Vote Yes', 'desc', inputsWithBrokerage, DEFAULT_VNS.jcbaDurationMonths)
+
+    expect(summaryWithBrokerage.preJcbaTotal).toBeCloseTo(summaryNoBrokerage.preJcbaTotal, 2)
+
+    // Brokerage's real (non-overlapping) value still shows up as a nominal
+    // future value in retirementBrokerageBalance ("Total Retirement Savings").
+    expect(summaryWithBrokerage.retirementBrokerageBalance).toBeGreaterThan(0)
+    expect(summaryNoBrokerage.retirementBrokerageBalance).toBe(0)
   })
 })
 

@@ -76,7 +76,7 @@ Pull these directly from the published contract documents to verify you are work
 3. When you reach results, the first thing you see is the Risk vs. Reward summary. Spend a minute reading it before doing anything else.
 4. Scroll down to the month-by-month table. Find the Vote Yes, Vote No (Offer), and Vote No (JCBA) tabs.
 5. Click **Download XLSX**. Open in Excel or Google Sheets. Do your audit there.
-6. When you are done with Pass 1, click **Edit Inputs** at the top of the results page and change the settings for Pass 2. You do not have to re-enter everything from scratch.
+6. When you are done with Pass 1, click **Edit Inputs** at the top of the results page and change the settings for Pass 2 — including the **investment/discount rate** (every Pass 2 below sets this to 11%) plus the Vote No scenario sliders. You do not have to re-enter everything from scratch.
 
 ---
 
@@ -156,6 +156,12 @@ This should match the RB Accrual column. Note the CBA rate (not the TA rate) is 
 After October 2026, the accrual column should show zero (payout already happened). Verify the payout row shows $75,000 in the Retention column.
 
 ### Cumulative PV verification
+Row PV for each month should equal:
+```
+= Nominal / (1 + rate/12)^monthIndex
+```
+At month 0 (July 2026), Row PV must equal Nominal exactly. Pass 1 uses 8%; Pass 2 uses 11%.
+
 The Cumulative PV column should be a running sum of all Row PV values from row 1 through the current row. In a new column:
 ```
 = SUM($[Row PV column]$2 : [Row PV column for current row])
@@ -166,7 +172,11 @@ The result must match the Cumulative PV column at every row.
 
 ## Pass 2 — Aggressive Vote No Assumptions
 
-Click **Edit Inputs** at the top of the results screen. Navigate to the Vote No scenario section and change the following:
+Click **Edit Inputs** at the top of the results screen. Navigate to the investment rate step and change:
+
+- **Investment/discount rate:** change from default **8%** to **11%** (tap the **S&P Nominal** preset, or move the slider to 11%)
+
+Then navigate to the Vote No scenario section and change the following:
 
 - **Probability of second offer:** move slider to 80%
 - **Second offer arrival:** move slider to 6 months
@@ -178,7 +188,8 @@ Look at the results again. Answer:
 1. Has the Vote No Blended outcome now shifted significantly toward Vote No? It should, because you just told the tool the second offer is highly likely and arrives quickly.
 2. Does the Risk vs. Reward "if the second offer arrives" number increase with a higher improvement percentage? It should.
 3. Does the "if no offer arrives" loss stay the same? It should, because that scenario is independent of the second offer assumptions.
-4. Switch to the Vote No (Offer) tab in the month-by-month table. Find the month when the offer arrives (month 6 = January 2027). Verify the hourly rate jumps at that point from CBA to something higher than the standard TA rate (because you set 5% above TA). The rate should be FO year 6 Jan 2027 rate × 1.05.
+4. Are Row PV and Cumulative PV **lower** than Pass 1 at the same months? They should be — you raised the discount rate from 8% to 11%. Spot-check one row: `Row PV = Nominal / (1 + 0.11/12)^monthIndex`.
+5. Switch to the Vote No (Offer) tab in the month-by-month table. Find the month when the offer arrives (month 6 = January 2027). Verify the hourly rate jumps at that point from CBA to something higher than the standard TA rate (because you set 5% above TA). The rate should be FO year 6 Jan 2027 rate × 1.05.
 
 ---
 
@@ -232,6 +243,7 @@ Run the same Gross Pay, 401k, and Cumulative PV formula checks described in Scen
 
 ## Pass 2 — Long JCBA, Skeptical of Second Offer
 
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 20%
 - **JCBA duration:** 42 months
 - **Second offer arrival:** 24 months
@@ -246,7 +258,7 @@ Monthly accrual = CA CBA rate for current longevity year × 85 × 0.35
 
 Note: the longevity is 11 at start, increments to 12 in September 2026, and stays at 12 forever after. So there are two distinct accrual rates in this scenario.
 
-Build a formula that computes the expected monthly accrual for each row and compare it to the RB Accrual column. Verify the total balance at the payout row (approximately month 44, 60 days after month 42) by summing all accruals and adding the starting $200,000. Multiply by the payout probability (20%) to get the expected payout. Compare that to what the Worth the Risk card shows.
+Build a formula that computes the expected monthly accrual for each row and compare it to the RB Accrual column. Verify the total balance at the payout row (approximately month 44, 60 days after month 42) by summing all accruals and adding the starting $200,000. Multiply by the payout probability (20%) to get the expected payout. Compare that to what the Worth the Risk card shows. Also confirm Row PV uses 11% discounting, not the 8% from Pass 1.
 
 ---
 
@@ -308,11 +320,12 @@ Run Gross Pay, 401k, and Cumulative PV formula checks across the full sheet.
 
 ## Pass 2 — Skeptical Pilot, Long Timeline
 
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 35%
 - **JCBA duration:** 30 months
 - **Second offer arrival:** 20 months
 
-On the Vote No (JCBA) sheet, this pilot is on FO CBA rates until the upgrade fires. But wait — does the upgrade still fire in the same month on the Vote No scenario? It should. The upgrade timing is independent of the vote outcome. Verify that the seat change still appears at the same month index across all three scenario tabs (Vote Yes, Vote No Offer, Vote No JCBA).
+On the Vote No (JCBA) sheet, this pilot is on FO CBA rates until the upgrade fires. But wait — does the upgrade still fire in the same month on the Vote No scenario? It should. The upgrade timing is independent of the vote outcome. Verify that the seat change still appears at the same month index across all three scenario tabs (Vote Yes, Vote No Offer, Vote No JCBA). Confirm Row PV and Cumulative PV reflect 11% discounting (`Nominal / (1 + 0.11/12)^monthIndex`).
 
 ---
 
@@ -389,13 +402,14 @@ Multiply the final balance by the payout probability. That expected payout numbe
 
 ## Pass 2 — Aggressive Vote No, Long JCBA
 
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **JCBA duration:** 36 months
 - **Probability of second offer:** 25%
 - **Second offer arrival:** 15 months
 - **Payout probability if second offer (Vote No B):** move to 85%
 - **Payout probability if no offer (Vote No C):** move to 40%
 
-Re-download the XLSX. The Vote No (JCBA) sheet now has 36 months of pre-JCBA data instead of 29. Repeat the running balance verification with the longer timeline. The expected payout should now use the 40% probability (Vote No C payout slider). Confirm the Worth the Risk card reflects the updated expected payout.
+Re-download the XLSX. The Vote No (JCBA) sheet now has 36 months of pre-JCBA data instead of 29. Repeat the running balance verification with the longer timeline. The expected payout should now use the 40% probability (Vote No C payout slider). Confirm the Worth the Risk card reflects the updated expected payout. Also confirm Row PV values use 11% discounting (`Nominal / (1 + 0.11/12)^monthIndex`), not the 8% from Pass 1.
 
 ---
 

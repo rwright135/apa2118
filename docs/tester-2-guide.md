@@ -7,7 +7,7 @@
 You will complete four things:
 1. Verify the assumptions and formulas built into the tool against the actual contract documents
 2. Scenario A, Pass 1 — enter inputs, run with defaults, audit the XLSX
-3. Scenario A, Pass 2 — change specific sliders, re-run, re-audit
+3. Scenario A, Pass 2 — change the investment/discount rate to 11% and adjust Vote No sliders, re-run, re-audit
 4. Scenario B, Pass 1 and Pass 2 — repeat for a different pilot profile
 
 Your scenarios both involve an FO upgrading to Captain mid-career. The tool must correctly switch pay scales at the upgrade month AND carry the pilot's longevity years over from FO to CA without resetting to year 1. Scenario B adds the complication that the upgrade fires in the exact same month as a TA tier change.
@@ -209,6 +209,7 @@ Diff column, apply conditional formatting.
 ### Pass 2 — Pilot Believes Second Offer Is Likely, Short Timeline
 
 Edit inputs and change:
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 75%
 - **Second offer arrives in:** 8 months
 - **Improvement above TA:** 4%
@@ -219,6 +220,8 @@ The offer arrives at month 8 (approximately March 2027). After that, the pilot i
 Download the XLSX again. Open the **Vote No (Offer)** sheet.
 
 Run all five checks on this sheet.
+
+**Discount rate check:** Row PV should use 11% in Pass 2 (`Nominal / (1 + 0.11/12)^monthIndex`). The Worth the Risk card's discounted retention payout should differ from Pass 1.
 
 **Additional check:** Find the offer arrival month (approximately March 2027). Before this month, the rate should be FO CBA rates. At this month and after, the rate should be TA rates × 1.04. In March 2027, the tier is Jan 2027. Check: FO year 4 Jan 2027 × 1.04 (the pilot incremented to year 4 in October 2026, and has not yet hit October 2027). Does the Gross Pay match Rate × Hours × 70?
 
@@ -310,6 +313,7 @@ For the 401k check: December 2026 should still be 10% (FO CBA). January 2027 swi
 ### Pass 2 — Skeptical Pilot, Long JCBA
 
 Edit inputs and change:
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 25%
 - **JCBA duration:** 32 months
 - **Second offer arrival:** 22 months

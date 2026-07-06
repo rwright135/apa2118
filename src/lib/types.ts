@@ -82,6 +82,7 @@ export interface MonthlyRow {
   // Retention (0 unless payout month, or accrual note)
   retentionCashFlow: number      // actual $ flowing this month (payout lump)
   retentionAccrualNote: number   // monthly accrual amount (for transparency, not discounted separately)
+  retentionRunningBalance: number // cumulative accrued balance as of this month; frozen once the new agreement is ratified
   retentionAtRetirement: number  // FV of this month's payout compounded to age 65 at investment rate
 
   // Brokerage savings (fraction of the raise vs CBA invested externally)

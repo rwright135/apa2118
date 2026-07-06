@@ -15,8 +15,6 @@ export function StepAdvanced() {
 
   const upliftPct = Math.round(POST_JCBA_UPLIFT * 100)
   const penaltyPct = Math.round(penalty * 100)
-  // Scenario C JCBA expressed as % of base TA_JAN2028 rates
-  const cJcbaRelativePct = Math.round((1 + POST_JCBA_UPLIFT) * (1 - penalty) * 100)
 
   return (
     <WizardLayout
@@ -24,10 +22,9 @@ export function StepAdvanced() {
       title="Post-JCBA Pay Assumptions"
       subtitle={
         <>
-          Ratifying any bridge agreement, whether this offer or a future one, gives the negotiating
-          committee a stronger position: JCBA rates land {upliftPct}% above whatever deal you
-          ratified. No deal means starting JCBA talks from the current CBA (DOS+5, 2016) instead.
-          You estimate how much lower that outcome lands below Vote Yes.
+          Ratifying any bridge agreement, whether this one or a future one, gives the negotiating
+          committee a stronger position heading into JCBA. Read the scenarios below and make your
+          selection to see how our decisions now will affect outcomes post-JCBA.
         </>
       }
       onBack={prevStep}
@@ -36,25 +33,23 @@ export function StepAdvanced() {
         <div className="space-y-4">
           <ScenarioColorCard scenarioId="A">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = current TA rates +{' '}
-              {upliftPct}%. You negotiated from the existing offer.
+              Based on industry historicals and the simplicity of this calculator, we assume a {upliftPct}%
+              pay improvement from TA Jan 2028 rates at the conclusion of JCBA.
             </p>
           </ScenarioColorCard>
 
           <ScenarioColorCard scenarioId="B">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = bridge offer rates +{' '}
-              {upliftPct}%. Since the bridge offer already beats TA, the JCBA starting point is even higher,
-              compounding the advantage.
+              This scenario assumes a {upliftPct}% pay improvement from the second-offer pay rate you
+              set with the adjustable percentage slider earlier in the wizard.
             </p>
           </ScenarioColorCard>
 
           <ScenarioColorCard scenarioId="C">
             <div className="space-y-5">
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                JCBA rates = {cJcbaRelativePct}% of current TA rates
-                {penaltyPct > 0 && ` (${penaltyPct}% below the Vote Yes JCBA outcome)`}. Negotiating
-                from DOS+5 CBA (2016) without a deal.
+                Summing up, this slider is your estimate of how much worse the JCBA outcome will be
+                compared to Scenario A (Vote Yes).
               </p>
               <SliderInput
                 value={penaltyPct}
@@ -62,8 +57,8 @@ export function StepAdvanced() {
                 max={30}
                 step={1}
                 onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
-                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% lower`)}
-                label="What's your estimate on the amount of impact?"
+                formatValue={(v) => (v === 0 ? 'No Difference' : `${v}% Worse`)}
+                label="How much worse than Vote Yes?"
                 accentColor={RETENTION_OUTCOME_COLORS.C}
                 showMinMax
               />
