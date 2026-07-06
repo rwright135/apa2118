@@ -37,19 +37,3 @@ export function AssumptionsFooter({
     </span>
   )
 }
-
-export function AssumptionsFootnote() {
-  return (
-    <>
-      <Assumption>Underlined</Assumption> values are your assumptions.
-    </>
-  )
-}
-
-export function BenchmarkAssumptionsFootnote() {
-  return (
-    <>
-      <Assumption>Underlined</Assumption> values are these assumptions.
-    </>
-  )
-}
