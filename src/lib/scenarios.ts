@@ -33,6 +33,7 @@ export function buildAllScenarios(inputs: UserInputs, scenarioOverride?: VoteNoS
       if (row.monthIndex < jcba) return row
       return {
         ...row,
+        hourlyRate:       row.hourlyRate       * multiplier,
         grossPay:         row.grossPay         * multiplier,
         presentValue:     row.presentValue     * multiplier,
         k401Contribution: row.k401Contribution * multiplier,
