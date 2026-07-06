@@ -48,7 +48,7 @@ export function StepAdvanced() {
           <ScenarioColorCard scenarioId="C">
             <div className="space-y-5">
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                In the other scenarios, we assume JCBA rates land at current TA + {upliftPct}% — that&apos;s
+                In the other scenarios, we assume JCBA rates land at current TA + {upliftPct}%, that&apos;s
                 the Vote Yes outcome. If there&apos;s no deal, JCBA talks start from CBA DOS+5 (2016) instead.
                 This slider is your estimate of how much worse those rates end up compared to Vote Yes.
               </p>
