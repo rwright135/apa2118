@@ -148,10 +148,10 @@ export function StepProfitSharing() {
         )}
 
       </div>
-      <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
         *For simplicity, this is intended to reflect what your profit-sharing earnings are on average annually. We understand this amount changes based on company performance and is not static year over year.
       </p>
-      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
     </WizardLayout>
   )
 }
