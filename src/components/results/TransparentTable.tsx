@@ -242,7 +242,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   const allSummaries = [...result.scenarios, result.voteNoExpected]
   const summary = allSummaries.find(s => s.scenarioId === scenarioId)
-  if (!summary) return null
+  const scenarioBSummary = allSummaries.find(s => s.scenarioId === 'B')
+  const scenarioCSummary = allSummaries.find(s => s.scenarioId === 'C')
+  if (!summary || !scenarioBSummary || !scenarioCSummary) return null
 
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
@@ -257,6 +259,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // Probability weight this raw scenario carries in the blended Vote No.
   const scenarioWeight = activeTab === 'B' ? p : activeTab === 'C' ? 1 - p : 1
   const isScenarioTab  = activeTab === 'B' || activeTab === 'C'
+  const isBlendedTab   = activeTab === 'NO'
 
   const preJcbaRows = rows.slice(0, jcbaMonth)
   // Retention for Scenario C pays ~60 days after JCBA; include those post-JCBA months in the table.
@@ -295,18 +298,41 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // earned, not new money. Including it would double-count those dollars.
   // Its real, non-overlapping payoff is the compounding growth shown in the
   // Brokerage column and in "Total Retirement Savings" below.
-  const nominalRowPVByMonth = new Map<number, number>()
-  const cumulativeNominalPVByMonth = new Map<number, number>()
-  {
+  function buildNominalPVMaps(monthRows: MonthlyRow[]) {
+    const byMonth = new Map<number, number>()
+    const cumulative = new Map<number, number>()
     let running = 0
-    for (const r of rows) {
+    for (const r of monthRows) {
       const { amount: retentionAmount } = getRetentionTableCell(r)
       const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
       const rowPV = nominalRowTotal * r.discountFactor
       running += rowPV
-      nominalRowPVByMonth.set(r.monthIndex, rowPV)
-      cumulativeNominalPVByMonth.set(r.monthIndex, running)
+      byMonth.set(r.monthIndex, rowPV)
+      cumulative.set(r.monthIndex, running)
     }
+    return { byMonth, cumulative }
+  }
+
+  const { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth } = buildNominalPVMaps(rows)
+  // On the Vote No (blended) tab, each month is broken into its two
+  // probability-weighted components (Offer × p, JCBA × (1-p)), so those need
+  // their own PV maps computed from B's / C's own rows, not the blended rows.
+  const bPVMaps = isBlendedTab ? buildNominalPVMaps(scenarioBSummary.rows) : null
+  const cPVMaps = isBlendedTab ? buildNominalPVMaps(scenarioCSummary.rows) : null
+
+  function renderSeatBadge(seat: MonthlyRow['effectiveSeat']) {
+    return (
+      <span
+        className="text-xs font-semibold px-1.5 py-0.5 rounded"
+        style={
+          seat === 'CA'
+            ? { color: 'var(--gold)', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }
+            : { color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }
+        }
+      >
+        {seat}
+      </span>
+    )
   }
 
   const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
@@ -324,8 +350,15 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // Renders the dollar-value columns for a row at a given weight. Used once at
   // 100% (nominal) and, on raw scenario tabs, a second time at the scenario's
   // probability weight — as two separate rows rather than a silent toggle, so
-  // it's always clear which numbers are nominal and which are weighted.
-  function renderValueCells(row: MonthlyRow, rowWeight: number, variant: 'nominal' | 'weighted' = 'nominal') {
+  // it's always clear which numbers are nominal and which are weighted. On the
+  // blended tab, pvMaps lets each component row (Offer / JCBA) use its own
+  // Row PV / Cumulative PV instead of the active tab's default maps.
+  function renderValueCells(
+    row: MonthlyRow,
+    rowWeight: number,
+    variant: 'nominal' | 'weighted' = 'nominal',
+    pvMaps: { byMonth: Map<number, number>; cumulative: Map<number, number> } = { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth }
+  ) {
     const padding = variant === 'weighted' ? 'px-3 py-1.5' : 'px-3 py-2'
     const italic  = variant === 'weighted'
     return columns.map(col => {
@@ -368,7 +401,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )
       }
       if (col.key === 'presentValue') {
-        const val = (nominalRowPVByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        const val = (pvMaps.byMonth.get(row.monthIndex) ?? 0) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
@@ -378,7 +411,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )
       }
       if (col.key === 'cumulativePV') {
-        const val = (cumulativeNominalPVByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        const val = (pvMaps.cumulative.get(row.monthIndex) ?? 0) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: 'var(--gold)', fontWeight: italic ? 400 : 600, fontStyle: italic ? 'italic' : undefined }}
@@ -456,6 +489,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             </div>
           </div>
         )}
+
+        {/* Component breakdown note — only on the blended tab */}
+        {isBlendedTab && (
+          <div className="mt-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Each month is broken into its two probability-weighted components
+            </div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+              <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> at <strong>{Math.round(p * 100)}%</strong> probability,
+              plus <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> at <strong>{Math.round((1 - p) * 100)}%</strong> probability
+              — together these two rows sum to the blended total for that month.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main table */}
@@ -501,6 +548,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 i > 0 &&
                 displayRows[i - 1].effectiveSeat === 'FO' &&
                 row.effectiveSeat === 'CA'
+              const rowB = isBlendedTab ? scenarioBSummary.rows[row.monthIndex] : null
+              const rowC = isBlendedTab ? scenarioCSummary.rows[row.monthIndex] : null
               return (
                 <>
                   {isSteadyStateStart && (
@@ -524,54 +573,85 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       </td>
                     </tr>
                   )}
-                  <tr
-                    key={`${row.year}-${row.month}`}
-                    style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
-                    className="transition-colors"
-                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
-                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
-                  >
-                    <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
-                      {row.monthIndex}
-                    </td>
-                    <td className="px-3 py-2 whitespace-nowrap font-medium sticky" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)', left: '2.75rem' }}>
-                      {MONTHS_SHORT[row.month]} {row.year}
-                    </td>
-                    <td className="px-3 py-2 text-center whitespace-nowrap">
-                      <span
-                        className="text-xs font-semibold px-1.5 py-0.5 rounded"
-                        style={
-                          row.effectiveSeat === 'CA'
-                            ? { color: 'var(--gold)', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }
-                            : { color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }
-                        }
+                  {isBlendedTab && rowB && rowC ? (
+                    <>
+                      <tr
+                        key={`${row.year}-${row.month}-offer`}
+                        style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
+                        className="transition-colors"
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
                       >
-                        {row.effectiveSeat}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
-                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
-                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
-                    {renderValueCells(row, 1, 'nominal')}
-                  </tr>
-                  {isScenarioTab && (
-                    <tr
-                      key={`${row.year}-${row.month}-weighted`}
-                      style={{ background: 'var(--bg-elevated)' }}
-                    >
-                      <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
-                      <td
-                        className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
-                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
+                        <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
+                          {row.monthIndex}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap sticky" style={{ background: 'var(--bg-surface)', left: '2.75rem' }}>
+                          <div className="font-medium" style={{ color: 'var(--text-muted)' }}>{MONTHS_SHORT[row.month]} {row.year}</div>
+                          <div className="text-[10px] font-semibold whitespace-nowrap" style={{ color: '#a855f7' }}>Vote No (Offer) · {Math.round(p * 100)}%</div>
+                        </td>
+                        <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(rowB.effectiveSeat)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{rowB.longevity}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(rowB.hourlyRate)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{rowB.totalHours}</td>
+                        {renderValueCells(rowB, p, 'nominal', bPVMaps!)}
+                      </tr>
+                      <tr
+                        key={`${row.year}-${row.month}-jcba`}
+                        style={{ background: 'var(--bg-elevated)' }}
+                        className="transition-colors"
                       >
-                        ↳ × {Math.round(scenarioWeight * 100)}%
-                      </td>
-                      <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                      {renderValueCells(row, scenarioWeight, 'weighted')}
-                    </tr>
+                        <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
+                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem' }}>
+                          <div className="text-[10px] font-semibold italic whitespace-nowrap" style={{ color: 'var(--negative)' }}>↳ Vote No (JCBA) · {Math.round((1 - p) * 100)}%</div>
+                        </td>
+                        <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(rowC.effectiveSeat)}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.longevity}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{fmtRate(rowC.hourlyRate)}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.totalHours}</td>
+                        {renderValueCells(rowC, 1 - p, 'weighted', cPVMaps!)}
+                      </tr>
+                    </>
+                  ) : (
+                    <>
+                      <tr
+                        key={`${row.year}-${row.month}`}
+                        style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
+                        className="transition-colors"
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+                      >
+                        <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
+                          {row.monthIndex}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap font-medium sticky" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)', left: '2.75rem' }}>
+                          {MONTHS_SHORT[row.month]} {row.year}
+                        </td>
+                        <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(row.effectiveSeat)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
+                        {renderValueCells(row, 1, 'nominal')}
+                      </tr>
+                      {isScenarioTab && (
+                        <tr
+                          key={`${row.year}-${row.month}-weighted`}
+                          style={{ background: 'var(--bg-elevated)' }}
+                        >
+                          <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
+                          <td
+                            className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
+                            style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
+                          >
+                            ↳ × {Math.round(scenarioWeight * 100)}%
+                          </td>
+                          <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
+                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                          {renderValueCells(row, scenarioWeight, 'weighted')}
+                        </tr>
+                      )}
+                    </>
                   )}
                 </>
               )
