@@ -58,7 +58,7 @@ export function StepAdvanced() {
                 max={30}
                 step={1}
                 onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
-                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% worse than Vote Yes`)}
+                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% Worse`)}
                 label="How much worse than Vote Yes?"
                 accentColor={RETENTION_OUTCOME_COLORS.C}
                 showMinMax
