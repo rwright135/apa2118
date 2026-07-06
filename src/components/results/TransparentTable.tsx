@@ -163,21 +163,33 @@ function RetentionDetail({ rows, startingBalance, probability, isVoteYes }: {
 // ── XLSX export ───────────────────────────────────────────────────────────────
 
 function buildSheetRows(rows: MonthlyRow[], weight: number) {
-  return rows.map(r => ({
-    Month:              `${MONTHS_SHORT[r.month]} ${r.year}`,
-    Seat:               r.effectiveSeat,
-    Longevity:          r.longevity,
-    'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
-    Hours:              r.totalHours,
-    'Gross Pay':        Math.round(r.grossPay * weight),
-    '401k Contrib':     Math.round(r.k401Contribution * weight),
-    'Profit Share':     Math.round(r.profitSharingCash * weight),
-    'Retention Accrual': Math.round((r.retentionCashFlow > 0.01 ? r.retentionCashFlow : r.retentionAccrualNote) * weight),
-    'Retention Total':  Math.round(r.retentionRunningBalance * weight),
-    'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
-    'Cumulative PV':    Math.round(r.cumulativePV * weight),
-    'Row PV':           Math.round(r.presentValue * weight),
-  }))
+  // Mirrors the in-app table: Nominal / Row PV / Cumulative PV are built from
+  // Gross Pay + 401(k) + Profit Share + RB Accrual-or-Payout (NOT Brokerage,
+  // which is already counted inside Gross Pay). Row PV = Nominal discounted
+  // by that month's factor; Cumulative PV is the running total from month 0.
+  let cumulativeNominalPV = 0
+  return rows.map(r => {
+    const { amount: retentionAmount } = getRetentionTableCell(r)
+    const nominalTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
+    const rowPV = nominalTotal * r.discountFactor
+    cumulativeNominalPV += rowPV
+    return {
+      Month:              `${MONTHS_SHORT[r.month]} ${r.year}`,
+      Seat:               r.effectiveSeat,
+      Longevity:          r.longevity,
+      'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
+      Hours:              r.totalHours,
+      'Gross Pay':        Math.round(r.grossPay * weight),
+      '401k Contrib':     Math.round(r.k401Contribution * weight),
+      'Profit Share':     Math.round(r.profitSharingCash * weight),
+      'Retention Accrual': Math.round(r.retentionAccrualNote * weight),
+      'Retention Total':  Math.round(r.retentionRunningBalance * weight),
+      'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
+      'Nominal':          Math.round(nominalTotal * weight),
+      'Row PV':           Math.round(rowPV * weight),
+      'Cumulative PV':    Math.round(cumulativeNominalPV * weight),
+    }
+  })
 }
 
 async function exportToXLSX(result: ComparisonResult) {
@@ -318,17 +330,19 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     const italic  = variant === 'weighted'
     return columns.map(col => {
       if (col.key === 'retentionAccrual') {
-        const { amount, isPayout } = getRetentionTableCell(row)
-        const val = amount * rowWeight
+        // Only the ongoing monthly accrual — never the lump-sum payout. Accrual
+        // is already frozen (0) by the payout month (see engine freeze logic),
+        // so this naturally shows "—" there. The payout amount itself flows
+        // into Nominal / Row PV / Cumulative PV instead, not this column.
+        const val = row.retentionAccrualNote * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{
-              color: isPayout ? 'var(--positive)' : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
-              fontWeight: isPayout ? 600 : 400,
+              color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
               fontStyle: italic ? 'italic' : undefined,
             }}
           >
-            {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+            {val !== 0 ? `+${fmt(val)}` : '—'}
           </td>
         )
       }
@@ -463,7 +477,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'cumulativePV' ? (
                     <span title="Running total of Row PV from month 0 through this month — the Nominal column discounted month-by-month and added up.">Cumulative PV</span>
                   ) : col.key === 'retentionAccrual' ? (
-                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Freezes once the new agreement is ratified — shows 0 during the ~60-day payout window.">RB Accrual</span>
+                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Freezes (shows 0) once the new agreement is ratified, through the ~60-day payout window. The lump-sum payout itself isn't shown in this column — see RB Total, Nominal, and Row PV.">RB Accrual</span>
                   ) : col.key === 'retentionTotal' ? (
                     <span title="Cumulative retention bonus balance accrued to date. Frozen (no further growth) once the new agreement is ratified; the frozen total is what gets paid out ~60 days later.">RB Total</span>
                   ) : col.key === 'nominalTotal' ? (
