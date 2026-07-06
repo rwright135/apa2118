@@ -217,6 +217,21 @@ function RiskRewardBreakdown({
     <div style={{ background: 'var(--bg-elevated)' }}>
       <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
 
+          {pB === 0 ? (
+            <RiskCard
+              dotColor="var(--text-faint)"
+              title="If the second offer arrives"
+              value={<span style={{ color: 'var(--text-faint)' }}>N/A</span>}
+              valueColor="var(--text-faint)"
+              collapsible={collapsible}
+              defaultExpanded={defaultExpanded}
+              body={
+                <span style={{ color: 'var(--text-faint)' }}>
+                  You've set the probability of a second offer to 0%, so this outcome doesn't affect your expected value.
+                </span>
+              }
+            />
+          ) : (
           <RiskCard
             dotColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             title="If the second offer arrives"
@@ -272,6 +287,7 @@ function RiskRewardBreakdown({
               </>
             }
           />
+          )}
 
           <RiskCard
             dotColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
