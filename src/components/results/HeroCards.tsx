@@ -194,6 +194,7 @@ function RiskRewardBreakdown({
     pB,
     pC,
     bRetDiff,
+    b401kDiff,
     bNominalGap,
     bPayPlusPS_waiting,
     bPayPlusPS_afterOffer,
@@ -262,9 +263,10 @@ function RiskRewardBreakdown({
                     value={`${bPayPlusPS_afterOffer >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_afterOffer))}`}
                     color={bPayPlusPS_afterOffer >= 0 ? 'var(--positive)' : 'var(--negative)'}
                   />
-                  <BreakdownRow label="Total Nominal Value" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
+                  <BreakdownRow label="401(k) DC difference" value={`${b401kDiff >= 0 ? '+' : '−'}${fmt(Math.abs(b401kDiff))}`} color={b401kDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
+                  <BreakdownRow label="Pre-JCBA Total" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
                   <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                    Verify in the month-by-month detail table below.
+                    Pre-JCBA nominal (pay + PS + 401k + retention). Verify in the month-by-month detail table.
                   </p>
                 </CollapsibleBreakdown>
               </>
@@ -283,17 +285,17 @@ function RiskRewardBreakdown({
                 ? <>
                     Staying on CBA rates through JCBA in{' '}
                     <Assumption>{jcba} months</Assumption> costs{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay and profit sharing during the pre-JCBA window,
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay, profit sharing, and 401(k) during the pre-JCBA window,
                     plus the loss of the Voting Yes retention timing (worth{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>).
                     Post-JCBA, Vote Yes earns ~20% above TA vs ~{Math.round((1 + 0.20) * (1 - (result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15)) * 100 - 100)}% for this path — that ongoing gap appears in the cumulative chart and table.
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
                     <CollapsibleBreakdown title="Show how this is calculated">
-                      <BreakdownRow label={`Pre-JCBA Pay + PS shortfall (months 0–${jcba})`} value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                      <BreakdownRow label={`Pre-JCBA Pay + PS + 401(k) shortfall (months 0–${jcba})`} value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
                       <BreakdownRow label="Retention Bonus timing" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
                       <BreakdownRow label="Pre-JCBA Nominal Total" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
                       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                        Pre-JCBA pay + profit sharing only (excludes 401(k) DC and post-JCBA months). The month-by-month table's Cumulative column is higher because it adds 401(k) contributions and all post-JCBA months. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card.
+                        Pre-JCBA pay + profit sharing + 401(k) DC (excludes post-JCBA months). The month-by-month table's Cumulative column is higher because it adds post-JCBA months where Vote Yes continues to out-earn this path. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card.
                       </p>
                     </CollapsibleBreakdown>
                   </>
