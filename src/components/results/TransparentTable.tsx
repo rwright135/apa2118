@@ -400,7 +400,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
               Each month below shows the full (nominal) numbers if this outcome occurs. The italic row directly underneath
               shows that same month scaled by this scenario's <strong>{Math.round(scenarioWeight * 100)}%</strong> probability
-              weighting — its actual contribution to the Vote No (Blended) total.
+              weighting. Its actual contribution to the Vote No (Blended) total.
             </div>
           </div>
         )}
