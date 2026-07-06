@@ -7,7 +7,7 @@
 You will complete four things:
 1. Verify that the assumptions and formulas built into the tool are correct against the actual contract documents
 2. Scenario A, Pass 1 — enter inputs, run with defaults, audit the XLSX
-3. Scenario A, Pass 2 — change specific sliders, re-run, re-audit
+3. Scenario A, Pass 2 — change the investment/discount rate to 11% and adjust Vote No sliders, re-run, re-audit
 4. Scenario B, Pass 1 and Pass 2 — repeat for a different pilot profile
 
 **Your job is to find errors.** Assume nothing is correct until your own formulas confirm it. If you find a discrepancy — even a small one — write it down and report it. Do not assume you made a mistake. Record both numbers and let us sort it out.
@@ -232,7 +232,11 @@ Any non-zero means the cumulative sum is diverging from the tool's value. Even a
 
 ### Pass 2 — Aggressive Vote No Assumptions
 
-Click **Edit Inputs** at the top of the results screen. Navigate to the Vote No scenario sliders and change:
+Click **Edit Inputs** at the top of the results screen. Navigate to the investment rate step and change:
+
+- **Investment/discount rate:** change from default **8%** to **11%** (tap the **S&P Nominal** preset, or move the slider to 11%)
+
+Then navigate to the Vote No scenario sliders and change:
 
 - **Probability of second offer:** 80%
 - **Second offer arrives in:** 6 months
@@ -243,6 +247,7 @@ Look at the results. Write down:
 1. Did the Vote No Blended outcome shift meaningfully toward "Vote No looks better"? It should, because you just said the second offer is highly probable and arrives fast.
 2. Is the "if the second offer arrives" gain now larger than it was in Pass 1? It should be, because a 5% improvement above TA is better than the default.
 3. Is the "if no offer arrives" loss the same number as Pass 1? It should be — this scenario is unaffected by the second-offer settings.
+4. Are Row PV and Cumulative PV lower than Pass 1 at the same months? They should be with 11% discounting. Spot-check: `Row PV = Nominal / (1 + 0.11/12)^monthIndex`.
 
 Download the XLSX again. Open the **Vote No (Offer)** sheet.
 
@@ -324,6 +329,7 @@ For Vote Yes, the payout is $110,000 in October 2026, and accrual stops after th
 ### Pass 2 — Long JCBA, Skeptical Pilot
 
 Edit inputs and change:
+- **Investment/discount rate:** change from default **8%** to **11%**
 - **Probability of second offer:** 30%
 - **JCBA duration:** 36 months
 - **Second offer arrival:** 20 months
@@ -347,7 +353,7 @@ Track the longevity increments in November of each year. Your running balance sh
 - November 2027 – October 2028: FO year 6 accrual rate (12 months)
 - November 2028 – October 2029: FO year 7 accrual rate (12 months, but JCBA ends month 36 = July 2029, payout ~Sept 2029)
 
-Compute the expected total balance at payout. Multiply by the payout probability (check what the Vote No C slider is set to — default is 50%). Compare to what the Worth the Risk card shows as the expected retention payout.
+Compute the expected total balance at payout. Multiply by the payout probability (check what the Vote No C slider is set to — default is 50%). Compare to what the Worth the Risk card shows as the expected retention payout. In Pass 2, also confirm Row PV reflects 11% discounting.
 
 ---
 
