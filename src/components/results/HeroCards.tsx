@@ -378,8 +378,8 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
   return (
     <div className="rounded-2xl overflow-hidden" style={{ border: `1.5px solid ${scenarioColor}`, background: 'var(--bg-surface)' }}>
       <div
-        className="flex items-center justify-between px-5 py-3 border-b"
-        style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+        className="flex items-center justify-between px-5 py-3"
+        style={{ background: 'var(--bg-surface)' }}
       >
         <button
           type="button"
@@ -409,7 +409,7 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
         </div>
       </div>
 
-      <div className="px-5 pt-4 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="px-5 pt-1 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
         <RiskRewardHeadline result={result} assumptionScope="these" />
       </div>
 
@@ -421,7 +421,7 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
         />
       )}
 
-      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+      <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
         <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
       </div>
     </div>
