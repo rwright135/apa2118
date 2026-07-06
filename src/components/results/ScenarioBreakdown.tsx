@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import type { ComparisonResult, ScenarioSummary } from '../../lib/types'
 import { VOTE_NO_CSS, VOTE_YES_CSS } from '../../lib/resultColors'
 import { getRetirementDate } from '../../lib/engine'
@@ -142,90 +142,6 @@ function ScenarioStatRows({ result }: { result: ComparisonResult }) {
   )
 }
 
-function ScenarioWeightingDetail({ result }: { result: ComparisonResult }) {
-  const [open, setOpen] = useState(true)
-
-  const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
-  const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
-  const voteNo    = result.voteNoExpected
-  const p         = result.voteNoScenario.probability
-
-  return (
-    <div className="border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
-      <div className="px-4 py-3">
-        <button
-          type="button"
-          onClick={() => setOpen(v => !v)}
-          className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
-          style={{
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-            How Vote No expected value is calculated
-          </span>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            stroke="var(--text-faint)"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            style={{
-              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s',
-              flexShrink: 0,
-            }}
-          >
-            <path d="M2 4l4 4 4-4" />
-          </svg>
-        </button>
-      </div>
-
-      {open && (
-        <div className="px-4 pb-4 space-y-2" style={{ background: 'var(--bg-elevated)' }}>
-          <p className="text-xs leading-relaxed px-1" style={{ color: 'var(--text-faint)' }}>
-            Vote No = (Vote No (Offer) × {Math.round(p * 100)}%) + (Vote No (JCBA) × {Math.round((1 - p) * 100)}%)
-          </p>
-          {[
-            { label: 'Vote No (Offer) — 2nd bridge offer arrives', weight: p, pv: scenarioB.preJcbaTotal },
-            { label: 'Vote No (JCBA) — No offer, stay on CBA until JCBA', weight: 1 - p, pv: scenarioC.preJcbaTotal },
-          ].map(({ label, weight, pv }) => (
-            <div
-              key={label}
-              className="flex items-start justify-between gap-4 rounded-lg px-3 py-2"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-            >
-              <div className="min-w-0 text-xs leading-snug" style={{ color: 'var(--text-muted)' }}>
-                {label}
-                <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-semibold" style={{ background: 'var(--bg-elevated)', color: 'var(--text-faint)' }}>
-                  ×{Math.round(weight * 100)}%
-                </span>
-              </div>
-              <span className="text-sm font-semibold tabular-nums shrink-0" style={{ color: 'var(--text-base)' }}>
-                {fmt(pv)}
-              </span>
-            </div>
-          ))}
-          <div
-            className="flex items-center justify-between gap-4 rounded-lg px-3 py-2"
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-          >
-            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              Weighted Vote No total
-            </span>
-            <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: 'var(--text-base)' }}>
-              {fmt(voteNo.preJcbaTotal)}
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Export ────────────────────────────────────────────────────────────────────
 
 /** Full breakdown table — rendered ONLY for the user's own assumptions
@@ -268,8 +184,6 @@ export function ScenarioBreakdown({ results }: Props) {
             <ScenarioStatRows result={result} />
           </tbody>
         </table>
-
-        <ScenarioWeightingDetail result={result} />
       </div>
     </div>
   )
