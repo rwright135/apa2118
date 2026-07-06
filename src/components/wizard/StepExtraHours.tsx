@@ -1,12 +1,11 @@
 import { useStore } from '../../state/store'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
-import { NumberInput } from '../shared/NumberInput'
+import { SliderInput } from '../shared/SliderInput'
 
 export function StepExtraHours() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
   const extra = inputs.extraHoursAboveMMG ?? 0
-  const hasValue = inputs.extraHoursAboveMMG !== undefined
   const mmg = inputs.lineType === 'RESERVE' ? 72 : 70
 
   return (
@@ -16,13 +15,14 @@ export function StepExtraHours() {
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
-        <NumberInput
-          value={inputs.extraHoursAboveMMG}
-          onChange={(v) => setInput('extraHoursAboveMMG', Math.max(0, v))}
-          suffix="hrs/mon"
+        <SliderInput
+          value={extra}
           min={0}
           max={50}
-          placeholder="0"
+          step={1}
+          onChange={(v) => setInput('extraHoursAboveMMG', v)}
+          formatValue={(v) => `${v} hrs/mon`}
+          showMinMax
         />
 
         {inputs.seat && inputs.longevityAsOfJul2026 && (
@@ -49,7 +49,14 @@ export function StepExtraHours() {
         )}
 
       </div>
-      <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
+      <NavButton
+        onClick={() => {
+          if (inputs.extraHoursAboveMMG === undefined) setInput('extraHoursAboveMMG', 0)
+          nextStep()
+        }}
+      >
+        Continue
+      </NavButton>
     </WizardLayout>
   )
 }
