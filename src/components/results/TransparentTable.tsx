@@ -365,7 +365,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-              <th className="text-left px-3 py-2 font-medium whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>Month</th>
+              <th className="text-center px-2 py-2 font-medium whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)', width: '2.75rem', minWidth: '2.75rem' }}>#</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap sticky" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)', left: '2.75rem' }}>Month</th>
               <th className="text-center px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Seat</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Longevity</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Rate</th>
@@ -398,21 +399,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isFirstPostJcbaRetention && (
                     <tr key={`post-jcba-${i}`} style={{ background: 'rgba(34,197,94,0.05)' }}>
-                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
                         ── Post-JCBA retention accrual & payout (60 days after JCBA ratification) ──
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={12} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>
@@ -424,7 +425,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
                     onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
                   >
-                    <td className="px-3 py-2 whitespace-nowrap font-medium sticky left-0" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)' }}>
+                    <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
+                      {row.monthIndex + 1}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-medium sticky" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)', left: '2.75rem' }}>
                       {MONTHS_SHORT[row.month]} {row.year}
                     </td>
                     <td className="px-3 py-2 text-center whitespace-nowrap">
