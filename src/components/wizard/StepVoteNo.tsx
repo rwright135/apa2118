@@ -159,6 +159,9 @@ function LockedScenarioCard({
           <span className="text-xs" style={{ color: 'var(--text-faint)' }}>pre-set, no input needed</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+            {expanded ? 'Collapse' : 'Expand to View'}
+          </span>
           <svg
             width="13" height="13" viewBox="0 0 12 12" fill="none"
             stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
