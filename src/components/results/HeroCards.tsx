@@ -425,7 +425,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
         <RiskRewardHeadline result={result} />
       </div>
 
-      <RiskRewardBreakdown result={result} />
+      <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
