@@ -108,15 +108,15 @@ export function CumulativeLineChart({ results }: Props) {
       {/* Post-JCBA assumption summary */}
       <div className="grid grid-cols-3 gap-2 text-[10px]" style={{ color: 'var(--text-faint)' }}>
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: 'var(--gold)' }}>Vote Yes — JCBA</div>
+          <div className="font-semibold" style={{ color: 'var(--gold)' }}>Vote Yes</div>
           <div>TA rates +{upliftPct}% = {100 + upliftPct}% of TA</div>
         </div>
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: scenarioOffer }}>Vote No (Offer) — JCBA</div>
+          <div className="font-semibold" style={{ color: scenarioOffer }}>Vote No (Offer)</div>
           <div>Bridge rates +{upliftPct}% = ~{bJcbaRelativePct}% of TA</div>
         </div>
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: 'var(--negative)' }}>Vote No (JCBA) — JCBA</div>
+          <div className="font-semibold" style={{ color: 'var(--negative)' }}>Vote No (JCBA)</div>
           <div>TA +{upliftPct}% −{penaltyPct}% penalty = {cJcbaRelativePct}% of TA</div>
         </div>
       </div>
