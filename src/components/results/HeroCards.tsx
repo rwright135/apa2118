@@ -322,8 +322,8 @@ function RiskRewardBreakdown({
                     Staying on CBA rates through JCBA in{' '}
                     <Assumption>{jcba} months</Assumption> costs{' '}
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cWagesShortfall)}</strong> in pay, profit sharing, and 401(k) during the pre-JCBA window,
-                    plus the loss of the Voting Yes retention timing (worth{' '}
-                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>).
+                    plus foregoing the Retention Bonus of{' '}
+                    <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>.
                     Post-JCBA, Vote Yes earns ~20% above TA vs ~{Math.round((1 + 0.20) * (1 - (result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15)) * 100 - 100)}% for this path — that ongoing gap appears in the cumulative chart and table.
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
                     <CollapsibleBreakdown title="Show how this is calculated">
