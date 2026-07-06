@@ -215,7 +215,7 @@ function RiskRewardBreakdown({
 
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
-      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
 
           <RiskCard
             dotColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
@@ -308,7 +308,7 @@ function RiskRewardBreakdown({
             }
           />
 
-          <div className="md:col-span-2 xl:col-span-1 min-w-0">
+          <div className="md:col-span-2 min-w-0">
           <RiskCard
             dotColor={cNetAfterRetention > 0 ? 'var(--warning)' : 'var(--positive)'}
             title="Worth the Risk?"
