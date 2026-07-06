@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
 import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
 import { useResultChartColors } from './useResultChartColors'
@@ -6,6 +7,11 @@ import { useResultChartColors } from './useResultChartColors'
 interface Props { results: ComparisonResult[] }
 
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+// Fixed width for the sticky "Month" column so longer sub-row labels (e.g. the
+// blended tab's "Offer 50%" / "JCBA 50%" breakdown) truncate instead of
+// growing the column and shifting every other column to the right.
+const MONTH_COL_WIDTH = '8rem'
+const MONTH_COL_STYLE: CSSProperties = { width: MONTH_COL_WIDTH, minWidth: MONTH_COL_WIDTH, maxWidth: MONTH_COL_WIDTH, overflow: 'hidden' }
 function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 function fmtPct(n: number)  { return `${(n * 100).toFixed(0)}%` }
@@ -547,7 +553,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           <thead>
             <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <th className="text-center px-2 py-2 font-medium whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)', width: '2.75rem', minWidth: '2.75rem' }}>#</th>
-              <th className="text-left px-3 py-2 font-medium whitespace-nowrap sticky" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)', left: '2.75rem' }}>Month</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap sticky" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)', left: '2.75rem', ...MONTH_COL_STYLE }}>Month</th>
               <th className="text-center px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Seat</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Longevity</th>
               <th className="text-right px-3 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>Rate</th>
@@ -620,7 +626,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
                       {row.monthIndex}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap sticky" style={{ background: 'var(--bg-surface)', left: '2.75rem' }}>
+                    <td className="px-3 py-2 whitespace-nowrap sticky" style={{ background: 'var(--bg-surface)', left: '2.75rem', ...MONTH_COL_STYLE }}>
                       <div className="flex items-center gap-1">
                         {isBlendedTab && rowB && rowC && (
                           <button
@@ -656,7 +662,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
                       <td
                         className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
-                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
+                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem', ...MONTH_COL_STYLE }}
                       >
                         ↳ × {Math.round(scenarioWeight * 100)}%
                       </td>
@@ -675,8 +681,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         className="transition-colors"
                       >
                         <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
-                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem' }}>
-                          <div className="text-[10px] font-semibold whitespace-nowrap pl-3" style={{ color: '#a855f7' }}>↳ Vote No (Offer) · {Math.round(p * 100)}%</div>
+                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem', ...MONTH_COL_STYLE }} title={`Vote No (Offer) \u00b7 ${Math.round(p * 100)}%`}>
+                          <div
+                            className="text-[10px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis"
+                            style={{ color: '#a855f7', borderLeft: '2px solid #a855f7', paddingLeft: '5px' }}
+                          >
+                            Offer {Math.round(p * 100)}%
+                          </div>
                         </td>
                         <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(rowB.effectiveSeat)}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowB.longevity}</td>
@@ -690,8 +701,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         className="transition-colors"
                       >
                         <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
-                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem' }}>
-                          <div className="text-[10px] font-semibold whitespace-nowrap pl-3" style={{ color: 'var(--negative)' }}>↳ Vote No (JCBA) · {Math.round((1 - p) * 100)}%</div>
+                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem', ...MONTH_COL_STYLE }} title={`Vote No (JCBA) \u00b7 ${Math.round((1 - p) * 100)}%`}>
+                          <div
+                            className="text-[10px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis"
+                            style={{ color: 'var(--negative)', borderLeft: '2px solid var(--negative)', paddingLeft: '5px' }}
+                          >
+                            JCBA {Math.round((1 - p) * 100)}%
+                          </div>
                         </td>
                         <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(rowC.effectiveSeat)}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.longevity}</td>
