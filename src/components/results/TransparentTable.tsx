@@ -314,6 +314,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     : `TA+${Math.round(upliftPct * (1 - penalty))}%`
 
   const allTableRows = [...preJcbaRows, ...postJcbaRows]
+  const retirementMonthIndex = rows.length - 1
 
   const displayRows = expanded
     ? allTableRows
@@ -323,6 +324,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         return [...preSteady, ...postJcbaRows.slice(0, 3)]
       })()
   const hasMore = preJcbaRows.length > steadyStateIndex + 1 || postJcbaRows.length > 3
+  const showsThroughRetirement =
+    displayRows.length > 0 &&
+    displayRows[displayRows.length - 1].monthIndex === retirementMonthIndex
   const isVoteYes    = activeTab === 'YES'
 
   const prob = isVoteYes ? 1
@@ -723,6 +727,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       </tr>
                     </>
                   )}
+                  {showsThroughRetirement && i === displayRows.length - 1 && (
+                    <tr key="retirement-banner" style={{ background: 'rgba(59,130,246,0.08)', borderTop: '2px solid rgba(59,130,246,0.4)' }}>
+                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
+                        FAA Mandatory Retirement Age (Month {retirementMonthIndex})
+                      </td>
+                    </tr>
+                  )}
                 </>
               )
             })}
@@ -733,9 +744,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       {hasMore && (
         <div className="px-4 py-3 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
           <button onClick={() => setExpanded(!expanded)} className="text-sm font-medium" style={{ color: 'var(--accent)' }}>
-            {expanded
-              ? 'Collapse (show only pre-steady-state + first 3 post-JCBA months)'
-              : `Show all ${preJcbaRows.length - steadyStateIndex - 1} remaining pre-JCBA months + ${postJcbaRows.length - 3} more post-JCBA months`}
+            {expanded ? 'Collapse' : 'Show All (Until Retirement)'}
           </button>
         </div>
       )}
