@@ -181,7 +181,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) 
       'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
       Hours:              r.totalHours,
       'Gross Pay':        Math.round(r.grossPay * weight),
-      '401k Contrib':     Math.round(r.k401Contribution * weight),
+      '401(k) DC':        Math.round(r.k401Contribution * weight),
       'Profit Share':     Math.round(r.profitSharingCash * weight),
       'Retention Accrual': Math.round(r.retentionAccrualNote * weight),
       'Retention Total':  Math.round(r.retentionRunningBalance * weight),
@@ -362,7 +362,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
     { key: 'grossPay',             label: 'Gross Pay' },
-    { key: 'k401Contribution',     label: '401(k) contrib' },
+    { key: 'k401Contribution',     label: '401(k) DC' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'retentionTotal',       label: 'RB Total' },
