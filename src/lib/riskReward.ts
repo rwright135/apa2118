@@ -17,7 +17,14 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const bPayDiff  = scenarioB.totalGrossPay     - scenarioA.totalGrossPay
   const bPSDiff   = scenarioB.totalProfitSharing - scenarioA.totalProfitSharing
   const b401kDiff = scenarioB.total401kContributions - scenarioA.total401kContributions
-  const bRetDiff  = scenarioB.totalRetention     - scenarioA.totalRetention
+  // Nominal additional retention accrual: Scenario A freezes the balance at ratification
+  // (day 1); Scenario B continues accruing at CBA rates until the offer arrives.
+  // We use raw accrual notes rather than totalRetention so this stays consistent with
+  // the other nominal rows (which don't apply pB probability weighting).
+  let bRetDiff = 0
+  for (const rowB of scenarioB.rows) {
+    bRetDiff += rowB.retentionAccrualNote
+  }
   const bNominalGap = bPayDiff + bPSDiff + b401kDiff + bRetDiff
 
   // Split the pay+PS difference into two phases for the breakdown:
