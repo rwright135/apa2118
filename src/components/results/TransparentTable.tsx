@@ -470,7 +470,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
                   >
                     <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
-                      {row.monthIndex + 1}
+                      {row.monthIndex}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap font-medium sticky" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)', left: '2.75rem' }}>
                       {MONTHS_SHORT[row.month]} {row.year}
