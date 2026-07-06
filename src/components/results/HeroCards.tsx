@@ -195,6 +195,38 @@ function CollapsibleBreakdown({ title, children }: { title: string; children: Re
   )
 }
 
+function PlainTermsCallout({ cNetAfterRetention }: { cNetAfterRetention: number }) {
+  const isNegative = cNetAfterRetention > 0
+  return (
+    <div
+      className="mt-3 rounded-xl px-4 py-3"
+      style={{
+        background: isNegative ? 'rgba(245,158,11,0.10)' : 'rgba(34,197,94,0.10)',
+        border: `1.5px solid ${isNegative ? 'rgba(245,158,11,0.35)' : 'rgba(34,197,94,0.35)'}`,
+      }}
+    >
+      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: isNegative ? 'var(--warning)' : 'var(--positive)' }}>
+        In Plain Terms
+      </div>
+      <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
+        {isNegative ? (
+          <>
+            If you vote No and no second offer ever comes, you&apos;ll end up roughly{' '}
+            <span style={{ color: 'var(--warning)', fontWeight: 700 }}>{fmt(cNetAfterRetention)} worse off</span>{' '}
+            than if you had voted Yes — even after your retention bonus.
+          </>
+        ) : (
+          <>
+            Even if you vote No and no second offer ever comes, you&apos;d still come out roughly{' '}
+            <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmt(Math.abs(cNetAfterRetention))} ahead</span>{' '}
+            of Voting Yes — your retention bonus more than covers the difference.
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function RiskRewardBreakdown({
   result,
   collapsible = false,
@@ -374,35 +406,10 @@ function RiskRewardBreakdown({
                   : <>
                       {' '}So even in the worst case, the retention bonus more than offsets the CBA earnings gap once accrual is counted.
                     </>}
-                <div
-                  className="mt-4 rounded-xl px-4 py-3"
-                  style={{
-                    background: cNetAfterRetention > 0 ? 'rgba(245,158,11,0.10)' : 'rgba(34,197,94,0.10)',
-                    border: `1.5px solid ${cNetAfterRetention > 0 ? 'rgba(245,158,11,0.35)' : 'rgba(34,197,94,0.35)'}`,
-                  }}
-                >
-                  <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: cNetAfterRetention > 0 ? 'var(--warning)' : 'var(--positive)' }}>
-                    In Plain Terms
-                  </div>
-                  <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
-                    {cNetAfterRetention > 0 ? (
-                      <>
-                        If you vote No and no second offer ever comes, you&apos;ll end up roughly{' '}
-                        <span style={{ color: 'var(--warning)', fontWeight: 700 }}>{fmt(cNetAfterRetention)} worse off</span>{' '}
-                        than if you had voted Yes — even after your retention bonus.
-                      </>
-                    ) : (
-                      <>
-                        Even if you vote No and no second offer ever comes, you&apos;d still come out roughly{' '}
-                        <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmt(Math.abs(cNetAfterRetention))} ahead</span>{' '}
-                        of Voting Yes — your retention bonus more than covers the difference.
-                      </>
-                    )}
-                  </div>
-                </div>
               </>
             }
           />
+          <PlainTermsCallout cNetAfterRetention={cNetAfterRetention} />
           </div>
 
         </div>
