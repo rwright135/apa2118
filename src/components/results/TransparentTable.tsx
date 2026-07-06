@@ -25,7 +25,7 @@ function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boo
   return { amount: 0, isPayout: false }
 }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
@@ -197,17 +197,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 
   // Row PV / Cumulative PV are computed directly from the same Nominal total
   // shown in the Nominal column, discounted by that month's discount factor —
-  // so at month 0 (discountFactor = 1) Row PV always equals Nominal exactly,
-  // and each subsequent month only drops by the actual monthly discount rate.
-  // Precomputed once over the FULL row set (not just the truncated displayRows)
-  // so Cumulative PV is always a true running total from month 0.
-  //
-  // Brokerage savings are deliberately excluded here (and from Nominal below):
-  // brokerageSavingsCash is a percentage of the raise that's already fully
-  // counted inside Gross Pay — it's a redirection of pay the pilot already
-  // earned, not new money. Including it would double-count those dollars.
-  // Its real, non-overlapping payoff is the compounding growth shown in the
-  // Brokerage column and in "Total Retirement Savings" below.
   function buildNominalPVMaps(monthRows: MonthlyRow[]) {
     const byMonth = new Map<number, number>()
     const cumulative = new Map<number, number>()
@@ -229,6 +218,26 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // their own PV maps computed from B's / C's own rows, not the blended rows.
   const bPVMaps = isBlendedTab ? buildNominalPVMaps(scenarioBSummary.rows) : null
   const cPVMaps = isBlendedTab ? buildNominalPVMaps(scenarioCSummary.rows) : null
+
+  // Brokerage: each month the entire account compounds at investmentRate/12,
+  // then the new monthly contribution is added. Track interest and balance.
+  const monthlyRate = result.inputs.investmentRate / 12
+  function buildBrokerageMaps(monthRows: MonthlyRow[]) {
+    const interestByMonth   = new Map<number, number>()
+    const cumulativeByMonth = new Map<number, number>()
+    let balance = 0
+    for (const r of monthRows) {
+      const interest = balance * monthlyRate
+      balance = balance + interest + r.brokerageSavingsCash
+      interestByMonth.set(r.monthIndex, interest)
+      cumulativeByMonth.set(r.monthIndex, balance)
+    }
+    return { interestByMonth, cumulativeByMonth }
+  }
+
+  const brokerageMaps      = buildBrokerageMaps(rows)
+  const bBrokerageMaps     = isBlendedTab ? buildBrokerageMaps(scenarioBSummary.rows) : null
+  const cBrokerageMaps     = isBlendedTab ? buildBrokerageMaps(scenarioCSummary.rows) : null
 
   function renderSeatBadge(seat: MonthlyRow['effectiveSeat']) {
     return (
@@ -254,7 +263,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'nominalTotal',         label: 'Nominal' },
     { key: 'presentValue',         label: 'Row PV' },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
-    { key: 'brokerageSavingsCash', label: 'Brokerage' },
+    { key: 'brokerageSavingsCash', label: 'Brokerage Savings' },
+    { key: 'brokerageInterest',    label: 'Brokerage Interest' },
+    { key: 'cumulativeBrokerage',  label: 'Cumulative Brokerage', gold: true },
   ]
 
   // Renders the dollar-value columns for a row at a given weight. Used once at
@@ -267,7 +278,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     row: MonthlyRow,
     rowWeight: number,
     variant: 'nominal' | 'weighted' = 'nominal',
-    pvMaps: { byMonth: Map<number, number>; cumulative: Map<number, number> } = { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth }
+    pvMaps: { byMonth: Map<number, number>; cumulative: Map<number, number> } = { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth },
+    brMaps: { interestByMonth: Map<number, number>; cumulativeByMonth: Map<number, number> } = brokerageMaps
   ) {
     const padding = variant === 'weighted' ? 'px-3 py-1.5' : 'px-3 py-2'
     const italic  = variant === 'weighted'
@@ -327,6 +339,26 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             style={{ color: 'var(--gold)', fontWeight: italic ? 400 : 600, fontStyle: italic ? 'italic' : undefined }}
           >
             {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'brokerageInterest') {
+        const val = (brMaps.interestByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val > 0.005 ? `+${fmt(val)}` : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'cumulativeBrokerage') {
+        const val = (brMaps.cumulativeByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: 'var(--gold)', fontWeight: italic ? 400 : 600, fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val > 0.005 ? fmt(val) : '—'}
           </td>
         )
       }
@@ -445,7 +477,11 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'nominalTotal' ? (
                     <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
                   ) : col.key === 'brokerageSavingsCash' ? (
-                    <span title="A percentage of your raise (already fully counted in Gross Pay) that you choose to invest instead of spend. Shown here for reference only — not added into Nominal/Row PV/Cumulative PV, since that would double-count money already counted as pay. This account looks 'smaller' today because its real payoff comes from compounding growth over time, not from having the cash now — see Total Retirement Savings for its compounded value at retirement.">Brokerage</span>
+                    <span title="The portion of your monthly raise redirected to a taxable brokerage account. Already counted in Gross Pay — shown here for reference only and excluded from Nominal/Row PV/Cumulative PV.">Brokerage Savings</span>
+                  ) : col.key === 'brokerageInterest' ? (
+                    <span title="Interest earned this month on the cumulative brokerage balance: balance × (rate ÷ 12). Compounds monthly at your chosen investment rate.">Brokerage Interest</span>
+                  ) : col.key === 'cumulativeBrokerage' ? (
+                    <span title="Running brokerage account balance: prior balance × (1 + rate/12) + this month's contribution. Grows each month through both new savings and compounding interest.">Cumulative Brokerage</span>
                   ) : col.label}
                 </th>
               ))}
@@ -469,21 +505,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && !isJcbaBoundary && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isJcbaBoundary && (
                     <tr key={`jcba-${i}`} style={{ background: 'rgba(34,197,94,0.08)', borderTop: '2px solid rgba(34,197,94,0.4)' }}>
-                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
                         JCBA Ratified (Month {jcbaMonth}) Post-JCBA Rate: {postJcbaLabel}
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>
@@ -565,7 +601,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowB.longevity}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{fmtRate(rowB.hourlyRate)}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowB.totalHours}</td>
-                        {renderValueCells(rowB, p, 'weighted', bPVMaps!)}
+                        {renderValueCells(rowB, p, 'weighted', bPVMaps!, bBrokerageMaps!)}
                       </tr>
                       <tr
                         key={`${row.year}-${row.month}-jcba`}
@@ -585,13 +621,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.longevity}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{fmtRate(rowC.hourlyRate)}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.totalHours}</td>
-                        {renderValueCells(rowC, 1 - p, 'weighted', cPVMaps!)}
+                        {renderValueCells(rowC, 1 - p, 'weighted', cPVMaps!, cBrokerageMaps!)}
                       </tr>
                     </>
                   )}
                   {showsThroughRetirement && i === displayRows.length - 1 && (
                     <tr key="retirement-banner" style={{ background: 'rgba(59,130,246,0.08)', borderTop: '2px solid rgba(59,130,246,0.4)' }}>
-                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
+                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
                         FAA Mandatory Retirement Age (Month {retirementMonthIndex})
                       </td>
                     </tr>
