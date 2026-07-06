@@ -25,7 +25,7 @@ function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boo
   return { amount: 0, isPayout: false }
 }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'cumulativeNominal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
@@ -200,19 +200,23 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   function buildNominalPVMaps(monthRows: MonthlyRow[]) {
     const byMonth = new Map<number, number>()
     const cumulative = new Map<number, number>()
+    const cumulativeNominal = new Map<number, number>()
     let running = 0
+    let runningNominal = 0
     for (const r of monthRows) {
       const { amount: retentionAmount } = getRetentionTableCell(r)
       const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
       const rowPV = nominalRowTotal * r.discountFactor
       running += rowPV
+      runningNominal += nominalRowTotal
       byMonth.set(r.monthIndex, rowPV)
       cumulative.set(r.monthIndex, running)
+      cumulativeNominal.set(r.monthIndex, runningNominal)
     }
-    return { byMonth, cumulative }
+    return { byMonth, cumulative, cumulativeNominal }
   }
 
-  const { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth } = buildNominalPVMaps(rows)
+  const { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth, cumulativeNominal: cumulativeNominalByMonth } = buildNominalPVMaps(rows)
   // On the Vote No (blended) tab, each month is broken into its two
   // probability-weighted components (Offer × p, JCBA × (1-p)), so those need
   // their own PV maps computed from B's / C's own rows, not the blended rows.
@@ -261,6 +265,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'retentionTotal',       label: 'RB Total' },
     { key: 'nominalTotal',         label: 'Nominal' },
+    { key: 'cumulativeNominal',    label: 'Cumulative Nominal' },
     { key: 'presentValue',         label: 'Row PV' },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
     { key: 'brokerageSavingsCash', label: 'Savings' },
@@ -278,7 +283,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     row: MonthlyRow,
     rowWeight: number,
     variant: 'nominal' | 'weighted' = 'nominal',
-    pvMaps: { byMonth: Map<number, number>; cumulative: Map<number, number> } = { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth },
+    pvMaps: { byMonth: Map<number, number>; cumulative: Map<number, number>; cumulativeNominal: Map<number, number> } = { byMonth: nominalRowPVByMonth, cumulative: cumulativeNominalPVByMonth, cumulativeNominal: cumulativeNominalByMonth },
     brMaps: { interestByMonth: Map<number, number>; cumulativeByMonth: Map<number, number> } = brokerageMaps
   ) {
     const padding = variant === 'weighted' ? 'px-3 py-1.5' : 'px-3 py-2'
@@ -314,6 +319,16 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       if (col.key === 'nominalTotal') {
         const { amount: retentionAmount } = getRetentionTableCell(row)
         const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'cumulativeNominal') {
+        const val = (pvMaps.cumulativeNominal.get(row.monthIndex) ?? 0) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
@@ -476,6 +491,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <span title="Cumulative retention bonus balance accrued to date. Frozen (no further growth) once the new agreement is ratified; the frozen total is what gets paid out ~60 days later.">RB Total</span>
                   ) : col.key === 'nominalTotal' ? (
                     <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
+                  ) : col.key === 'cumulativeNominal' ? (
+                    <span title="Running total of the Nominal column from month 0 through this month — total undiscounted pay earned so far.">Cumulative Nominal</span>
                   ) : col.key === 'brokerageSavingsCash' ? (
                     <span title="The portion of your monthly raise redirected to a taxable brokerage account. Already counted in Gross Pay — shown here for reference only and excluded from Nominal/Row PV/Cumulative PV.">Savings</span>
                   ) : col.key === 'brokerageInterest' ? (
@@ -505,21 +522,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && !isJcbaBoundary && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isJcbaBoundary && (
                     <tr key={`jcba-${i}`} style={{ background: 'rgba(34,197,94,0.08)', borderTop: '2px solid rgba(34,197,94,0.4)' }}>
-                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
                         JCBA Ratified (Month {jcbaMonth}) Post-JCBA Rate: {postJcbaLabel}
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>
@@ -627,7 +644,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   )}
                   {showsThroughRetirement && i === displayRows.length - 1 && (
                     <tr key="retirement-banner" style={{ background: 'rgba(59,130,246,0.08)', borderTop: '2px solid rgba(59,130,246,0.4)' }}>
-                      <td colSpan={17} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
+                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
                         FAA Mandatory Retirement Age (Month {retirementMonthIndex})
                       </td>
                     </tr>
