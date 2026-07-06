@@ -137,9 +137,9 @@ export function BettingOddsCard({ results }: Props) {
           <HelpButton label="About these betting odds" helpText={ODDS_HELP} />
         </div>
 
-        <HowToReadThis />
-
         <BettingOddsMatchup result={userResult} showTeamCrests />
+
+        <HowToReadThis />
       </div>
     </div>
   )
