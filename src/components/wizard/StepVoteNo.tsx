@@ -156,7 +156,7 @@ function LockedScenarioCard({
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
           <span className="font-bold text-sm" style={{ color }}>{label}</span>
-          <span className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>pre-set, no input needed</span>
+          <span className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>PRE-SET, NO INPUT NEEDED</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
