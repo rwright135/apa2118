@@ -14,17 +14,6 @@ const MONTH_COL_STYLE: CSSProperties = { width: MONTH_COL_WIDTH, minWidth: MONTH
 function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 
-/** Monthly RB accrual (rate × 85 hrs × 35%) or payout lump when applicable. */
-function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boolean } {
-  if (row.retentionCashFlow > 0.01) {
-    return { amount: row.retentionCashFlow, isPayout: true }
-  }
-  if (row.retentionAccrualNote > 0.01) {
-    return { amount: row.retentionAccrualNote, isPayout: false }
-  }
-  return { amount: 0, isPayout: false }
-}
-
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'cumulativeNominal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
@@ -38,14 +27,14 @@ const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.C
 // ── XLSX export ───────────────────────────────────────────────────────────────
 
 function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) {
-  // Mirrors the in-app table: Nominal / Row PV / Cumulative PV are built from
-  // Gross Pay + 401(k) + Profit Share + RB Accrual-or-Payout (NOT Brokerage,
-  // which is already counted inside Gross Pay). Row PV = Nominal discounted
-  // by that month's factor; Cumulative PV is the running total from month 0.
+  // Nominal / Row PV / Cumulative PV use only the actual retention cash payout
+  // (r.retentionCashFlow), NOT the monthly accrual notes. The accrual just
+  // tracks money accumulating in the RB account — you can't spend it until
+  // payout. Including both accruals AND the payout would double-count the
+  // entire retention balance.
   let cumulativeNominalPV = 0
   return rows.map(r => {
-    const { amount: retentionAmount } = getRetentionTableCell(r)
-    const nominalTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
+    const nominalTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
     const rowPV = nominalTotal * r.discountFactor
     cumulativeNominalPV += rowPV
     return {
@@ -204,8 +193,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     let running = 0
     let runningNominal = 0
     for (const r of monthRows) {
-      const { amount: retentionAmount } = getRetentionTableCell(r)
-      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
+      // Use only the actual cash payout (retentionCashFlow), not the monthly
+      // accrual note — accruals and the payout are the same money, counting
+      // both would double the entire retention balance in Nominal/PV totals.
+      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
       const rowPV = nominalRowTotal * r.discountFactor
       running += rowPV
       runningNominal += nominalRowTotal
@@ -317,8 +308,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )
       }
       if (col.key === 'nominalTotal') {
-        const { amount: retentionAmount } = getRetentionTableCell(row)
-        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount) * rowWeight
+        // Only the actual cash payout in Nominal — accruals are the same money
+        // as the eventual payout, so including both would double-count them.
+        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + row.retentionCashFlow) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
@@ -490,7 +482,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'retentionTotal' ? (
                     <span title="Cumulative retention bonus balance accrued to date. Frozen (no further growth) once the new agreement is ratified; the frozen total is what gets paid out ~60 days later.">RB Total</span>
                   ) : col.key === 'nominalTotal' ? (
-                    <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
+                    <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + Retention Payout (payout month only — accruals excluded to avoid double-counting). Excludes Brokerage.">Nominal</span>
                   ) : col.key === 'cumulativeNominal' ? (
                     <span title="Running total of the Nominal column from month 0 through this month — total undiscounted pay earned so far.">Cumulative</span>
                   ) : col.key === 'brokerageSavingsCash' ? (
