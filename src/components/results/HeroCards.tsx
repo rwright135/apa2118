@@ -111,7 +111,7 @@ function RiskRewardHeadline({
         <strong style={{ color: 'var(--text-faint)' }}>N/A</strong>
         {cHeadlineLoss > 0 ? (
           <>
-            {' '}— but you&apos;re risking{' '}
+            {' '}and you&apos;re risking{' '}
             <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
             {' '}if no offer arrives.
           </>
