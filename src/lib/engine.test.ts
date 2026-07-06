@@ -82,8 +82,9 @@ describe('discountFactor', () => {
   it('returns 1 at month 0', () => {
     expect(discountFactor(0.08, 0)).toBeCloseTo(1, 5)
   })
-  it('returns correct value at 12 months', () => {
-    expect(discountFactor(0.08, 12)).toBeCloseTo(1 / 1.08, 4)
+  it('discounts using monthly compounding: 1 / (1 + rate/12)^months', () => {
+    expect(discountFactor(0.08, 12)).toBeCloseTo(1 / Math.pow(1 + 0.08 / 12, 12), 6)
+    expect(discountFactor(0.08, 2)).toBeCloseTo(1 / Math.pow(1 + 0.08 / 12, 2), 6)
   })
 })
 

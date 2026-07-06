@@ -113,7 +113,7 @@ export function get401kRate(scenarioId: ScenarioId, date: Date): number {
 // ─── Discounting ──────────────────────────────────────────────────────────────
 
 export function discountFactor(annualRate: number, months: number): number {
-  return 1 / Math.pow(1 + annualRate, months / 12)
+  return 1 / Math.pow(1 + annualRate / 12, months)
 }
 
 export function futureValue(
@@ -121,7 +121,7 @@ export function futureValue(
   annualRate: number,
   months: number
 ): number {
-  return presentAmount * Math.pow(1 + annualRate, months / 12)
+  return presentAmount * Math.pow(1 + annualRate / 12, months)
 }
 
 // ─── Profit sharing ───────────────────────────────────────────────────────────
@@ -304,7 +304,7 @@ export function buildMonthlyStream(
 
     // Retention compounded to retirement: treat the lump-sum payout as invested from receipt date.
     const retentionAtRetirement = retentionCashFlow > 0
-      ? retentionCashFlow * Math.pow(1 + rate, (totalMonths - m) / 12)
+      ? retentionCashFlow * Math.pow(1 + rate / 12, totalMonths - m)
       : 0
 
     // Brokerage savings: fraction of the gross monthly raise vs. CBA invested externally.
@@ -314,13 +314,13 @@ export function buildMonthlyStream(
     const brokSavingsPct = inputs.brokerageSavingsPct ?? 0
     const brokerageSavingsCash = Math.max(0, monthlyRaise) * brokSavingsPct
 
-    const fvBrokerageAtRetirement = brokerageSavingsCash * Math.pow(1 + rate, (totalMonths - m) / 12)
+    const fvBrokerageAtRetirement = brokerageSavingsCash * Math.pow(1 + rate / 12, totalMonths - m)
     const brokerageSavingsPV = fvBrokerageAtRetirement * discountFactor(rate, totalMonths)
 
     const df = discountFactor(rate, m)
     const pv = (grossPay + profitSharingCash + retentionCashFlow) * df
 
-    const fv401kAtRetirement = k401Contribution * Math.pow(1 + rate, (totalMonths - m) / 12)
+    const fv401kAtRetirement = k401Contribution * Math.pow(1 + rate / 12, totalMonths - m)
     const pv401kFromRetirement = fv401kAtRetirement * discountFactor(rate, totalMonths)
 
     cumulativePV += pv + pv401kFromRetirement + brokerageSavingsPV
@@ -397,7 +397,7 @@ export function buildScenarioSummary(
 
   const retirementBalanceAt65 = rows.reduce((sum, r) => {
     const monthsToRetirement = totalMonths - r.monthIndex
-    return sum + r.k401Contribution * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
+    return sum + r.k401Contribution * Math.pow(1 + inputs.investmentRate / 12, monthsToRetirement)
   }, 0)
 
   // Pre-JCBA window only — this is the only period that differs between scenarios.
@@ -436,7 +436,7 @@ export function buildScenarioSummary(
   const brokerageSavingsPV    = rows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
   const retirementBrokerageBalance = rows.reduce((sum, r) => {
     const monthsToRetirement = totalMonths - r.monthIndex
-    return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate, monthsToRetirement / 12)
+    return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate / 12, monthsToRetirement)
   }, 0)
 
   // Include brokerage savings PV in the headline pre-JCBA total
