@@ -252,6 +252,35 @@ describe('buildScenarioSummary - Scenario C retention in preJcbaTotal', () => {
   })
 })
 
+describe('buildScenarioSummary - brokerage savings excluded from preJcbaTotal', () => {
+  it('preJcbaTotal is unchanged by brokerageSavingsPct (avoids double-counting pay)', () => {
+    // Scenario A has a raise vs CBA from day one, so brokerageSavingsCash > 0
+    // whenever brokerageSavingsPct > 0. brokerageSavingsCash is just a slice of
+    // grossPay (already counted in preJcbaTotal), so changing the savings %
+    // must NOT change preJcbaTotal — otherwise the same dollars are counted twice.
+    const inputsNoBrokerage = makeInputs({ brokerageSavingsPct: 0 })
+    const inputsWithBrokerage = makeInputs({ brokerageSavingsPct: 0.33 })
+
+    const rowsNoBrokerage = buildMonthlyStream(inputsNoBrokerage, 'A', DEFAULT_VNS)
+    const rowsWithBrokerage = buildMonthlyStream(inputsWithBrokerage, 'A', DEFAULT_VNS)
+
+    // Sanity check: brokerage savings actually differ between the two runs.
+    const totalBrokerageNo = rowsNoBrokerage.reduce((s, r) => s + r.brokerageSavingsCash, 0)
+    const totalBrokerageWith = rowsWithBrokerage.reduce((s, r) => s + r.brokerageSavingsCash, 0)
+    expect(totalBrokerageWith).toBeGreaterThan(totalBrokerageNo)
+
+    const summaryNoBrokerage = buildScenarioSummary(rowsNoBrokerage, 'A', 'Vote Yes', 'desc', inputsNoBrokerage, DEFAULT_VNS.jcbaDurationMonths)
+    const summaryWithBrokerage = buildScenarioSummary(rowsWithBrokerage, 'A', 'Vote Yes', 'desc', inputsWithBrokerage, DEFAULT_VNS.jcbaDurationMonths)
+
+    expect(summaryWithBrokerage.preJcbaTotal).toBeCloseTo(summaryNoBrokerage.preJcbaTotal, 2)
+
+    // Brokerage's real (non-overlapping) value still shows up as a nominal
+    // future value in retirementBrokerageBalance ("Total Retirement Savings").
+    expect(summaryWithBrokerage.retirementBrokerageBalance).toBeGreaterThan(0)
+    expect(summaryNoBrokerage.retirementBrokerageBalance).toBe(0)
+  })
+})
+
 describe('post-JCBA convergence', () => {
   const customVns = { probability: 0.5, arrivalMonths: 12, percentAboveTA: 0.10, jcbaDurationMonths: 24 }
 

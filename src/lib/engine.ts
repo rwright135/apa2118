@@ -441,9 +441,14 @@ export function buildScenarioSummary(
     return sum + r.brokerageSavingsCash * Math.pow(1 + inputs.investmentRate / 12, monthsToRetirement)
   }, 0)
 
-  // Include brokerage savings PV in the headline pre-JCBA total
-  const preJcbaBrokeragePV = preJcbaRows.reduce((sum, r) => sum + r.brokerageSavingsPV, 0)
-  const preJcbaTotalWithBrokerage = preJcbaTotal + preJcbaBrokeragePV
+  // NOTE: Brokerage savings are deliberately excluded from preJcbaTotal.
+  // brokerageSavingsCash is a percentage of the raise that's already fully
+  // counted inside grossPay (see brokerageSavingsCash computation above) — it's
+  // a hypothetical redirection of pay the pilot already earned, not new money.
+  // Adding its PV on top of pay's PV would double-count those same dollars.
+  // Brokerage's real, non-overlapping value shows up as a nominal FUTURE VALUE
+  // in retirementBrokerageBalance ("Total Retirement Savings @ 65" below) —
+  // the payoff of investing that money instead of spending it.
 
   const steadyStateIndex = detectSteadyState(rows)
 
@@ -454,7 +459,7 @@ export function buildScenarioSummary(
     rows,
     totalRows: rows.length,
     steadyStateIndex,
-    preJcbaTotal: preJcbaTotalWithBrokerage,
+    preJcbaTotal,
     presentValueTotal,
     retirementBalanceAt65,
     retirementBalancePV,

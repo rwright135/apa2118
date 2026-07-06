@@ -276,13 +276,20 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   // and each subsequent month only drops by the actual monthly discount rate.
   // Precomputed once over the FULL row set (not just the truncated displayRows)
   // so Cumulative PV is always a true running total from month 0.
+  //
+  // Brokerage savings are deliberately excluded here (and from Nominal below):
+  // brokerageSavingsCash is a percentage of the raise that's already fully
+  // counted inside Gross Pay — it's a redirection of pay the pilot already
+  // earned, not new money. Including it would double-count those dollars.
+  // Its real, non-overlapping payoff is the compounding growth shown in the
+  // Brokerage column and in "Total Retirement Savings" below.
   const nominalRowPVByMonth = new Map<number, number>()
   const cumulativeNominalPVByMonth = new Map<number, number>()
   {
     let running = 0
     for (const r of rows) {
       const { amount: retentionAmount } = getRetentionTableCell(r)
-      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount + r.brokerageSavingsCash
+      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount
       const rowPV = nominalRowTotal * r.discountFactor
       running += rowPV
       nominalRowPVByMonth.set(r.monthIndex, rowPV)
@@ -337,7 +344,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       }
       if (col.key === 'nominalTotal') {
         const { amount: retentionAmount } = getRetentionTableCell(row)
-        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount + row.brokerageSavingsCash) * rowWeight
+        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
@@ -460,7 +467,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'retentionTotal' ? (
                     <span title="Cumulative retention bonus balance accrued to date. Frozen (no further growth) once the new agreement is ratified; the frozen total is what gets paid out ~60 days later.">RB Total</span>
                   ) : col.key === 'nominalTotal' ? (
-                    <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout + Brokerage.">Nominal</span>
+                    <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
+                  ) : col.key === 'brokerageSavingsCash' ? (
+                    <span title="A percentage of your raise (already fully counted in Gross Pay) that you choose to invest instead of spend. Shown here for reference only — not added into Nominal/Row PV/Cumulative PV, since that would double-count money already counted as pay. This account looks 'smaller' today because its real payoff comes from compounding growth over time, not from having the cash now — see Total Retirement Savings for its compounded value at retirement.">Brokerage</span>
                   ) : col.label}
                 </th>
               ))}
@@ -582,7 +591,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
             Pre-JCBA Total PV
             <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-              (pay + PS + retention + 401k + brokerage)
+              (pay + PS + retention + 401k)
             </span>
           </div>
           <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>

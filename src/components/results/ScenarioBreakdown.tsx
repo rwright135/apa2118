@@ -38,7 +38,7 @@ function buildStats(jcbaMonth: number, retirementYear: number): StatDef[] {
   return [
     {
       label: `Pre-JCBA Total (~${jcbaMonth} months)`,
-      sub: 'Present value, today\'s dollars — pay, profit sharing, retention, 401(k) & brokerage through JCBA ratification',
+      sub: 'Present value, today\'s dollars — pay, profit sharing, retention & 401(k) through JCBA ratification. Excludes brokerage savings, which are already part of pay above — see Total Retirement Savings for their compounded value.',
       getYes: s => s.preJcbaTotal,
       getNo:  s => s.preJcbaTotal,
       highlight: true,
