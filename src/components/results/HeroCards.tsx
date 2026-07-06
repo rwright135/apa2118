@@ -256,12 +256,12 @@ function RiskRewardBreakdown({
                     value={`${bPayPlusPS_waiting >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_waiting))}`}
                     color={bPayPlusPS_waiting >= 0 ? 'var(--positive)' : 'var(--negative)'}
                   />
+                  <BreakdownRow label="Additional retention bonus accumulation" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
                   <BreakdownRow
                     label={`Pay + PS gained after offer (months ${arrivalMonths + 1}–${jcba})`}
                     value={`${bPayPlusPS_afterOffer >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_afterOffer))}`}
                     color={bPayPlusPS_afterOffer >= 0 ? 'var(--positive)' : 'var(--negative)'}
                   />
-                  <BreakdownRow label="Retention timing difference" value={`${bRetDiff >= 0 ? '+' : '−'}${fmt(Math.abs(bRetDiff))}`} color={bRetDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
                   <BreakdownRow label="Total Nominal Value" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
                   <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
                     Verify in the month-by-month detail table below.
