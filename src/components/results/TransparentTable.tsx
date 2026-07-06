@@ -743,9 +743,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           </button>
         </div>
       )}
-      <div className="px-4 py-2 text-center text-xs" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        Pre-JCBA window ends at month {jcbaMonth} · Post-JCBA rates reflect your assumptions from the last wizard step
-      </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
         <RetentionDetail
