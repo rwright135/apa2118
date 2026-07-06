@@ -21,7 +21,7 @@ function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boo
   return { amount: 0, isPayout: false }
 }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'brokerageSavingsCash' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'brokerageSavingsCash' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
@@ -277,8 +277,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'brokerageSavingsCash', label: 'Brokerage' },
-    { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
+    { key: 'nominalTotal',         label: 'Nominal' },
     { key: 'presentValue',         label: 'Row PV', gold: true },
+    { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
   ]
 
   return (
@@ -378,6 +379,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <span title="Running total of all present values: each row's cash flows (pay, PS, retention) discounted by 1/(1+r)^(m/12) from today, plus 401(k) and brokerage compounded to retirement then discounted back. Correct for payments 30+ years out.">Cumulative PV</span>
                   ) : col.key === 'retentionAccrual' ? (
                     <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
+                  ) : col.key === 'nominalTotal' ? (
+                    <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout + Brokerage.">Nominal</span>
                   ) : col.label}
                 </th>
               ))}
@@ -458,6 +461,17 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                             }}
                           >
                             {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+                          </td>
+                        )
+                      }
+                      if (col.key === 'nominalTotal') {
+                        const { amount: retentionAmount } = getRetentionTableCell(row)
+                        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + retentionAmount + row.brokerageSavingsCash) * weight
+                        return (
+                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
+                            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: 500 }}
+                          >
+                            {val !== 0 ? fmt(val) : '—'}
                           </td>
                         )
                       }
