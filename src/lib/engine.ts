@@ -271,20 +271,27 @@ export function buildMonthlyStream(
 
     let retentionCashFlow = 0
     let retentionAccrualNote = 0
+    let retentionRunningBalance: number
 
     if (scenarioId === 'A') {
-      if (m < retentionPayoutMonth) {
-        const accrualRate = getRate(effectiveSeat, longevity, 'CBA')
-        retentionAccrualNote = getMonthlyRetentionAccrual(accrualRate)
-      }
+      // Vote Yes ratifies the new contract immediately (Jul 1, 2026), so the
+      // retention bonus program is frozen from day one — no further accrual.
+      // The pre-existing balance is simply paid out ~90 days later (Oct 1).
       if (m === retentionPayoutMonth) {
         retentionCashFlow = inputs.retentionCurrentBalance ?? 0
       }
+      retentionRunningBalance = inputs.retentionCurrentBalance ?? 0
     } else {
-      const currentRate = getRate(effectiveSeat, longevity, 'CBA')
-      const monthlyAccrual = getMonthlyRetentionAccrual(currentRate)
-      retentionAccruedBalance += monthlyAccrual
-      retentionAccrualNote = monthlyAccrual
+      // Vote No: accrual continues under the CBA until the new agreement is
+      // ratified (2nd offer arrival for B, JCBA conclusion for C), then freezes
+      // during the ~60-day administrative payout window before the lump sum pays out.
+      const ratificationMonth = scenarioId === 'B' ? vns.arrivalMonths : jcbaMonth
+      if (m < ratificationMonth) {
+        const currentRate = getRate(effectiveSeat, longevity, 'CBA')
+        const monthlyAccrual = getMonthlyRetentionAccrual(currentRate)
+        retentionAccruedBalance += monthlyAccrual
+        retentionAccrualNote = monthlyAccrual
+      }
 
       if (m === retentionPayoutMonth) {
         const prob = scenarioId === 'B'
@@ -292,6 +299,7 @@ export function buildMonthlyStream(
           : inputs.retentionPayoutProbabilityC
         retentionCashFlow = retentionAccruedBalance * prob
       }
+      retentionRunningBalance = retentionAccruedBalance
     }
 
     // Retention compounded to retirement: treat the lump-sum payout as invested from receipt date.
@@ -334,6 +342,7 @@ export function buildMonthlyStream(
       profitSharingCash,
       retentionCashFlow,
       retentionAccrualNote,
+      retentionRunningBalance,
       retentionAtRetirement,
       brokerageSavingsCash,
       brokerageSavingsPV,

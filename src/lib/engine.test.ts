@@ -147,13 +147,13 @@ describe('buildMonthlyStream - Scenario A', () => {
     expect(oct2026!.retentionCashFlow).toBe(50000)
   })
 
-  it('accrues RB at 85 fixed hours before payout, independent of monthly hours', () => {
-    const inputs = makeInputs({ extraHoursAboveMMG: 0 })
+  it('never accrues after ratification — RB is frozen from day one (Vote Yes)', () => {
+    const inputs = makeInputs()
     const rows = buildMonthlyStream(inputs, 'A', DEFAULT_VNS)
-    const jul2026 = rows[0]
-    const expected = getMonthlyRetentionAccrual(getRate('FO', 4, 'CBA'))
-    expect(jul2026.retentionAccrualNote).toBeCloseTo(expected, 2)
-    expect(jul2026.totalHours).toBe(70)
+    // Vote Yes ratifies the TA immediately, so the RB program is frozen at the
+    // pre-existing balance for every month — no monthly accrual ever occurs.
+    expect(rows.every(r => r.retentionAccrualNote === 0)).toBe(true)
+    expect(rows.every(r => r.retentionRunningBalance === 50000)).toBe(true)
   })
 })
 
@@ -192,6 +192,33 @@ describe('buildMonthlyStream - Scenario C', () => {
     expect(retentionRow!.monthIndex).toBeGreaterThan(24)
     // Amount = accrued balance × probability (0.90)
     expect(retentionRow!.retentionCashFlow).toBeGreaterThan(0)
+  })
+
+  it('accrues RB at 85 fixed hours before ratification, independent of monthly hours', () => {
+    const inputs = makeInputs({ extraHoursAboveMMG: 0 })
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    const jul2026 = rows[0]
+    const expected = getMonthlyRetentionAccrual(getRate('FO', 4, 'CBA'))
+    expect(jul2026.retentionAccrualNote).toBeCloseTo(expected, 2)
+    expect(jul2026.totalHours).toBe(70)
+  })
+
+  it('freezes RB accrual between JCBA ratification and the payout month', () => {
+    const inputs = makeInputs()
+    const rows = buildMonthlyStream(inputs, 'C', DEFAULT_VNS)
+    const jcbaMonth = DEFAULT_VNS.jcbaDurationMonths // 24
+    const payoutRow = rows.find(r => r.retentionCashFlow > 0)!
+    // Accrual stops right at ratification (JCBA month) — no more growth after this point.
+    expect(rows[jcbaMonth].retentionAccrualNote).toBe(0)
+    // Every month between ratification and payout is frozen (no accrual), and the
+    // running balance stays flat until the lump sum pays out.
+    const frozenBalance = rows[jcbaMonth].retentionRunningBalance
+    for (let m = jcbaMonth; m < payoutRow.monthIndex; m++) {
+      expect(rows[m].retentionAccrualNote).toBe(0)
+      expect(rows[m].retentionRunningBalance).toBeCloseTo(frozenBalance, 2)
+    }
+    // Payout = frozen balance × probability
+    expect(payoutRow.retentionCashFlow).toBeCloseTo(frozenBalance * inputs.retentionPayoutProbabilityC, 2)
   })
 })
 

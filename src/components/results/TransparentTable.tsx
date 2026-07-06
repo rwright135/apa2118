@@ -21,7 +21,7 @@ function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boo
   return { amount: 0, isPayout: false }
 }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'brokerageSavingsCash' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
@@ -173,6 +173,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number) {
     '401k Contrib':     Math.round(r.k401Contribution * weight),
     'Profit Share':     Math.round(r.profitSharingCash * weight),
     'Retention Accrual': Math.round((r.retentionCashFlow > 0.01 ? r.retentionCashFlow : r.retentionAccrualNote) * weight),
+    'Retention Total':  Math.round(r.retentionRunningBalance * weight),
     'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
     'Cumulative PV':    Math.round(r.cumulativePV * weight),
     'Row PV':           Math.round(r.presentValue * weight),
@@ -276,6 +277,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'k401Contribution',     label: '401(k) contrib' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
+    { key: 'retentionTotal',       label: 'RB Total' },
     { key: 'brokerageSavingsCash', label: 'Brokerage' },
     { key: 'nominalTotal',         label: 'Nominal' },
     { key: 'presentValue',         label: 'Row PV', gold: true },
@@ -378,7 +380,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   {col.key === 'cumulativePV' ? (
                     <span title="Running total of all present values: each row's cash flows (pay, PS, retention) discounted by 1/(1+r)^(m/12) from today, plus 401(k) and brokerage compounded to retirement then discounted back. Correct for payments 30+ years out.">Cumulative PV</span>
                   ) : col.key === 'retentionAccrual' ? (
-                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Payout month shows the lump sum.">RB Accrual</span>
+                    <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Freezes once the new agreement is ratified — shows 0 during the ~60-day payout window.">RB Accrual</span>
+                  ) : col.key === 'retentionTotal' ? (
+                    <span title="Cumulative retention bonus balance accrued to date. Frozen (no further growth) once the new agreement is ratified; the frozen total is what gets paid out ~60 days later.">RB Total</span>
                   ) : col.key === 'nominalTotal' ? (
                     <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout + Brokerage.">Nominal</span>
                   ) : col.label}
@@ -402,21 +406,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isFirstPostJcbaRetention && (
                     <tr key={`post-jcba-${i}`} style={{ background: 'rgba(34,197,94,0.05)' }}>
-                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
                         ── Post-JCBA retention accrual & payout (60 days after JCBA ratification) ──
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={13} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>
@@ -461,6 +465,16 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                             }}
                           >
                             {val !== 0 ? (isPayout ? fmt(val) : `+${fmt(val)}`) : '—'}
+                          </td>
+                        )
+                      }
+                      if (col.key === 'retentionTotal') {
+                        const val = row.retentionRunningBalance * weight
+                        return (
+                          <td key={col.key} className="px-3 py-2 text-right whitespace-nowrap"
+                            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)' }}
+                          >
+                            {val !== 0 ? fmt(val) : '—'}
                           </td>
                         )
                       }
