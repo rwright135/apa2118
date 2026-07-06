@@ -46,7 +46,7 @@ export function StepProfitSharing() {
     <WizardLayout
       step="profitSharing"
       title="What was your last profit sharing bonus check?"
-      subtitle="Enter the amount of your most recent profit sharing payment. We'll automatically multiply by 2 to get your annual total."
+      subtitle="Enter the estimated amount of your most recent profit sharing payment. We'll automatically multiply by 2 to get your annual total."
       onBack={prevStep}
     >
       <div className="mb-8 space-y-4">
