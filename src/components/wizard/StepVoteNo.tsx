@@ -140,45 +140,55 @@ function LockedScenarioCard({
   color: string
   scenario: typeof AVERAGE_SCENARIO
 }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
       style={{ border: `1.5px solid ${color}`, background: 'var(--bg-surface)' }}
     >
-      <div
-        className="flex items-center justify-between px-4 py-3"
-        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        style={{ background: 'var(--bg-elevated)', borderBottom: expanded ? '1px solid var(--border-subtle)' : 'none' }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
           <span className="font-bold text-sm" style={{ color }}>{label}</span>
+          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>— pre-set, no input needed</span>
         </div>
-        <span
-          className="text-xs px-2 py-1 rounded-lg font-medium"
-          style={{ color: 'var(--text-faint)', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
-        >
-          Fixed
-        </span>
-      </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <svg
+            width="13" height="13" viewBox="0 0 12 12" fill="none"
+            stroke="var(--text-faint)" strokeWidth="1.8" strokeLinecap="round"
+            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+          >
+            <path d="M2 4l4 4 4-4"/>
+          </svg>
+        </div>
+      </button>
 
-      <div className="px-4 py-4 divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-        <StatRow
-          label="Probability of second offer"
-          value={`${Math.round(scenario.probability * 100)}%`}
-        />
-        <StatRow
-          label="Second offer arrives"
-          value={`${scenario.arrivalMonths} months`}
-        />
-        <StatRow
-          label="Offer improvement vs. TA"
-          value={`+${(scenario.percentAboveTA * 100).toFixed(1)}%`}
-        />
-        <StatRow
-          label="JCBA concluded"
-          value={`${scenario.jcbaDurationMonths} mo (${(scenario.jcbaDurationMonths / 12).toFixed(1)} yrs)`}
-        />
-      </div>
+      {expanded && (
+        <div className="px-4 py-4 divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+          <StatRow
+            label="Probability of second offer"
+            value={`${Math.round(scenario.probability * 100)}%`}
+          />
+          <StatRow
+            label="Second offer arrives"
+            value={`${scenario.arrivalMonths} months`}
+          />
+          <StatRow
+            label="Offer improvement vs. TA"
+            value={`+${(scenario.percentAboveTA * 100).toFixed(1)}%`}
+          />
+          <StatRow
+            label="JCBA concluded"
+            value={`${scenario.jcbaDurationMonths} mo (${(scenario.jcbaDurationMonths / 12).toFixed(1)} yrs)`}
+          />
+        </div>
+      )}
     </div>
   )
 }
