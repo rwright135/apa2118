@@ -270,6 +270,26 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     : activeTab === 'B' ? result.inputs.retentionPayoutProbabilityB
     : result.inputs.retentionPayoutProbabilityC
 
+  // Row PV / Cumulative PV are computed directly from the same Nominal total
+  // shown in the Nominal column, discounted by that month's discount factor —
+  // so at month 0 (discountFactor = 1) Row PV always equals Nominal exactly,
+  // and each subsequent month only drops by the actual monthly discount rate.
+  // Precomputed once over the FULL row set (not just the truncated displayRows)
+  // so Cumulative PV is always a true running total from month 0.
+  const nominalRowPVByMonth = new Map<number, number>()
+  const cumulativeNominalPVByMonth = new Map<number, number>()
+  {
+    let running = 0
+    for (const r of rows) {
+      const { amount: retentionAmount } = getRetentionTableCell(r)
+      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + retentionAmount + r.brokerageSavingsCash
+      const rowPV = nominalRowTotal * r.discountFactor
+      running += rowPV
+      nominalRowPVByMonth.set(r.monthIndex, rowPV)
+      cumulativeNominalPVByMonth.set(r.monthIndex, running)
+    }
+  }
+
   const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
     { key: 'grossPay',             label: 'Gross Pay' },
     { key: 'k401Contribution',     label: '401(k) contrib' },
@@ -326,15 +346,32 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           </td>
         )
       }
+      if (col.key === 'presentValue') {
+        const val = (nominalRowPVByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'cumulativePV') {
+        const val = (cumulativeNominalPVByMonth.get(row.monthIndex) ?? 0) * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: 'var(--gold)', fontWeight: italic ? 400 : 600, fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? fmt(val) : '—'}
+          </td>
+        )
+      }
       const raw = (row as unknown as Record<string, number>)[col.key]
       const val = raw * rowWeight
       return (
         <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
           style={{
-            color: col.gold
-              ? (col.key === 'cumulativePV' ? 'var(--gold)' : 'var(--text-base)')
-              : val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
-            fontWeight: col.key === 'cumulativePV' && !italic ? 600 : 400,
+            color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)',
             fontStyle: italic ? 'italic' : undefined,
           }}
         >
@@ -414,8 +451,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.key === 'cumulativePV' ? (
-                    <span title="Running total of all present values: each row's cash flows (pay, PS, retention) discounted by 1/(1+r)^(m/12) from today, plus 401(k) and brokerage compounded to retirement then discounted back. Correct for payments 30+ years out.">Cumulative PV</span>
+                  {col.key === 'presentValue' ? (
+                    <span title="Nominal ÷ (1 + rate/12)^month — this month's Nominal total discounted back to today's dollars. At month 0, Row PV always equals Nominal exactly.">Row PV</span>
+                  ) : col.key === 'cumulativePV' ? (
+                    <span title="Running total of Row PV from month 0 through this month — the Nominal column discounted month-by-month and added up.">Cumulative PV</span>
                   ) : col.key === 'retentionAccrual' ? (
                     <span title="Monthly retention bonus accrual at 35% × hourly rate × 85 hrs (fixed, not actual hours worked). Freezes once the new agreement is ratified — shows 0 during the ~60-day payout window.">RB Accrual</span>
                   ) : col.key === 'retentionTotal' ? (
