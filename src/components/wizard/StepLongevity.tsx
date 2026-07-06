@@ -60,7 +60,7 @@ export function StepLongevity() {
       </div>
       <NavButton onClick={nextStep} disabled={longevity === undefined}>Continue</NavButton>
       <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-        *For simplicity this calculator does not have a method to account for LOAs or other events that may affect your longevity. If needed, you must calculate and adjust your longevity here manually.
+        *For simplicity this calculator does not have a method to account for LOAs or other events that may affect your longevity. Calculate and adjust your longevity here as needed.
       </p>
     </WizardLayout>
   )
