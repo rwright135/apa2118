@@ -186,6 +186,7 @@ function RiskRewardBreakdown({
   defaultExpanded?: boolean
 }) {
   const {
+    probability,
     jcba,
     arrivalMonths,
     percentAboveTA,
@@ -217,7 +218,7 @@ function RiskRewardBreakdown({
     <div style={{ background: 'var(--bg-elevated)' }}>
       <div className="px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
 
-          {pB === 0 ? (
+          {probability === 0 ? (
             <RiskCard
               dotColor="var(--text-faint)"
               title="If the second offer arrives"

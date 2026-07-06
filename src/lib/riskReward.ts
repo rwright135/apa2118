@@ -62,6 +62,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const cNetAfterRetention = cHeadlineLoss - cExpectedRetentionPayout
 
   return {
+    probability,
     jcba,
     arrivalMonths,
     percentAboveTA,
