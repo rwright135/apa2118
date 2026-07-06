@@ -185,10 +185,10 @@ function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) 
       'Profit Share':     Math.round(r.profitSharingCash * weight),
       'Retention Accrual': Math.round(r.retentionAccrualNote * weight),
       'Retention Total':  Math.round(r.retentionRunningBalance * weight),
-      'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
       'Nominal':          Math.round(nominalTotal * weight),
       'Row PV':           Math.round(rowPV * weight),
       'Cumulative PV':    Math.round(cumulativeNominalPV * weight),
+      'Brokerage Saved':  Math.round(r.brokerageSavingsCash * weight),
     }
   })
 }
@@ -366,10 +366,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'profitSharingCash',    label: 'Profit Share' },
     { key: 'retentionAccrual',     label: 'RB Accrual' },
     { key: 'retentionTotal',       label: 'RB Total' },
-    { key: 'brokerageSavingsCash', label: 'Brokerage' },
     { key: 'nominalTotal',         label: 'Nominal' },
-    { key: 'presentValue',         label: 'Row PV', gold: true },
+    { key: 'presentValue',         label: 'Row PV' },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
+    { key: 'brokerageSavingsCash', label: 'Brokerage' },
   ]
 
   // Renders the dollar-value columns for a row at a given weight. Used once at
