@@ -137,6 +137,16 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     })
   }
 
+  const [expandedScenarioMonths, setExpandedScenarioMonths] = useState<Set<number>>(new Set())
+  const toggleScenarioMonth = (monthIndex: number) => {
+    setExpandedScenarioMonths(prev => {
+      const next = new Set(prev)
+      if (next.has(monthIndex)) next.delete(monthIndex)
+      else next.add(monthIndex)
+      return next
+    })
+  }
+
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
 
@@ -440,6 +450,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               Each month below shows the full (nominal) numbers if this outcome occurs. The italic row directly underneath
               shows that same month scaled by this scenario's <strong>{Math.round(scenarioWeight * 100)}%</strong> probability
               weighting. Its actual contribution to the Vote No (Blended) total.
+              {' '}Click the caret (▸) next to any month to expand its weighted contribution.
             </div>
           </div>
         )}
@@ -510,6 +521,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               const rowB = isBlendedTab ? scenarioBSummary.rows[row.monthIndex] : null
               const rowC = isBlendedTab ? scenarioCSummary.rows[row.monthIndex] : null
               const isRowExpanded = isBlendedTab && expandedBlendedMonths.has(row.monthIndex)
+              const isScenarioRowExpanded = isScenarioTab && expandedScenarioMonths.has(row.monthIndex)
+              const scenarioColor = activeTab === 'B' ? '#a855f7' : 'var(--negative)'
               return (
                 <>
                   {isSteadyStateStart && !isJcbaBoundary && (
@@ -562,6 +575,24 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                             </svg>
                           </button>
                         )}
+                        {isScenarioTab && (
+                          <button
+                            type="button"
+                            onClick={() => toggleScenarioMonth(row.monthIndex)}
+                            className="shrink-0 flex items-center justify-center transition-transform"
+                            style={{
+                              color: scenarioColor,
+                              opacity: 0.8,
+                              transform: isScenarioRowExpanded ? 'rotate(90deg)' : 'none',
+                            }}
+                            aria-label={isScenarioRowExpanded ? 'Collapse weighted row' : 'Expand weighted row'}
+                            title={isScenarioRowExpanded ? 'Collapse' : `Show ${Math.round(scenarioWeight * 100)}% weighted contribution`}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 4l4 4-4 4" />
+                            </svg>
+                          </button>
+                        )}
                         <span className="font-medium" style={{ color: 'var(--text-muted)' }}>{MONTHS_SHORT[row.month]} {row.year}</span>
                       </div>
                     </td>
@@ -571,17 +602,23 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                     <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
                     {renderValueCells(row, 1, 'nominal')}
                   </tr>
-                  {isScenarioTab && (
+                  {isScenarioTab && isScenarioRowExpanded && (
                     <tr
                       key={`${row.year}-${row.month}-weighted`}
                       style={{ background: 'var(--bg-elevated)' }}
                     >
                       <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
                       <td
-                        className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
-                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem', ...MONTH_COL_STYLE }}
+                        className="px-3 py-1.5 whitespace-nowrap sticky"
+                        style={{ background: 'var(--bg-elevated)', left: '2.75rem', ...MONTH_COL_STYLE }}
+                        title={`${activeTab === 'B' ? 'Vote No (Offer)' : 'Vote No (JCBA)'} · ${Math.round(scenarioWeight * 100)}%`}
                       >
-                        ↳ × {Math.round(scenarioWeight * 100)}%
+                        <div
+                          className="text-[10px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis"
+                          style={{ color: scenarioColor, borderLeft: `2px solid ${scenarioColor}`, paddingLeft: '5px' }}
+                        >
+                          × {Math.round(scenarioWeight * 100)}% weighted
+                        </div>
                       </td>
                       <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
                       <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
