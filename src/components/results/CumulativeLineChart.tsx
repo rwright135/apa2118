@@ -1,7 +1,6 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { ComparisonResult } from '../../lib/types'
 import { useResultChartColors } from './useResultChartColors'
-import { POST_JCBA_UPLIFT } from '../../lib/scenarios'
 
 interface Props { results: ComparisonResult[] }
 
@@ -52,12 +51,11 @@ export function CumulativeLineChart({ results }: Props) {
   const jcbaMonth = refResult.voteNoScenario.jcbaDurationMonths
 
   const chartData: Record<string, number | string>[] = []
-  // Track the JCBA boundary to draw a reference annotation
-  let jcbaDataIndex = -1
-  for (let i = 0; i < maxLen; i += step) {
+  // Only show data up to and including the JCBA month
+  const displayLen = Math.min(maxLen, jcbaMonth + 1)
+  for (let i = 0; i < displayLen; i += step) {
     const rA = refA.rows[i]
     if (!rA) continue
-    if (jcbaDataIndex < 0 && rA.monthIndex >= jcbaMonth) jcbaDataIndex = chartData.length
 
     const sA  = refResult.scenarios.find(s => s.scenarioId === 'A')!
     const sB  = refResult.scenarios.find(s => s.scenarioId === 'B')!
@@ -70,15 +68,23 @@ export function CumulativeLineChart({ results }: Props) {
       [KEY_C]:   Math.round(sC.rows[Math.min(i, sC.rows.length - 1)]?.cumulativePV ?? 0),
     })
   }
-
-  const penalty = refResult.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15
-  const upliftPct = Math.round(POST_JCBA_UPLIFT * 100)
-  const penaltyPct = Math.round(penalty * 100)
-  const cJcbaRelativePct = Math.round((1 + POST_JCBA_UPLIFT) * (1 - penalty) * 100)
-  const bJcbaRelativePct = Math.round((1 + refResult.voteNoScenario.percentAboveTA) * (1 + POST_JCBA_UPLIFT) * 100)
-  // Label for the JCBA divider — use the year of that month
+  // Always include the exact JCBA month as the final data point
   const jcbaRow = refA.rows[jcbaMonth]
   const jcbaYear = jcbaRow?.year ?? ''
+  if (jcbaRow) {
+    const sA = refResult.scenarios.find(s => s.scenarioId === 'A')!
+    const sB = refResult.scenarios.find(s => s.scenarioId === 'B')!
+    const sC = refResult.scenarios.find(s => s.scenarioId === 'C')!
+    const lastLabel = `${jcbaYear}`
+    if (!chartData.length || chartData[chartData.length - 1].month !== lastLabel) {
+      chartData.push({
+        month: lastLabel,
+        [KEY_YES]: Math.round(sA.rows[jcbaMonth]?.cumulativePV ?? 0),
+        [KEY_B]:   Math.round(sB.rows[Math.min(jcbaMonth, sB.rows.length - 1)]?.cumulativePV ?? 0),
+        [KEY_C]:   Math.round(sC.rows[Math.min(jcbaMonth, sC.rows.length - 1)]?.cumulativePV ?? 0),
+      })
+    }
+  }
 
   return (
     <div className="space-y-2">
@@ -89,37 +95,12 @@ export function CumulativeLineChart({ results }: Props) {
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
-          {jcbaDataIndex >= 0 && (
-            <ReferenceLine
-              x={chartData[jcbaDataIndex]?.month as string}
-              stroke="var(--border)"
-              strokeWidth={1.5}
-              strokeDasharray="4 3"
-              label={{ value: `JCBA ~${jcbaYear}`, position: 'insideTopRight', fontSize: 9, fill: textFaint }}
-            />
-          )}
-
           <Line type="monotone" dataKey={KEY_YES} stroke={voteYes} strokeWidth={2.5} dot={false} />
           <Line type="monotone" dataKey={KEY_B} stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
           <Line type="monotone" dataKey={KEY_C} stroke="var(--negative)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
         </LineChart>
       </ResponsiveContainer>
 
-      {/* Post-JCBA assumption summary */}
-      <div className="grid grid-cols-3 gap-2 text-[10px]" style={{ color: 'var(--text-faint)' }}>
-        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: 'var(--gold)' }}>Vote Yes</div>
-          <div>TA rates +{upliftPct}% = {100 + upliftPct}% of TA</div>
-        </div>
-        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: scenarioOffer }}>Vote No (Offer)</div>
-          <div>Bridge rates +{upliftPct}% = ~{bJcbaRelativePct}% of TA</div>
-        </div>
-        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="font-semibold" style={{ color: 'var(--negative)' }}>Vote No (JCBA)</div>
-          <div>TA +{upliftPct}% −{penaltyPct}% penalty = {cJcbaRelativePct}% of TA</div>
-        </div>
-      </div>
     </div>
   )
 }
