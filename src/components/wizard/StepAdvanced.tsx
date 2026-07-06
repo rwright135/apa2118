@@ -22,7 +22,7 @@ export function StepAdvanced() {
       title="Post-JCBA Pay Assumptions"
       subtitle={
         <>
-          Ratifying any bridge agreement — whether this one or a future one — gives the negotiating
+          Ratifying any bridge agreement, whether this one or a future one, gives the negotiating
           committee a stronger position heading into JCBA. Read the scenarios below and make your
           selection to see how our decisions now will affect outcomes post-JCBA.
         </>
