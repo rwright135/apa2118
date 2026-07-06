@@ -323,7 +323,7 @@ function RiskRewardBreakdown({
                 <Assumption>{jcba}-month</Assumption> JCBA period.
                 At <Assumption>{Math.round(pC * 100)}% payout probability</Assumption>, that lump sum is expected to pay{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayout)}</strong>.{' '}
-                Discounted back <Assumption>{cRetPayoutMonths} months</Assumption> at{' '}
+                Discounted back {cRetPayoutMonths} months at{' '}
                 <Assumption>{Math.round(investmentRate * 100)}%</Assumption>, that payout is worth{' '}
                 <strong style={{ color: 'var(--text-muted)' }}>{fmt(cExpectedRetentionPayoutPV)}</strong> in today&apos;s dollars.
                 {cNetAfterRetention > 0
