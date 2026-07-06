@@ -26,12 +26,9 @@ interface Props {
 const CHIP = 32
 const GAP  = 4
 const ROW_H = CHIP + 6
-// Clearance between the slider track/thumb and the first chip row. Native
-// range-input thumbs render at very different sizes across browsers (Chrome
-// desktop's is compact, but iOS Safari and Android Chrome render noticeably
-// taller thumbs) — this needs enough headroom that the thumb never overlaps
-// the logo chips on any of them, including on narrow mobile widths.
-const TRACK_GAP = 30
+// Vertical layout below the track: min/max labels, then logo chips.
+const MINMAX_TOP = 10
+const CHIP_TOP = MINMAX_TOP + 18
 
 function monthToPct(months: number, min: number, max: number) {
   return ((months - min) / (max - min)) * 100
@@ -188,7 +185,7 @@ function ClusterChip({
   return (
     <div
       className="absolute z-20 pointer-events-none"
-      style={{ left: `${left}%`, top: `${TRACK_GAP}px`, transform: 'translateX(-50%)' }}
+      style={{ left: `${left}%`, top: `${CHIP_TOP}px`, transform: 'translateX(-50%)' }}
     >
       <div className="pointer-events-auto">
         <button
@@ -276,7 +273,7 @@ export function SliderWithMarkers({
       <div
         ref={containerRef}
         className="relative"
-        style={{ paddingBottom: `${TRACK_GAP + CHIP + ROW_H}px` }}
+        style={{ paddingBottom: `${CHIP_TOP + CHIP + ROW_H}px` }}
       >
         <input
           type="range"
@@ -289,6 +286,14 @@ export function SliderWithMarkers({
           className="relative z-10 w-full h-2 rounded-full appearance-none cursor-pointer"
           style={{ background: 'var(--bg-elevated)', accentColor: 'var(--gold)' }}
         />
+
+        <div
+          className="absolute left-0 right-0 z-10 flex justify-between text-xs pointer-events-none"
+          style={{ top: `${MINMAX_TOP}px`, color: 'var(--text-faint)' }}
+        >
+          <span>{formatValue(min)}</span>
+          <span>{formatValue(max)}</span>
+        </div>
 
         {clusters.map((cluster) => (
           <TrackTick
@@ -316,10 +321,6 @@ export function SliderWithMarkers({
         })}
       </div>
 
-      <div className="flex justify-between text-xs" style={{ color: 'var(--text-faint)' }}>
-        <span>{formatValue(min)}</span>
-        <span>{formatValue(max)}</span>
-      </div>
       {footnote && (
         <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-faint)' }}>
           {footnote}
