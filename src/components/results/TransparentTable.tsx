@@ -300,23 +300,31 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const isBlendedTab   = activeTab === 'NO'
 
   const preJcbaRows = rows.slice(0, jcbaMonth)
-  // Retention for Scenario C pays ~60 days after JCBA; include those post-JCBA months in the table.
-  const postJcbaRetentionRows = rows.filter(
-    r => r.monthIndex >= jcbaMonth && (r.retentionCashFlow > 0 || r.retentionAccrualNote > 0.01)
-  )
-  const allTableRows = postJcbaRetentionRows.length > 0
-    ? [...preJcbaRows, ...postJcbaRetentionRows]
-    : preJcbaRows
+  const postJcbaRows = rows.slice(jcbaMonth)
+
+  // Compute the post-JCBA multiplier for this scenario to show in the banner
+  const penalty = result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15
+  const vns = result.voteNoScenario
+  const postJcbaMultiplier =
+    activeTab === 'YES' ? 1 + 0.20
+    : activeTab === 'B' || activeTab === 'NO' ? (1 + vns.percentAboveTA) * 1.20
+    : (1 + 0.20) * (1 - penalty)
+  const postJcbaLabel =
+    activeTab === 'YES' ? `TA × 1.20 (+20%)`
+    : activeTab === 'B' ? `Bridge offer × 1.20 (~${Math.round(postJcbaMultiplier * 100)}% of TA)`
+    : activeTab === 'NO' ? `Blended (Offer/JCBA weighted)`
+    : `TA × 1.20 × (1−${Math.round(penalty * 100)}%) = ${Math.round(postJcbaMultiplier * 100)}% of TA`
+
+  const allTableRows = [...preJcbaRows, ...postJcbaRows]
 
   const displayRows = expanded
     ? allTableRows
     : (() => {
         const preSteady = preJcbaRows.slice(0, steadyStateIndex + 1)
-        return postJcbaRetentionRows.length > 0
-          ? [...preSteady, ...postJcbaRetentionRows]
-          : preSteady
+        // In collapsed mode, show first 3 post-JCBA months so the uplift is visible
+        return [...preSteady, ...postJcbaRows.slice(0, 3)]
       })()
-  const hasMore      = preJcbaRows.length > steadyStateIndex + 1
+  const hasMore = preJcbaRows.length > steadyStateIndex + 1 || postJcbaRows.length > 3
   const isVoteYes    = activeTab === 'YES'
 
   const prob = isVoteYes ? 1
@@ -583,9 +591,8 @@ function ResultTable({ result }: { result: ComparisonResult }) {
             {displayRows.map((row: MonthlyRow, i: number) => {
               const isFirstOfYear      = row.month === 0 || i === 0
               const isSteadyStateStart = i === steadyStateIndex
-              const isFirstPostJcbaRetention =
+              const isJcbaBoundary =
                 row.monthIndex >= jcbaMonth &&
-                (row.retentionCashFlow > 0 || row.retentionAccrualNote > 0.01) &&
                 (i === 0 || displayRows[i - 1].monthIndex < jcbaMonth)
               const isUpgradeRow =
                 i > 0 &&
@@ -596,17 +603,17 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               const isRowExpanded = isBlendedTab && expandedBlendedMonths.has(row.monthIndex)
               return (
                 <>
-                  {isSteadyStateStart && (
+                  {isSteadyStateStart && !isJcbaBoundary && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
                       <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
-                  {isFirstPostJcbaRetention && (
-                    <tr key={`post-jcba-${i}`} style={{ background: 'rgba(34,197,94,0.05)' }}>
-                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--positive)' }}>
-                        ── Post-JCBA retention accrual & payout (60 days after JCBA ratification) ──
+                  {isJcbaBoundary && (
+                    <tr key={`jcba-${i}`} style={{ background: 'rgba(34,197,94,0.08)', borderTop: '2px solid rgba(34,197,94,0.4)' }}>
+                      <td colSpan={15} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                        ── JCBA ratified (month {jcbaMonth}) — post-JCBA rates apply: {postJcbaLabel} ──
                       </td>
                     </tr>
                   )}
@@ -729,16 +736,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         <div className="px-4 py-3 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
           <button onClick={() => setExpanded(!expanded)} className="text-sm font-medium" style={{ color: 'var(--accent)' }}>
             {expanded
-              ? 'Collapse (show only pre-steady-state months)'
-              : `Show all ${preJcbaRows.length - steadyStateIndex - 1} remaining pre-JCBA months`}
+              ? 'Collapse (show only pre-steady-state + first 3 post-JCBA months)'
+              : `Show all ${preJcbaRows.length - steadyStateIndex - 1} remaining pre-JCBA months + ${postJcbaRows.length - 3} more post-JCBA months`}
           </button>
         </div>
       )}
       <div className="px-4 py-2 text-center text-xs" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        Table stops at JCBA month {jcbaMonth} — all scenarios converge to identical rates after this point
-        {postJcbaRetentionRows.length > 0 && activeTab === 'C' && (
-          <> · Retention accrual & payout rows after JCBA are shown for Scenario C</>
-        )}
+        Pre-JCBA window ends at month {jcbaMonth} · Post-JCBA rates reflect your assumptions from the last wizard step
       </div>
 
       {/* Summary row: headline totals for the active scenario tab */}
