@@ -33,8 +33,8 @@ export function StepAdvanced() {
         <div className="space-y-4">
           <ScenarioColorCard scenarioId="A">
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              Built-in assumption: +{upliftPct}% at JCBA for any deal. JCBA rates = current TA rates +{' '}
-              {upliftPct}%. You negotiated from the existing offer.
+              Based on industry historicals and the simplicity of this calculator, we assume a {upliftPct}%
+              pay improvement from TA Jan 2028 rates at the conclusion of JCBA.
             </p>
           </ScenarioColorCard>
 
