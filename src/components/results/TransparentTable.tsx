@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { ComparisonResult, MonthlyRow } from '../../lib/types'
-import { SCENARIO_LABELS, VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
-import { useResultChartColors } from './useResultChartColors'
+import { VOTE_NO_CSS, VOTE_NO_DIM_CSS } from '../../lib/resultColors'
 
 interface Props { results: ComparisonResult[] }
 
@@ -29,8 +28,6 @@ function getRetentionTableCell(row: MonthlyRow): { amount: number; isPayout: boo
 
 type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'nominalTotal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
-
-const SCENARIO_COLORS_FALLBACK = ['#c9a84c', '#3b82f6', '#ef4444']
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
   YES: { label: 'Vote Yes',         active: { background: 'rgba(201,168,76,0.15)', border: '1px solid var(--gold)',     color: 'var(--gold)'     }, inactive: { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' } },
@@ -481,8 +478,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     <div>
       {/* Inner tabs */}
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{rows.length} months total</span>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h2 className="font-semibold text-sm uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>
+              Month-by-Month Detail
+            </h2>
+            <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{rows.length} months total</span>
+          </div>
           <button
             type="button"
             onClick={() => exportToXLSX(result)}
@@ -810,50 +812,12 @@ function ResultTable({ result }: { result: ComparisonResult }) {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function TransparentTable({ results }: Props) {
-  const [activeScenario, setActiveScenario] = useState(0)
-  const multiScenario = results.length > 1
-  const activeResult  = results[activeScenario] ?? results[0]
-  const { voteYes, scenarioAverage, scenarioWorst } = useResultChartColors()
-  const scenarioColors = [voteYes, scenarioAverage, scenarioWorst]
+  const result = results[0]
+  if (!result) return null
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      {/* Header */}
-      <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <h2 className="font-semibold text-sm uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
-          Month-by-Month Detail
-        </h2>
-
-        {/* Top-level scenario tabs — only shown when multiple scenarios */}
-        {multiScenario && (
-          <div className="flex gap-1.5 flex-wrap mb-0">
-            {results.map((result, i) => {
-              const vns   = result.voteNoScenario
-              const color = scenarioColors[i] ?? SCENARIO_COLORS_FALLBACK[i]
-              const isActive = i === activeScenario
-              return (
-                <button
-                  key={i}
-                  onClick={() => setActiveScenario(i)}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left"
-                  style={
-                    isActive
-                      ? { background: `${color}18`, border: `1.5px solid ${color}`, color }
-                      : { background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-                  }
-                >
-                  <div>{SCENARIO_LABELS[i]}</div>
-                  <div className="text-xs font-normal mt-0.5" style={{ color: isActive ? color : 'var(--text-faint)', opacity: 0.85 }}>
-                    {Math.round(vns.probability * 100)}% · {vns.arrivalMonths}mo · +{(vns.percentAboveTA * 100).toFixed(0)}% · JCBA {vns.jcbaDurationMonths}mo
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <ResultTable result={activeResult} />
+      <ResultTable result={result} />
     </div>
   )
 }
