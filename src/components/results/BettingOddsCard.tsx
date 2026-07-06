@@ -60,9 +60,9 @@ function HowToReadThis() {
       <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
       <span style={{ color: 'var(--text-muted)' }}>
         The money line below is just a different way of showing the dollar risk and reward. On a sports book,
-        the money line pricing is set by the payout. A big negative number means you&apos;re risking a lot to win
-        a little. In Vegas, if the odds of picking Team A are -200, you&apos;d have to wager $200 to win $100. On
-        the contrary, underdog teams may pay out +200, meaning you&apos;d be betting $100 to win $200.
+        the money line pricing is set by the payout. A positive number means you win more than you risk — that&apos;s the
+        &ldquo;Favorite&rdquo; bet, the side with the better payout. A big negative number means you&apos;re risking a lot to win
+        a little — that&apos;s the &ldquo;Underdog&rdquo; bet. For example, +200 means bet $100 to win $200; −200 means bet $200 to win $100.
       </span>
     </div>
   )
@@ -84,11 +84,9 @@ function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResu
             <div className="text-xl font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
               {odds.moneylineYes}
             </div>
-            {(odds.favorite === 'voteYes' || odds.favorite === 'even') && (
-              <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                {odds.favorite === 'even' ? "Pick 'em" : 'Favorite'}
-              </div>
-            )}
+            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              {odds.favorite === 'even' ? "Pick 'em" : odds.favorite === 'voteYes' ? 'Favorite' : 'Underdog'}
+            </div>
           </div>
         </div>
 
@@ -102,11 +100,9 @@ function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResu
             <div className="text-xl font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
               {odds.moneylineNo}
             </div>
-            {(odds.favorite === 'voteNo' || odds.favorite === 'even') && (
-              <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-                {odds.favorite === 'even' ? "Pick 'em" : 'Favorite'}
-              </div>
-            )}
+            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+              {odds.favorite === 'even' ? "Pick 'em" : odds.favorite === 'voteNo' ? 'Favorite' : 'Underdog'}
+            </div>
           </div>
           {showTeamCrests && <TeamCrest src="/teams/vote-no.png" fallbackLabel="NO" accent="var(--negative)" />}
         </div>

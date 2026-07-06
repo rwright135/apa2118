@@ -63,7 +63,7 @@ export function computeBettingOdds(result: ComparisonResult): BettingOdds {
   const moneylineYes = toAmericanOdds(1 - pricing)
 
   const favorite: BettingOdds['favorite'] =
-    Math.abs(pricing - 0.5) < 0.01 ? 'even' : pricing > 0.5 ? 'voteNo' : 'voteYes'
+    Math.abs(pricing - 0.5) < 0.01 ? 'even' : pricing > 0.5 ? 'voteYes' : 'voteNo'
 
   const breakeven = risk > 0 && reward > 0 ? risk / (risk + reward) : null
   const edgePoints = breakeven !== null ? (probability - breakeven) * 100 : null
