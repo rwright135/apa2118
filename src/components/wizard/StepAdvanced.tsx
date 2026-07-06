@@ -15,8 +15,6 @@ export function StepAdvanced() {
 
   const upliftPct = Math.round(POST_JCBA_UPLIFT * 100)
   const penaltyPct = Math.round(penalty * 100)
-  // Scenario C JCBA expressed as % of base TA_JAN2028 rates
-  const cJcbaRelativePct = Math.round((1 + POST_JCBA_UPLIFT) * (1 - penalty) * 100)
 
   return (
     <WizardLayout
@@ -52,9 +50,9 @@ export function StepAdvanced() {
           <ScenarioColorCard scenarioId="C">
             <div className="space-y-5">
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                JCBA rates = {cJcbaRelativePct}% of current TA rates
-                {penaltyPct > 0 && ` (${penaltyPct}% below the Vote Yes JCBA outcome)`}. Negotiating
-                from DOS+5 CBA (2016) without a deal.
+                In the other scenarios, we assume JCBA rates land at current TA + {upliftPct}% — that&apos;s
+                the Vote Yes outcome. If there&apos;s no deal, JCBA talks start from CBA DOS+5 (2016) instead.
+                This slider is your estimate of how much worse those rates end up compared to Vote Yes.
               </p>
               <SliderInput
                 value={penaltyPct}
@@ -62,8 +60,8 @@ export function StepAdvanced() {
                 max={30}
                 step={1}
                 onChange={(v) => setInput('advancedPostJCBA', { scenarioCPenalty: v / 100 })}
-                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% lower`)}
-                label="What's your estimate on the amount of impact?"
+                formatValue={(v) => (v === 0 ? 'No difference' : `${v}% worse than Vote Yes`)}
+                label="How much worse than Vote Yes?"
                 accentColor={RETENTION_OUTCOME_COLORS.C}
                 showMinMax
               />
