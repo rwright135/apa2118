@@ -3,7 +3,6 @@ import { useStore } from '../../state/store'
 import { BaselineInputCards } from './BaselineInputCards'
 import { UserRiskRewardCard, IndustryBenchmarkCards } from './HeroCards'
 import { BettingOddsCard } from './BettingOddsCard'
-import { ScenarioBreakdown } from './ScenarioBreakdown'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
 import { ShareSheet } from './ShareSheet'
@@ -68,8 +67,6 @@ export function ResultsScreen() {
           <BettingOddsCard results={results} />
           <IndustryBenchmarkCards results={results} />
         </div>
-
-        <ScenarioBreakdown results={results} />
 
         <div
           id="results-export-end"

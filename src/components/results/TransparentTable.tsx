@@ -288,8 +288,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
 
-  // Same definitions used in the "Your Full Breakdown" card — kept in sync so
-  // the two are directly comparable when this table is expanded.
+  // Summary footer totals for the active scenario tab.
   const fullCareerPayNominal = rows.reduce((sum, r) => sum + r.grossPay + r.profitSharingCash, 0)
   const totalRetirementSavingsNominal =
     summary.retirementBalanceAt65 + summary.retirementRetentionBalance + summary.retirementBrokerageBalance
@@ -742,7 +741,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         )}
       </div>
 
-      {/* Summary row: ties table totals to the "Your Full Breakdown" card above */}
+      {/* Summary row: headline totals for the active scenario tab */}
       <div
         className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-3"
         style={{ background: 'var(--bg-elevated)', borderTop: '2px solid var(--border)' }}
@@ -791,9 +790,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(totalRetirementSavingsNominal * scenarioWeight)}</span>
             </div>
           )}
-        </div>
-        <div className="ml-auto text-xs self-center" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-          Matches Your Full Breakdown above ↑
         </div>
       </div>
 

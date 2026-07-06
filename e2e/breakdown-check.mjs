@@ -1,5 +1,5 @@
 /**
- * Visual + numeric smoke test for the simplified "Your Full Breakdown" table.
+ * Smoke test for the month-by-month detail table summary footer.
  * Run: node e2e/breakdown-check.mjs
  * Requires dev server running (npm run dev).
  */
@@ -87,21 +87,12 @@ async function main() {
   await seedPage(page, baseInputs())
   await goToResults(page)
 
-  // 1. Confirm only ONE breakdown heading exists (not one per scenario).
-  const headings = await page.getByRole('heading', { name: 'Your Full Breakdown' }).count()
-  console.log('Breakdown heading count (expect 1):', headings)
+  const breakdownHeadings = await page.getByRole('heading', { name: 'Your Full Breakdown' }).count()
+  console.log('Breakdown heading count (expect 0):', breakdownHeadings)
+  if (breakdownHeadings !== 0) {
+    throw new Error('Your Full Breakdown section should be removed')
+  }
 
-  const breakdownSection = page.getByRole('heading', { name: 'Your Full Breakdown' }).locator('..')
-  await breakdownSection.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(300)
-  await page.screenshot({ path: path.join(OUT_DIR, 'breakdown-card.png'), fullPage: false })
-
-  // 2. Read the "Total Retirement Savings" value from the breakdown card (Vote Yes column).
-  const retirementRow = page.locator('tr', { hasText: 'Total Retirement Savings' }).first()
-  const retirementCells = await retirementRow.locator('td').allTextContents()
-  console.log('Retirement row cells:', retirementCells)
-
-  // 3. Expand the Month-by-Month Detail table and confirm the summary footer values.
   const detailHeading = page.locator('text=Month-by-Month Detail').first()
   await detailHeading.scrollIntoViewIfNeeded()
   await page.waitForTimeout(300)
