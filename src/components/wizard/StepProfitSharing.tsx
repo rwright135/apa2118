@@ -149,6 +149,9 @@ export function StepProfitSharing() {
 
       </div>
       <NavButton onClick={nextStep} disabled={!hasValue}>Continue</NavButton>
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        *We realize profit sharing payouts change semi-annually based on company performance. The amount you enter here is a simplistic best guess for the average profit-sharing check you expect.
+      </p>
     </WizardLayout>
   )
 }
