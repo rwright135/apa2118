@@ -288,11 +288,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   const jcbaMonth = result.voteNoScenario.jcbaDurationMonths
   const { rows, steadyStateIndex } = summary
 
-  // Summary footer totals for the active scenario tab.
-  const fullCareerPayNominal = rows.reduce((sum, r) => sum + r.grossPay + r.profitSharingCash, 0)
-  const totalRetirementSavingsNominal =
-    summary.retirementBalanceAt65 + summary.retirementRetentionBalance + summary.retirementBrokerageBalance
-
   const p = result.voteNoScenario.probability
   // Probability weight this raw scenario carries in the blended Vote No.
   const scenarioWeight = activeTab === 'B' ? p : activeTab === 'C' ? 1 - p : 1
@@ -750,58 +745,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       )}
       <div className="px-4 py-2 text-center text-xs" style={{ color: 'var(--text-faint)', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)' }}>
         Pre-JCBA window ends at month {jcbaMonth} · Post-JCBA rates reflect your assumptions from the last wizard step
-      </div>
-
-      {/* Summary row: headline totals for the active scenario tab */}
-      <div
-        className="px-4 py-3 flex flex-wrap gap-x-8 gap-y-3"
-        style={{ background: 'var(--bg-elevated)', borderTop: '2px solid var(--border)' }}
-      >
-        <div>
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            Pre-JCBA Total PV
-            <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-              (pay + PS + retention + 401k)
-            </span>
-          </div>
-          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(summary.preJcbaTotal)}
-          </div>
-          {isScenarioTab && (
-            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
-              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(summary.preJcbaTotal * scenarioWeight)}</span>
-            </div>
-          )}
-        </div>
-        <div>
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            Full-career pay + profit sharing (nominal)
-          </div>
-          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
-            {fmt(fullCareerPayNominal)}
-          </div>
-          {isScenarioTab && (
-            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
-              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(fullCareerPayNominal * scenarioWeight)}</span>
-            </div>
-          )}
-        </div>
-        <div>
-          <div className="text-xs mb-0.5" style={{ color: 'var(--text-faint)' }}>
-            Total retirement savings @ 65
-            <span className="ml-1.5 text-xs" style={{ color: 'var(--text-faint)', opacity: 0.7 }}>
-              (401k + retention + brokerage)
-            </span>
-          </div>
-          <div className="text-sm font-black tabular-nums" style={{ color: 'var(--gold)' }}>
-            {fmt(totalRetirementSavingsNominal)}
-          </div>
-          {isScenarioTab && (
-            <div className="text-xs mt-0.5 italic" style={{ color: 'var(--text-faint)' }}>
-              × {Math.round(scenarioWeight * 100)}% weighted = <span className="font-semibold not-italic" style={{ color: 'var(--text-muted)' }}>{fmt(totalRetirementSavingsNominal * scenarioWeight)}</span>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
