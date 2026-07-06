@@ -288,7 +288,7 @@ function RiskRewardBreakdown({
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>).
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
                     <CollapsibleBreakdown title="Show how this is calculated">
-                      <BreakdownRow label="Pay + profit sharing shortfall" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
+                      <BreakdownRow label="Pay + PS shortfall" value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
                       <BreakdownRow label="Retention Bonus" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
                       <BreakdownRow label="Total Nominal Value" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
                       <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
