@@ -260,7 +260,18 @@ async function exportToXLSX(result: ComparisonResult) {
 function ResultTable({ result }: { result: ComparisonResult }) {
   const [expanded, setExpanded]           = useState(false)
   const [activeTab, setActiveTab]         = useState<TabId>('YES')
-  const [blendedExpanded, setBlendedExpanded] = useState(false)
+  // Per-month expansion on the blended tab — each month's row keeps its own
+  // caret so the Offer/JCBA breakdown can be expanded independently, month by
+  // month, without collapsing the rest of the table.
+  const [expandedBlendedMonths, setExpandedBlendedMonths] = useState<Set<number>>(new Set())
+  const toggleBlendedMonth = (monthIndex: number) => {
+    setExpandedBlendedMonths(prev => {
+      const next = new Set(prev)
+      if (next.has(monthIndex)) next.delete(monthIndex)
+      else next.add(monthIndex)
+      return next
+    })
+  }
 
   const tabToScenario: Record<TabId, string> = { YES: 'A', NO: 'VOTE_NO_EXPECTED', B: 'B', C: 'C' }
   const scenarioId = tabToScenario[activeTab]
@@ -515,39 +526,18 @@ function ResultTable({ result }: { result: ComparisonResult }) {
           </div>
         )}
 
-        {/* Component breakdown toggle — only on the blended tab */}
+        {/* Component breakdown note — only on the blended tab */}
         {isBlendedTab && (
-          <button
-            type="button"
-            onClick={() => setBlendedExpanded(v => !v)}
-            className="mt-3 w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
-          >
-            <div className="min-w-0">
-              <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                {blendedExpanded ? 'Showing each month\u2019s probability-weighted components' : 'Showing the blended summary per month'}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                {blendedExpanded ? (
-                  <>
-                    <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> at <strong>{Math.round(p * 100)}%</strong> probability,
-                    plus <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> at <strong>{Math.round((1 - p) * 100)}%</strong> probability
-                    — together these two rows sum to the blended total for that month.
-                  </>
-                ) : (
-                  <>Click to break each month down into its <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> and{' '}
-                  <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> probability-weighted components.</>
-                )}
-              </div>
+          <div className="mt-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+            <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Each month blends two probability-weighted components
             </div>
-            <svg
-              width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="shrink-0 transition-transform"
-              style={{ color: 'var(--text-faint)', transform: blendedExpanded ? 'rotate(180deg)' : 'none' }}
-            >
-              <path d="M4 6l4 4 4-4" />
-            </svg>
-          </button>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+              <span style={{ color: '#a855f7', fontWeight: 600 }}>Vote No (Offer)</span> at <strong>{Math.round(p * 100)}%</strong> probability,
+              plus <span style={{ color: 'var(--negative)', fontWeight: 600 }}>Vote No (JCBA)</span> at <strong>{Math.round((1 - p) * 100)}%</strong> probability.
+              {' '}Click the caret (▾) next to any month to expand its two components.
+            </div>
+          </div>
         )}
       </div>
 
@@ -596,6 +586,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 row.effectiveSeat === 'CA'
               const rowB = isBlendedTab ? scenarioBSummary.rows[row.monthIndex] : null
               const rowC = isBlendedTab ? scenarioCSummary.rows[row.monthIndex] : null
+              const isRowExpanded = isBlendedTab && expandedBlendedMonths.has(row.monthIndex)
               return (
                 <>
                   {isSteadyStateStart && (
@@ -619,27 +610,86 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       </td>
                     </tr>
                   )}
-                  {isBlendedTab && blendedExpanded && rowB && rowC ? (
+                  <tr
+                    key={`${row.year}-${row.month}`}
+                    style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
+                    className="transition-colors"
+                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
+                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+                  >
+                    <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
+                      {row.monthIndex}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap sticky" style={{ background: 'var(--bg-surface)', left: '2.75rem' }}>
+                      <div className="flex items-center gap-1">
+                        {isBlendedTab && rowB && rowC && (
+                          <button
+                            type="button"
+                            onClick={() => toggleBlendedMonth(row.monthIndex)}
+                            className="shrink-0 flex items-center justify-center transition-transform"
+                            style={{
+                              color: 'var(--text-faint)',
+                              transform: isRowExpanded ? 'rotate(90deg)' : 'none',
+                            }}
+                            aria-label={isRowExpanded ? 'Collapse breakdown' : 'Expand breakdown'}
+                            title={isRowExpanded ? 'Collapse breakdown' : 'Expand into Vote No (Offer) / Vote No (JCBA) components'}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 4l4 4-4 4" />
+                            </svg>
+                          </button>
+                        )}
+                        <span className="font-medium" style={{ color: 'var(--text-muted)' }}>{MONTHS_SHORT[row.month]} {row.year}</span>
+                      </div>
+                      {isBlendedTab && (
+                        <div className="text-[10px] whitespace-nowrap" style={{ color: 'var(--text-faint)' }}>
+                          <span style={{ color: '#a855f7' }}>{Math.round(p * 100)}% Offer</span>
+                          {' · '}
+                          <span style={{ color: 'var(--negative)' }}>{Math.round((1 - p) * 100)}% JCBA</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(row.effectiveSeat)}</td>
+                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
+                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
+                    <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
+                    {renderValueCells(row, 1, 'nominal')}
+                  </tr>
+                  {isScenarioTab && (
+                    <tr
+                      key={`${row.year}-${row.month}-weighted`}
+                      style={{ background: 'var(--bg-elevated)' }}
+                    >
+                      <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
+                      <td
+                        className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
+                        style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
+                      >
+                        ↳ × {Math.round(scenarioWeight * 100)}%
+                      </td>
+                      <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      {renderValueCells(row, scenarioWeight, 'weighted')}
+                    </tr>
+                  )}
+                  {isBlendedTab && isRowExpanded && rowB && rowC && (
                     <>
                       <tr
                         key={`${row.year}-${row.month}-offer`}
-                        style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
+                        style={{ background: 'var(--bg-elevated)' }}
                         className="transition-colors"
-                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
-                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
                       >
-                        <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
-                          {row.monthIndex}
+                        <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
+                        <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem' }}>
+                          <div className="text-[10px] font-semibold whitespace-nowrap pl-3" style={{ color: '#a855f7' }}>↳ Vote No (Offer) · {Math.round(p * 100)}%</div>
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap sticky" style={{ background: 'var(--bg-surface)', left: '2.75rem' }}>
-                          <div className="font-medium" style={{ color: 'var(--text-muted)' }}>{MONTHS_SHORT[row.month]} {row.year}</div>
-                          <div className="text-[10px] font-semibold whitespace-nowrap" style={{ color: '#a855f7' }}>Vote No (Offer) · {Math.round(p * 100)}%</div>
-                        </td>
-                        <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(rowB.effectiveSeat)}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{rowB.longevity}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(rowB.hourlyRate)}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{rowB.totalHours}</td>
-                        {renderValueCells(rowB, p, 'nominal', bPVMaps!)}
+                        <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(rowB.effectiveSeat)}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowB.longevity}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{fmtRate(rowB.hourlyRate)}</td>
+                        <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowB.totalHours}</td>
+                        {renderValueCells(rowB, p, 'weighted', bPVMaps!)}
                       </tr>
                       <tr
                         key={`${row.year}-${row.month}-jcba`}
@@ -648,7 +698,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                       >
                         <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
                         <td className="px-3 py-1.5 whitespace-nowrap sticky" style={{ background: 'var(--bg-elevated)', left: '2.75rem' }}>
-                          <div className="text-[10px] font-semibold italic whitespace-nowrap" style={{ color: 'var(--negative)' }}>↳ Vote No (JCBA) · {Math.round((1 - p) * 100)}%</div>
+                          <div className="text-[10px] font-semibold whitespace-nowrap pl-3" style={{ color: 'var(--negative)' }}>↳ Vote No (JCBA) · {Math.round((1 - p) * 100)}%</div>
                         </td>
                         <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(rowC.effectiveSeat)}</td>
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.longevity}</td>
@@ -656,47 +706,6 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                         <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>{rowC.totalHours}</td>
                         {renderValueCells(rowC, 1 - p, 'weighted', cPVMaps!)}
                       </tr>
-                    </>
-                  ) : (
-                    <>
-                      <tr
-                        key={`${row.year}-${row.month}`}
-                        style={isFirstOfYear ? { borderTop: '1px solid var(--border)' } : undefined}
-                        className="transition-colors"
-                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)')}
-                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
-                      >
-                        <td className="px-2 py-2 text-center whitespace-nowrap sticky left-0" style={{ color: 'var(--text-faint)', background: 'var(--bg-surface)' }}>
-                          {row.monthIndex}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap font-medium sticky" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)', left: '2.75rem' }}>
-                          {MONTHS_SHORT[row.month]} {row.year}
-                        </td>
-                        <td className="px-3 py-2 text-center whitespace-nowrap">{renderSeatBadge(row.effectiveSeat)}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.longevity}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{fmtRate(row.hourlyRate)}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: 'var(--text-muted)' }}>{row.totalHours}</td>
-                        {renderValueCells(row, 1, 'nominal')}
-                      </tr>
-                      {isScenarioTab && (
-                        <tr
-                          key={`${row.year}-${row.month}-weighted`}
-                          style={{ background: 'var(--bg-elevated)' }}
-                        >
-                          <td className="px-2 py-1.5 sticky left-0" style={{ background: 'var(--bg-elevated)' }} />
-                          <td
-                            className="px-3 py-1.5 whitespace-nowrap text-[11px] italic sticky"
-                            style={{ color: 'var(--text-faint)', background: 'var(--bg-elevated)', left: '2.75rem' }}
-                          >
-                            ↳ × {Math.round(scenarioWeight * 100)}%
-                          </td>
-                          <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
-                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                          <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                          {renderValueCells(row, scenarioWeight, 'weighted')}
-                        </tr>
-                      )}
                     </>
                   )}
                 </>
