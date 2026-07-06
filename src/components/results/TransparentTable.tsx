@@ -444,7 +444,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
         {isScenarioTab && (
           <div className="mt-3 rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
             <div className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              Nominal scenario, plus its weighted contribution to Vote No (blended)
+              Nominal scenario, plus its weighted contribution to Vote No (Blended)
             </div>
             <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
               Each month below shows the full (nominal) numbers if this outcome occurs. The italic row directly underneath
