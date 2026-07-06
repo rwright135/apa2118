@@ -263,9 +263,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'nominalTotal',         label: 'Nominal' },
     { key: 'presentValue',         label: 'Row PV' },
     { key: 'cumulativePV',         label: 'Cumulative PV', gold: true },
-    { key: 'brokerageSavingsCash', label: 'Brokerage Savings' },
-    { key: 'brokerageInterest',    label: 'Brokerage Interest' },
-    { key: 'cumulativeBrokerage',  label: 'Cumulative Brokerage', gold: true },
+    { key: 'brokerageSavingsCash', label: 'Savings' },
+    { key: 'brokerageInterest',    label: 'Interest' },
+    { key: 'cumulativeBrokerage',  label: 'Cumulative Savings', gold: true },
   ]
 
   // Renders the dollar-value columns for a row at a given weight. Used once at
@@ -477,11 +477,11 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   ) : col.key === 'nominalTotal' ? (
                     <span title="Nominal (non-discounted) total for this month: Gross Pay + 401(k) contribution + Profit Share + RB Accrual/Payout. Excludes Brokerage — see that column's note.">Nominal</span>
                   ) : col.key === 'brokerageSavingsCash' ? (
-                    <span title="The portion of your monthly raise redirected to a taxable brokerage account. Already counted in Gross Pay — shown here for reference only and excluded from Nominal/Row PV/Cumulative PV.">Brokerage Savings</span>
+                    <span title="The portion of your monthly raise redirected to a taxable brokerage account. Already counted in Gross Pay — shown here for reference only and excluded from Nominal/Row PV/Cumulative PV.">Savings</span>
                   ) : col.key === 'brokerageInterest' ? (
-                    <span title="Interest earned this month on the cumulative brokerage balance: balance × (rate ÷ 12). Compounds monthly at your chosen investment rate.">Brokerage Interest</span>
+                    <span title="Interest earned this month on the cumulative brokerage balance: balance × (rate ÷ 12). Compounds monthly at your chosen investment rate.">Interest</span>
                   ) : col.key === 'cumulativeBrokerage' ? (
-                    <span title="Running brokerage account balance: prior balance × (1 + rate/12) + this month's contribution. Grows each month through both new savings and compounding interest.">Cumulative Brokerage</span>
+                    <span title="Running brokerage account balance: prior balance × (1 + rate/12) + this month's contribution. Grows each month through both new savings and compounding interest.">Cumulative Savings</span>
                   ) : col.label}
                 </th>
               ))}
