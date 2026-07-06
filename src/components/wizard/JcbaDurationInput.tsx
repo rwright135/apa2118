@@ -190,7 +190,7 @@ export function JcbaDurationInput({ value, min, max, step, onChange }: Props) {
         max={max}
         step={step}
         onChange={onChange}
-        formatValue={(v) => `${v} mo (${(v / 12).toFixed(1)} yrs)`}
+        formatValue={(v) => `${v} mo`}
         markers={markers}
         footnote={`Tap a logo to jump the slider to that timeline and see historical JCBA details. All-carrier average: ${formatTimelineMonths(AVERAGE_JCBA_MONTHS)} months.`}
       />
