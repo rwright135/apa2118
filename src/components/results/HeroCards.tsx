@@ -491,22 +491,23 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
       </div>
 
       {expanded && (
-        <RiskRewardBreakdown
-          result={result}
-          collapsible
-          defaultExpanded={false}
-        />
+        <>
+          <RiskRewardBreakdown
+            result={result}
+            collapsible
+            defaultExpanded={false}
+          />
+          <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+            <AssumptionsFooter
+              vns={result.voteNoScenario}
+              investmentRate={result.inputs.investmentRate}
+              retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+              retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+              underlineValues={false}
+            />
+          </div>
+        </>
       )}
-
-      <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter
-          vns={result.voteNoScenario}
-          investmentRate={result.inputs.investmentRate}
-          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
-          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
-          underlineValues={false}
-        />
-      </div>
     </div>
   )
 }
