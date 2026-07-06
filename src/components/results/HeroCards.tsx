@@ -364,7 +364,12 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
 
       {/* Assumptions */}
       <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter vns={result.voteNoScenario} />
+        <AssumptionsFooter
+          vns={result.voteNoScenario}
+          investmentRate={result.inputs.investmentRate}
+          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+        />
       </div>
     </div>
   )
@@ -422,7 +427,13 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
       )}
 
       <div className="px-5 py-3" style={{ background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter vns={result.voteNoScenario} underlineValues={false} />
+        <AssumptionsFooter
+          vns={result.voteNoScenario}
+          investmentRate={result.inputs.investmentRate}
+          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+          underlineValues={false}
+        />
       </div>
     </div>
   )
