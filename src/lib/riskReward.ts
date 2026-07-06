@@ -10,7 +10,7 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const scenarioA = result.scenarios.find(s => s.scenarioId === 'A')!
   const scenarioB = result.scenarios.find(s => s.scenarioId === 'B')!
   const scenarioC = result.scenarios.find(s => s.scenarioId === 'C')!
-  const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA } = result.voteNoScenario
+  const { jcbaDurationMonths: jcba, arrivalMonths, percentAboveTA, probability } = result.voteNoScenario
   const { retentionPayoutProbabilityB: pB, retentionPayoutProbabilityC: pC, retentionCurrentBalance } = result.inputs
   const investmentRate = result.inputs.investmentRate
 
