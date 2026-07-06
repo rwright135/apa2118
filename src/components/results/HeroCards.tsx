@@ -97,11 +97,30 @@ function RiskRewardHeadline({
   result: ComparisonResult
   assumptionScope?: 'your' | 'these'
 }) {
-  const { bNominalGap, cHeadlineLoss } = computeRiskRewardMetrics(result)
+  const { bNominalGap, cHeadlineLoss, probability } = computeRiskRewardMetrics(result)
   const upsideIsGain = bNominalGap >= 0
   const upsideAmount = fmt(Math.abs(bNominalGap))
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
   const assumptionLabel = assumptionScope === 'your' ? 'your' : 'these'
+
+  if (probability === 0) {
+    return (
+      <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
+        Based on {assumptionLabel} assumptions, you&apos;ve set the probability of a second offer to{' '}
+        <strong style={{ color: 'var(--text-faint)' }}>0%</strong>, so the upside scenario is{' '}
+        <strong style={{ color: 'var(--text-faint)' }}>N/A</strong>
+        {cHeadlineLoss > 0 ? (
+          <>
+            {' '}— but you&apos;re risking{' '}
+            <strong style={{ color: 'var(--negative)' }}>{riskAmount}</strong>
+            {' '}if no offer arrives.
+          </>
+        ) : (
+          '.'
+        )}
+      </p>
+    )
+  }
 
   if (!upsideIsGain) {
     // Voting No doesn't pay off even if the 2nd offer arrives
