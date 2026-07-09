@@ -484,7 +484,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
         <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-              Risk vs Reward
+              Voting No: Risk vs. Reward
             </div>
             <RiskRewardHelp />
           </div>
