@@ -178,13 +178,26 @@ function BreakdownRow({ label, value, color, bold }: { label: string; value: str
   )
 }
 
-function CollapsibleBreakdown({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
+function CollapsibleBreakdown({
+  title,
+  children,
+  expanded,
+  onToggle,
+}: {
+  title: string
+  children: React.ReactNode
+  expanded?: boolean
+  onToggle?: () => void
+}) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = onToggle !== undefined
+  const open = isControlled ? (expanded ?? false) : internalOpen
+
   return (
     <div className="mt-2.5">
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
+        onClick={() => (isControlled ? onToggle!() : setInternalOpen(v => !v))}
         className="flex items-center gap-1.5 text-xs font-semibold transition-colors"
         style={{ color: 'var(--accent)' }}
       >
@@ -276,9 +289,11 @@ function RiskRewardBreakdown({
 
   const bIsPositive = bNominalGap >= 0
   const [allExpanded, setAllExpanded] = useState(defaultExpanded)
+  const [breakdownOpen, setBreakdownOpen] = useState(false)
   const expandProps = collapsible
     ? { expanded: allExpanded, onToggle: () => setAllExpanded(v => !v) }
     : {}
+  const breakdownProps = { expanded: breakdownOpen, onToggle: () => setBreakdownOpen(v => !v) }
 
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
@@ -333,7 +348,7 @@ function RiskRewardBreakdown({
                     at <Assumption>{Math.round(pB * 100)}% payout probability</Assumption>.
                   </span>
                 )}
-                <CollapsibleBreakdown title="Show how this is calculated">
+                <CollapsibleBreakdown title="Show how this is calculated" {...breakdownProps}>
                   <BreakdownRow
                     label={`Pay + PS lost waiting (months 1–${arrivalMonths})`}
                     value={`${bPayPlusPS_waiting >= 0 ? '+' : '−'}${fmt(Math.abs(bPayPlusPS_waiting))}`}
@@ -373,7 +388,7 @@ function RiskRewardBreakdown({
                     <strong style={{ color: 'var(--text-muted)' }}>{fmt(cRetentionForegone)}</strong>.
                     Post-JCBA, Vote Yes earns ~20% above TA vs ~{Math.round((1 + 0.20) * (1 - (result.inputs.advancedPostJCBA?.scenarioCPenalty ?? 0.15)) * 100 - 100)}% for this path — that ongoing gap appears in the cumulative chart and table.
                     The &ldquo;Worth the Risk?&rdquo; card below accounts for your expected retention payout under this path.
-                    <CollapsibleBreakdown title="Show how this is calculated">
+                    <CollapsibleBreakdown title="Show how this is calculated" {...breakdownProps}>
                       <BreakdownRow label={`Pre-JCBA Pay + PS + 401(k) shortfall (months 0–${jcba})`} value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
                       <BreakdownRow label="Retention Bonus timing" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
                       <BreakdownRow label="Pre-JCBA Nominal Total" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
