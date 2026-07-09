@@ -464,7 +464,7 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
         <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{jcba} months</span>{' '}
         prior to JCBA you will earn{' '}
         <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} more</span>{' '}
-        in pay, profit sharing, and 401(k) contributions — and unlock your{' '}
+        in pay, profit sharing, and 401(k) contributions and unlock your{' '}
         <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cRetentionForegone)} Retention Bonus</span>.
       </p>
     </div>
