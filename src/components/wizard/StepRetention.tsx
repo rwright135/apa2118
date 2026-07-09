@@ -135,6 +135,9 @@ export function StepRetention() {
 
       </div>
       <NavButton onClick={nextStep} disabled={!hasBalance}>Continue</NavButton>
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        *These probability inputs are not an indication that APA considers any scenario in which the retention bonus is not paid in full to be acceptable or uncontested. To the contrary, APA would vigorously pursue every dollar owed to pilots. They are provided solely so you can reflect your own assumptions about company performance, solvency, and other future uncertainties — because no outcome is guaranteed.
+      </p>
     </WizardLayout>
   )
 }
