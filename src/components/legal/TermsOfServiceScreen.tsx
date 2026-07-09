@@ -10,39 +10,43 @@ const SECTIONS = [
     body: `By using the APA Local 2118 Contract Comparison Calculator ("the Tool"), you agree to these Terms of Service. If you do not agree, do not use the Tool.`,
   },
   {
-    title: '2. What This Tool Is',
+    title: '2. Retention Bonus Payout Probability',
+    body: `The Tool includes sliders that let you assign payout probabilities to retention bonus scenarios in which the bonus might not be paid in full. These inputs are not an indication that APA Local 2118, the APA, the IBT, or any other union body considers any reduced or non-payment of the retention bonus to be acceptable, expected, or uncontested. To the contrary, APA would vigorously pursue every dollar owed to pilots under the agreement. The sliders exist solely so you can model your own assumptions about company performance, solvency, and other future uncertainties — because no outcome is guaranteed.`,
+  },
+  {
+    title: '3. What This Tool Is',
     body: `The Tool is an educational calculator designed to help Allegiant Air pilots compare hypothetical financial outcomes under different contract voting scenarios. It is intended to assist your personal decision-making process. It is not a recommendation to vote yes or no, and it does not tell you what you should do.`,
   },
   {
-    title: '3. No Collection of Personal Information',
+    title: '4. No Collection of Personal Information',
     body: `The Tool does not require a username, password, or account. We do not collect personally identifiable information (PII). Your answers and inputs are processed locally in your browser and are not transmitted to or stored on our servers unless you explicitly choose to share a link or export.`,
   },
   {
-    title: '4. No Professional Advice',
+    title: '5. No Professional Advice',
     body: `The Tool does not provide legal, financial, tax, investment, retirement planning, or career advice. Nothing in the Tool should be interpreted as a certified financial statement, audited projection, fiduciary recommendation, or substitute for advice from a qualified professional. You are solely responsible for your own voting decision and financial choices.`,
   },
   {
-    title: '5. Accuracy and Good-Faith Limitations',
+    title: '6. Accuracy and Good-Faith Limitations',
     body: `Calculations are based on contract data, assumptions you enter, and modeling logic that has been prepared and reviewed in good faith. However, we do not warrant or guarantee that any output is complete, accurate, or current. Pay rates, contract terms, timelines, and personal circumstances may differ from the model. You should verify critical inputs independently before relying on any result.`,
   },
   {
-    title: '6. Assumptions and User Responsibility',
+    title: '7. Assumptions and User Responsibility',
     body: `Results depend heavily on the assumptions you provide, including longevity, hours, profit sharing, retention bonus estimates, vote-no scenarios, and investment return rates. Small changes in assumptions can materially change outcomes. You are responsible for reviewing the assumptions you enter and understanding how they affect the results.`,
   },
   {
-    title: '7. Web and Device Risks',
+    title: '8. Web and Device Risks',
     body: `The Tool runs in a web browser and may use local storage on your device to remember your inputs. As with any web-based application, use of the Tool involves ordinary internet and device risks, including browser compatibility issues, local storage loss, unauthorized access to your device, malware, phishing, and third-party analytics or hosting dependencies outside our direct control. Use a trusted device and browser and follow your organization's security practices.`,
   },
   {
-    title: '8. No Reliance / Limitation of Liability',
+    title: '9. No Reliance / Limitation of Liability',
     body: `To the fullest extent permitted by law, APA Local 2118 and the contributors to the Tool disclaim liability for any decision you make or any loss, damage, or outcome arising from use of or reliance on the Tool. By using the Tool, you agree that you will not hold APA Local 2118 or its officers, members, or contributors responsible if you are dissatisfied with a decision you make, including any claim that the Tool "convinced" you to act in a particular way.`,
   },
   {
-    title: '9. Changes',
+    title: '10. Changes',
     body: `These Terms may be updated from time to time. Continued use of the Tool after changes are posted constitutes acceptance of the revised Terms.`,
   },
   {
-    title: '10. Contact',
+    title: '11. Contact',
     body: `Questions about these Terms may be directed to APA Teamsters Local 2118 through official Union communication channels.`,
   },
 ]
@@ -75,7 +79,7 @@ export function TermsOfServiceScreen({ onBack }: Props) {
 
       <div className="flex-1 overflow-y-auto px-4 py-6 max-w-xl mx-auto w-full">
         <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-muted)' }}>
-          Last updated: June 2026
+          Last updated: July 2026
         </p>
 
         <div className="space-y-6">
