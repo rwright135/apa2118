@@ -453,8 +453,8 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
   const { jcba, cPayDiff, cRetentionForegone } = computeRiskRewardMetrics(result)
   return (
     <div
-      className="px-5 py-4 border-b"
-      style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+      className="rounded-2xl overflow-hidden px-5 py-5"
+      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
     >
       <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
         Earnings if you Vote Yes
@@ -475,29 +475,31 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-            Risk vs Reward
-          </div>
-          <RiskRewardHelp />
-        </div>
-        <RiskRewardHeadline result={result} />
-      </div>
-
+    <div className="space-y-4">
       <VoteYesSummaryBanner result={result} />
 
-      <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+        <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+              Risk vs Reward
+            </div>
+            <RiskRewardHelp />
+          </div>
+          <RiskRewardHeadline result={result} />
+        </div>
 
-      {/* Assumptions */}
-      <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
-        <AssumptionsFooter
-          vns={result.voteNoScenario}
-          investmentRate={result.inputs.investmentRate}
-          retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
-          retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
-        />
+        <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
+
+        {/* Assumptions */}
+        <div className="px-5 py-3 border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+          <AssumptionsFooter
+            vns={result.voteNoScenario}
+            investmentRate={result.inputs.investmentRate}
+            retentionPayoutProbabilityB={result.inputs.retentionPayoutProbabilityB}
+            retentionPayoutProbabilityC={result.inputs.retentionPayoutProbabilityC}
+          />
+        </div>
       </div>
     </div>
   )
