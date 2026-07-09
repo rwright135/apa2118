@@ -450,7 +450,10 @@ function RiskRewardBreakdown({
 // ── Vote Yes summary banner ───────────────────────────────────────────────────
 
 function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
-  const { jcba, cPayDiff, cRetentionForegone } = computeRiskRewardMetrics(result)
+  const { jcba, cGrossPayDiff, cPSDiff, c401kDiff, cPayDiff, cRetentionForegone } = computeRiskRewardMetrics(result)
+  const highlight = (n: number) => (
+    <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(n)} more</span>
+  )
   return (
     <div
       className="rounded-2xl overflow-hidden px-5 py-5"
@@ -462,9 +465,10 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
         During the{' '}
         <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{jcba} months</span>{' '}
-        prior to JCBA you will earn{' '}
-        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} more</span>{' '}
-        in pay, profit sharing, and 401(k) contributions and unlock your{' '}
+        prior to JCBA you will earn {highlight(cGrossPayDiff)} in pay, {highlight(cPSDiff)} in profit sharing,
+        and {highlight(c401kDiff)} in 401(k) contributions ({' '}
+        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} total</span>
+        ) and unlock your{' '}
         <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cRetentionForegone)} Retention Bonus</span>.
       </p>
     </div>

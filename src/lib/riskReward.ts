@@ -47,9 +47,10 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
   const bRetPayoutRow = scenarioB.rows.find(r => r.retentionCashFlow > 0)
   const bRetPayoutMonths = bRetPayoutRow?.monthIndex ?? (arrivalMonths + 2)
 
-  const cPayDiff =
-    (scenarioA.totalGrossPay + scenarioA.totalProfitSharing + scenarioA.total401kContributions) -
-    (scenarioC.totalGrossPay + scenarioC.totalProfitSharing + scenarioC.total401kContributions)
+  const cGrossPayDiff = scenarioA.totalGrossPay - scenarioC.totalGrossPay
+  const cPSDiff = scenarioA.totalProfitSharing - scenarioC.totalProfitSharing
+  const c401kDiff = scenarioA.total401kContributions - scenarioC.total401kContributions
+  const cPayDiff = cGrossPayDiff + cPSDiff + c401kDiff
   const cWagesShortfall = cPayDiff // alias kept for backwards compatibility
   const cRetentionForegone = scenarioA.totalRetention
   const cHeadlineLoss = cWagesShortfall + cRetentionForegone
@@ -88,6 +89,9 @@ export function computeRiskRewardMetrics(result: ComparisonResult) {
     bRetPayoutRow,
     bRetPayoutMonths,
     // Scenario C vs A breakdown (all nominal)
+    cGrossPayDiff,
+    cPSDiff,
+    c401kDiff,
     cPayDiff,
     cWagesShortfall,
     cRetentionForegone,
