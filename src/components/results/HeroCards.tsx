@@ -424,6 +424,30 @@ function RiskRewardBreakdown({
   )
 }
 
+// ── Vote Yes summary banner ───────────────────────────────────────────────────
+
+function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
+  const { jcba, cPayDiff, cRetentionForegone } = computeRiskRewardMetrics(result)
+  return (
+    <div
+      className="px-5 py-4 border-b"
+      style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+    >
+      <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
+        Earnings if you Vote Yes
+      </div>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        During the{' '}
+        <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{jcba} months</span>{' '}
+        prior to JCBA you will earn{' '}
+        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} more</span>{' '}
+        in pay, profit sharing, and 401(k) contributions — and unlock your{' '}
+        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cRetentionForegone)} Retention Bonus</span>.
+      </p>
+    </div>
+  )
+}
+
 // ── Single scenario: verdict card ─────────────────────────────────────────────
 
 function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
@@ -438,6 +462,8 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
         </div>
         <RiskRewardHeadline result={result} />
       </div>
+
+      <VoteYesSummaryBanner result={result} />
 
       <RiskRewardBreakdown result={result} collapsible defaultExpanded={false} />
 
