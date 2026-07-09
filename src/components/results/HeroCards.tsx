@@ -463,10 +463,10 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
         Earnings if you Vote Yes
       </div>
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-        During the {jcba} months prior to JCBA you will earn {itemAmount(cGrossPayDiff)} in pay, {itemAmount(cPSDiff)} in profit sharing,
-        and {itemAmount(c401kDiff)} in 401(k) contributions ({' '}
-        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} total</span>
-        ) and unlock your{' '}
+        During the <Assumption>{jcba} months</Assumption> prior to JCBA you will earn {itemAmount(cGrossPayDiff)} in pay, {itemAmount(cPSDiff)} in profit sharing,
+        and {itemAmount(c401kDiff)} in 401(k) contributions for a total of{' '}
+        <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cPayDiff)} in Total Guaranteed Compensation</span>.
+        {' '}Voting yes also fully guarantees your{' '}
         <span className="font-bold" style={{ color: 'var(--positive)' }}>{fmt(cRetentionForegone)} Retention Bonus</span>.
       </p>
     </div>
