@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useStore } from '../../state/store'
+import { TermsOfServiceScreen } from '../legal/TermsOfServiceScreen'
 import { WizardLayout } from '../shared/WizardLayout'
 import { NavButton } from '../shared/NavButton'
 import { NumberInput } from '../shared/NumberInput'
@@ -58,10 +60,15 @@ function WhyThisMattersCard() {
 
 export function StepRetention() {
   const { inputs, setInput, nextStep, prevStep } = useStore()
+  const [showTerms, setShowTerms] = useState(false)
   const balance = inputs.retentionCurrentBalance
   const probB   = inputs.retentionPayoutProbabilityB ?? 0.90
   const probC   = inputs.retentionPayoutProbabilityC ?? 0.50
   const hasBalance = balance !== undefined
+
+  if (showTerms) {
+    return <TermsOfServiceScreen onBack={() => setShowTerms(false)} />
+  }
 
   return (
     <WizardLayout
@@ -135,6 +142,18 @@ export function StepRetention() {
 
       </div>
       <NavButton onClick={nextStep} disabled={!hasBalance}>Continue</NavButton>
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        *Please read the{' '}
+        <button
+          type="button"
+          onClick={() => setShowTerms(true)}
+          className="underline font-medium"
+          style={{ color: 'var(--gold)' }}
+        >
+          terms of service
+        </button>
+        {' '}to see the union&apos;s official stance on a full retention bonus payout being the only acceptable outcome.
+      </p>
     </WizardLayout>
   )
 }
