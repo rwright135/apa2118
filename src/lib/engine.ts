@@ -266,12 +266,15 @@ export function buildMonthlyStream(
     // premium no longer applies. Gross Pay above already pays ALL hours
     // (including these) at the base rate, so Premium Earnings below is only
     // the incremental 30% surcharge — not the full premium-rate total —
-    // to avoid double-counting the base pay for those hours.
+    // to avoid double-counting the base pay for those hours. premiumRate is
+    // shown as just that incremental per-hour surcharge (hourlyRate × 0.30),
+    // not the full blended rate, so premiumHours × premiumRate = premiumEarnings
+    // directly and the table math is easy to follow.
     const premiumHours = !isTA
       ? Math.max(0, totalHours - CONTRACT_PARAMS.PREMIUM_PAY_THRESHOLD_HOURS)
       : 0
-    const premiumRate = hourlyRate * (1 + CONTRACT_PARAMS.PREMIUM_PAY_EXTRA_RATE)
-    const premiumEarnings = premiumHours * hourlyRate * CONTRACT_PARAMS.PREMIUM_PAY_EXTRA_RATE
+    const premiumRate = hourlyRate * CONTRACT_PARAMS.PREMIUM_PAY_EXTRA_RATE
+    const premiumEarnings = premiumHours * premiumRate
 
     const k401Contribution = grossPay * k401Rate
 

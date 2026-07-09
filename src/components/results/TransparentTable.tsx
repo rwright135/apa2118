@@ -45,7 +45,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) 
       'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
       Hours:              r.totalHours,
       'Hours Above 81':   Math.round(r.premiumHours),
-      'Premium Rate ($/hr)': +r.premiumRate.toFixed(2),
+      'Premium Rate Surcharge ($/hr)': +r.premiumRate.toFixed(2),
       'Premium Pay':      Math.round(r.premiumEarnings * weight),
       'Gross Pay':        Math.round(r.grossPay * weight),
       '401(k) DC':        Math.round(r.k401Contribution * weight),
@@ -520,7 +520,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   {col.key === 'premiumHours' ? (
                     <span title="Hours flown above 81 in the month. Only applies while on current CBA rates — the TA does not carry this premium forward, so this is 0 once on TA rates.">Hrs &gt;81</span>
                   ) : col.key === 'premiumRate' ? (
-                    <span title="Effective rate paid for hours above 81 under the current CBA: hourly rate × 1.30 (30% premium).">Premium Rate</span>
+                    <span title="Extra pay per hour for hours above 81 under the current CBA: hourly rate × 0.30 (the 30% surcharge only, not the full blended rate). Multiply by Hrs >81 to get Premium Pay.">Premium Rate</span>
                   ) : col.key === 'premiumEarnings' ? (
                     <span title="Incremental pay from the premium: 30% × hourly rate × hours above 81. Gross Pay already includes the base-rate portion for these hours, so only the extra 30% is added here to avoid double-counting.">Premium Pay</span>
                   ) : col.key === 'presentValue' ? (
