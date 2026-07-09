@@ -35,10 +35,14 @@ interface RiskCardProps {
   accentBorder?: string
   collapsible?: boolean
   defaultExpanded?: boolean
+  expanded?: boolean
+  onToggle?: () => void
 }
 
-function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder, collapsible = false, defaultExpanded = true }: RiskCardProps) {
-  const [open, setOpen] = useState(defaultExpanded)
+function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBorder, collapsible = false, defaultExpanded = true, expanded, onToggle }: RiskCardProps) {
+  const [internalOpen, setInternalOpen] = useState(defaultExpanded)
+  const isControlled = collapsible && onToggle !== undefined
+  const open = isControlled ? (expanded ?? false) : internalOpen
   const bg = accentBg ?? 'var(--bg-surface)'
   const border = accentBorder ?? '1px solid var(--border-subtle)'
 
@@ -70,7 +74,7 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
       {collapsible ? (
         <button
           type="button"
-          onClick={() => setOpen(v => !v)}
+          onClick={() => (isControlled ? onToggle!() : setInternalOpen(v => !v))}
           className="w-full px-4 py-3 text-left"
           style={{ background: 'transparent' }}
         >
@@ -271,6 +275,10 @@ function RiskRewardBreakdown({
   } = computeRiskRewardMetrics(result)
 
   const bIsPositive = bNominalGap >= 0
+  const [allExpanded, setAllExpanded] = useState(defaultExpanded)
+  const expandProps = collapsible
+    ? { expanded: allExpanded, onToggle: () => setAllExpanded(v => !v) }
+    : {}
 
   return (
     <div style={{ background: 'var(--bg-elevated)' }}>
@@ -283,7 +291,7 @@ function RiskRewardBreakdown({
               value={<span style={{ color: 'var(--text-faint)' }}>N/A</span>}
               valueColor="var(--text-faint)"
               collapsible={collapsible}
-              defaultExpanded={defaultExpanded}
+              {...expandProps}
               body={
                 <span style={{ color: 'var(--text-faint)' }}>
                   You've set the probability of a second offer to 0%, so this outcome doesn't affect your expected value.
@@ -297,7 +305,7 @@ function RiskRewardBreakdown({
             value={<>{bIsPositive ? '+' : '−'}{fmt(Math.abs(bNominalGap))}</>}
             valueColor={bIsPositive ? 'var(--positive)' : 'var(--negative)'}
             collapsible={collapsible}
-            defaultExpanded={defaultExpanded}
+            {...expandProps}
             body={
               <>
                 {bIsPositive ? (
@@ -354,7 +362,7 @@ function RiskRewardBreakdown({
             value={<>{cHeadlineLoss > 0 ? '−' : '+'}{fmt(Math.abs(cHeadlineLoss))}</>}
             valueColor={cHeadlineLoss > 0 ? 'var(--negative)' : 'var(--positive)'}
             collapsible={collapsible}
-            defaultExpanded={defaultExpanded}
+            {...expandProps}
             body={
               cWagesShortfall > 0
                 ? <>
@@ -392,7 +400,7 @@ function RiskRewardBreakdown({
             accentBg={cNetAfterRetention > 0 ? 'rgba(245,158,11,0.07)' : 'rgba(34,197,94,0.07)'}
             accentBorder={`1px solid ${cNetAfterRetention > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.3)'}`}
             collapsible={collapsible}
-            defaultExpanded={defaultExpanded}
+            {...expandProps}
             body={
               <>
                 Your current Retention Bonus of{' '}
