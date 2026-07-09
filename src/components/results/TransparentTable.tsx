@@ -260,10 +260,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     )
   }
 
-  const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
-    { key: 'premiumHours',         label: 'Hrs >81' },
-    { key: 'premiumRate',          label: 'Premium Rate' },
-    { key: 'premiumEarnings',      label: 'Premium Pay' },
+  // Premium pay only ever applies on current-CBA rates. On the Vote Yes tab
+  // every month is on TA rates from day one, so these columns would always
+  // read "—" — hide them there rather than show three empty columns.
+  const allColumns: { key: ColumnKey; label: string; gold?: boolean; hideOnVoteYes?: boolean }[] = [
+    { key: 'premiumHours',         label: 'Hrs >81',      hideOnVoteYes: true },
+    { key: 'premiumRate',          label: 'Premium Rate', hideOnVoteYes: true },
+    { key: 'premiumEarnings',      label: 'Premium Pay',  hideOnVoteYes: true },
     { key: 'grossPay',             label: 'Gross Pay' },
     { key: 'k401Contribution',     label: '401(k) DC' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
@@ -277,6 +280,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     { key: 'brokerageInterest',    label: 'Interest' },
     { key: 'cumulativeBrokerage',  label: 'Cumulative Savings', gold: true },
   ]
+  const columns = allColumns.filter(col => activeTab !== 'YES' || !col.hideOnVoteYes)
 
   // Renders the dollar-value columns for a row at a given weight. Used once at
   // 100% (nominal) and, on raw scenario tabs, a second time at the scenario's
