@@ -14,7 +14,7 @@ const MONTH_COL_STYLE: CSSProperties = { width: MONTH_COL_WIDTH, minWidth: MONTH
 function fmt(n: number)     { return `$${Math.round(n).toLocaleString()}` }
 function fmtRate(n: number) { return `$${n.toFixed(2)}` }
 
-type ColumnKey = 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'cumulativeNominal' | 'presentValue' | 'cumulativePV'
+type ColumnKey = 'premiumHours' | 'premiumRate' | 'premiumEarnings' | 'grossPay' | 'k401Contribution' | 'profitSharingCash' | 'retentionAccrual' | 'retentionTotal' | 'brokerageSavingsCash' | 'brokerageInterest' | 'cumulativeBrokerage' | 'nominalTotal' | 'cumulativeNominal' | 'presentValue' | 'cumulativePV'
 type TabId = 'YES' | 'NO' | 'B' | 'C'
 
 const TAB_STYLES: Record<TabId, { active: React.CSSProperties; inactive: React.CSSProperties; label: string }> = {
@@ -34,7 +34,7 @@ function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) 
   // entire retention balance.
   let cumulativeNominalPV = 0
   return rows.map(r => {
-    const nominalTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
+    const nominalTotal = r.grossPay + r.premiumEarnings + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
     const rowPV = nominalTotal * r.discountFactor
     cumulativeNominalPV += rowPV
     return {
@@ -44,6 +44,9 @@ function buildSheetRows(rows: MonthlyRow[], weight: number, component?: string) 
       Longevity:          r.longevity,
       'Rate ($/hr)':      +r.hourlyRate.toFixed(2),
       Hours:              r.totalHours,
+      'Hours Above 81':   Math.round(r.premiumHours),
+      'Premium Rate ($/hr)': +r.premiumRate.toFixed(2),
+      'Premium Pay':      Math.round(r.premiumEarnings * weight),
       'Gross Pay':        Math.round(r.grossPay * weight),
       '401(k) DC':        Math.round(r.k401Contribution * weight),
       'Profit Share':     Math.round(r.profitSharingCash * weight),
@@ -204,7 +207,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       // Use only the actual cash payout (retentionCashFlow), not the monthly
       // accrual note — accruals and the payout are the same money, counting
       // both would double the entire retention balance in Nominal/PV totals.
-      const nominalRowTotal = r.grossPay + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
+      const nominalRowTotal = r.grossPay + r.premiumEarnings + r.k401Contribution + r.profitSharingCash + r.retentionCashFlow
       const rowPV = nominalRowTotal * r.discountFactor
       running += rowPV
       runningNominal += nominalRowTotal
@@ -258,6 +261,9 @@ function ResultTable({ result }: { result: ComparisonResult }) {
   }
 
   const columns: { key: ColumnKey; label: string; gold?: boolean; voteYesOnly?: boolean }[] = [
+    { key: 'premiumHours',         label: 'Hrs >81' },
+    { key: 'premiumRate',          label: 'Premium Rate' },
+    { key: 'premiumEarnings',      label: 'Premium Pay' },
     { key: 'grossPay',             label: 'Gross Pay' },
     { key: 'k401Contribution',     label: '401(k) DC' },
     { key: 'profitSharingCash',    label: 'Profit Share' },
@@ -288,6 +294,35 @@ function ResultTable({ result }: { result: ComparisonResult }) {
     const padding = variant === 'weighted' ? 'px-3 py-1.5' : 'px-3 py-2'
     const italic  = variant === 'weighted'
     return columns.map(col => {
+      if (col.key === 'premiumHours') {
+        const val = row.premiumHours * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? Math.round(val).toLocaleString() : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'premiumRate') {
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: row.premiumHours > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {row.premiumHours > 0 ? fmtRate(row.premiumRate) : '—'}
+          </td>
+        )
+      }
+      if (col.key === 'premiumEarnings') {
+        const val = row.premiumEarnings * rowWeight
+        return (
+          <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
+            style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontStyle: italic ? 'italic' : undefined }}
+          >
+            {val !== 0 ? `+${fmt(val)}` : '—'}
+          </td>
+        )
+      }
       if (col.key === 'retentionAccrual') {
         // Only the ongoing monthly accrual — never the lump-sum payout. Accrual
         // is already frozen (0) by the payout month (see engine freeze logic),
@@ -318,7 +353,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
       if (col.key === 'nominalTotal') {
         // Only the actual cash payout in Nominal — accruals are the same money
         // as the eventual payout, so including both would double-count them.
-        const val = (row.grossPay + row.k401Contribution + row.profitSharingCash + row.retentionCashFlow) * rowWeight
+        const val = (row.grossPay + row.premiumEarnings + row.k401Contribution + row.profitSharingCash + row.retentionCashFlow) * rowWeight
         return (
           <td key={col.key} className={`${padding} text-right whitespace-nowrap`}
             style={{ color: val > 0 ? 'var(--text-base)' : 'var(--text-faint)', fontWeight: italic ? 400 : 500, fontStyle: italic ? 'italic' : undefined }}
@@ -482,7 +517,13 @@ function ResultTable({ result }: { result: ComparisonResult }) {
               {columns.map(col => (
                 <th key={col.key} className="text-right px-3 py-2 font-medium whitespace-nowrap"
                   style={{ color: col.gold ? 'var(--gold)' : 'var(--text-faint)' }}>
-                  {col.key === 'presentValue' ? (
+                  {col.key === 'premiumHours' ? (
+                    <span title="Hours flown above 81 in the month. Only applies while on current CBA rates — the TA does not carry this premium forward, so this is 0 once on TA rates.">Hrs &gt;81</span>
+                  ) : col.key === 'premiumRate' ? (
+                    <span title="Effective rate paid for hours above 81 under the current CBA: hourly rate × 1.30 (30% premium).">Premium Rate</span>
+                  ) : col.key === 'premiumEarnings' ? (
+                    <span title="Incremental pay from the premium: 30% × hourly rate × hours above 81. Gross Pay already includes the base-rate portion for these hours, so only the extra 30% is added here to avoid double-counting.">Premium Pay</span>
+                  ) : col.key === 'presentValue' ? (
                     <span title="Nominal ÷ (1 + rate/12)^month — this month's Nominal total discounted back to today's dollars. At month 0, Row PV always equals Nominal exactly.">Row PV</span>
                   ) : col.key === 'cumulativePV' ? (
                     <span title="Running total of Row PV from month 0 through this month — the Nominal column discounted month-by-month and added up.">Cumulative PV</span>
@@ -525,21 +566,21 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                 <>
                   {isSteadyStateStart && !isJcbaBoundary && (
                     <tr key={`steady-${i}`} style={{ background: 'rgba(201,168,76,0.05)' }}>
-                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={21} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Steady state reached — annual pattern repeats from here ──
                       </td>
                     </tr>
                   )}
                   {isJcbaBoundary && (
                     <tr key={`jcba-${i}`} style={{ background: 'rgba(34,197,94,0.08)', borderTop: '2px solid rgba(34,197,94,0.4)' }}>
-                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
+                      <td colSpan={21} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: 'var(--positive)' }}>
                         JCBA Ratified (Month {jcbaMonth}) Post-JCBA Rate: {postJcbaLabel}
                       </td>
                     </tr>
                   )}
                   {isUpgradeRow && (
                     <tr key={`upgrade-${i}`} style={{ background: 'rgba(201,168,76,0.08)' }}>
-                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
+                      <td colSpan={21} className="px-3 py-2 text-center text-xs font-medium" style={{ color: 'var(--gold)' }}>
                         ── Upgraded to Captain — Captain pay rates apply from here ──
                       </td>
                     </tr>
@@ -671,7 +712,7 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                   )}
                   {showsThroughRetirement && i === displayRows.length - 1 && (
                     <tr key="retirement-banner" style={{ background: 'rgba(59,130,246,0.08)', borderTop: '2px solid rgba(59,130,246,0.4)' }}>
-                      <td colSpan={18} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
+                      <td colSpan={21} className="px-3 py-2 text-center text-xs font-semibold" style={{ color: '#3b82f6' }}>
                         FAA Mandatory Retirement Age (Month {retirementMonthIndex})
                       </td>
                     </tr>

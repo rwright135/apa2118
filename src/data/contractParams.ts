@@ -26,6 +26,12 @@ export const CONTRACT_PARAMS = {
   // Retention bonus pays this many days after new contract ratification
   RETENTION_PAYOUT_DAYS_AFTER_RATIFICATION: 60,
 
+  // Premium pay under the current CBA ("old contract"): hours flown above this
+  // threshold in a month pay 30% more per hour. Only applies while on CBA
+  // rates — the TA does not carry this premium forward.
+  PREMIUM_PAY_THRESHOLD_HOURS: 81,
+  PREMIUM_PAY_EXTRA_RATE: 0.30,
+
   // Profit sharing payment months (0-indexed: May=5, October=10)
   PROFIT_SHARING_MONTHS: [5, 10] as const, // June and November (5=June, 10=November)
 

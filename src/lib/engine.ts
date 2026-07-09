@@ -261,6 +261,18 @@ export function buildMonthlyStream(
     const totalHours = getMonthlyHours(inputs, isTA)
     const grossPay = hourlyRate * totalHours
 
+    // Premium pay under the current CBA: hours above the threshold pay 30%
+    // more per hour. Only applies on CBA rates — once on TA (isTA), the
+    // premium no longer applies. Gross Pay above already pays ALL hours
+    // (including these) at the base rate, so Premium Earnings below is only
+    // the incremental 30% surcharge — not the full premium-rate total —
+    // to avoid double-counting the base pay for those hours.
+    const premiumHours = !isTA
+      ? Math.max(0, totalHours - CONTRACT_PARAMS.PREMIUM_PAY_THRESHOLD_HOURS)
+      : 0
+    const premiumRate = hourlyRate * (1 + CONTRACT_PARAMS.PREMIUM_PAY_EXTRA_RATE)
+    const premiumEarnings = premiumHours * hourlyRate * CONTRACT_PARAMS.PREMIUM_PAY_EXTRA_RATE
+
     const k401Contribution = grossPay * k401Rate
 
     let profitSharingCash = 0
@@ -339,6 +351,9 @@ export function buildMonthlyStream(
       hourlyRate,
       totalHours,
       grossPay,
+      premiumHours,
+      premiumRate,
+      premiumEarnings,
       k401Contribution,
       k401Rate,
       profitSharingCash,

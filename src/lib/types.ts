@@ -72,6 +72,15 @@ export interface MonthlyRow {
   totalHours: number
   grossPay: number
 
+  // Premium pay (current CBA only): hours above 81/month pay 30% more per hour.
+  // Zero once on TA rates — the TA does not carry this premium forward.
+  premiumHours: number      // hours above threshold this month
+  premiumRate: number       // hourlyRate × 1.3 — effective rate for those hours
+  premiumEarnings: number   // premiumHours × hourlyRate × 0.3 — the incremental
+                            // 30% surcharge only; Gross Pay already includes the
+                            // base-rate portion for these hours, so adding this
+                            // on top doesn't double-count the base pay.
+
   // 401k
   k401Contribution: number    // $ contributed this month
   k401Rate: number            // rate used (0.10 or 0.15)
