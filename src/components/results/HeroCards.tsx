@@ -459,7 +459,7 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
       <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
         Earnings if you Vote Yes
       </div>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
         During the{' '}
         <span className="font-semibold" style={{ color: 'var(--text-base)' }}>{jcba} months</span>{' '}
         prior to JCBA you will earn{' '}
