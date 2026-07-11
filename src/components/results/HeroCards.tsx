@@ -362,9 +362,6 @@ function RiskRewardBreakdown({
                   />
                   <BreakdownRow label="401(k) DC difference" value={`${b401kDiff >= 0 ? '+' : '−'}${fmt(Math.abs(b401kDiff))}`} color={b401kDiff >= 0 ? 'var(--positive)' : 'var(--negative)'} />
                   <BreakdownRow label="Pre-JCBA Total" value={`${bIsPositive ? '+' : '−'}${fmt(Math.abs(bNominalGap))}`} color={bIsPositive ? 'var(--positive)' : 'var(--negative)'} bold />
-                  <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                    Pre-JCBA nominal (pay + PS + 401k + retention). Verify in the month-by-month detail table.
-                  </p>
                 </CollapsibleBreakdown>
               </>
             }
