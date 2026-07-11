@@ -663,10 +663,10 @@ function ResultTable({ result }: { result: ComparisonResult }) {
                           × {Math.round(scenarioWeight * 100)}% weighted
                         </div>
                       </td>
-                      <td className="px-3 py-1.5 text-center" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
-                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)' }}>—</td>
+                      <td className="px-3 py-1.5 text-center whitespace-nowrap">{renderSeatBadge(row.effectiveSeat)}</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)', fontStyle: 'italic' }}>{row.longevity}</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)', fontStyle: 'italic' }}>{fmtRate(row.hourlyRate)}</td>
+                      <td className="px-3 py-1.5 text-right" style={{ color: 'var(--text-faint)', fontStyle: 'italic' }}>{row.totalHours}</td>
                       {renderValueCells(row, scenarioWeight, 'weighted')}
                     </tr>
                   )}
