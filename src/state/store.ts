@@ -143,6 +143,7 @@ interface AppState {
   setInput: <K extends keyof UserInputs>(key: K, value: UserInputs[K]) => void
   setInputs: (partial: Partial<UserInputs>) => void
   compute: () => void
+  recalculate: () => void
   reset: () => void
 }
 
@@ -249,6 +250,30 @@ export const useStore = create<AppState>((set, get) => ({
         set({ isComputing: false })
       }
     }, 50)
+  },
+
+  recalculate: () => {
+    const { inputs } = get()
+    if (
+      !inputs.seat ||
+      !inputs.longevityAsOfJul2026 ||
+      inputs.anniversaryMonth === undefined ||
+      !inputs.lineType ||
+      !inputs.dateOfBirth ||
+      inputs.investmentRate === undefined
+    ) return
+    try {
+      const fullInputs = inputs as UserInputs
+      const userScenario = (fullInputs.voteNoScenarios ?? [])[0] ?? { ...DEFAULT_VOTE_NO_SCENARIO }
+      const multiResults = [
+        buildAllScenarios(fullInputs, userScenario),
+        buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
+        buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
+      ]
+      set({ results: multiResults })
+    } catch (e) {
+      console.error('Recalculation error', e)
+    }
   },
 
   reset: () => {
