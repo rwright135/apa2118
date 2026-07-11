@@ -135,10 +135,10 @@ export function StepRetention() {
 
       </div>
       <NavButton onClick={nextStep} disabled={!hasBalance}>Continue</NavButton>
-      <p className="mt-4 text-xs leading-relaxed text-center" style={{ color: 'var(--text-faint)' }}>
-        The probabilities above are your assumptions only. They are not an indication that APA Local 2118,
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        *The probabilities above are your assumptions only. They are not an indication that APA Local 2118,
         IBT, or any other union body considers any reduced or non-payment of the retention bonus to be
-        acceptable, expected, or uncontested. See the Terms of Service for more.
+        acceptable, expected, or uncontested. See Terms of Service Item 2 for more information.
       </p>
     </WizardLayout>
   )
