@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { ProgressBar } from './ProgressBar'
-import { ThemeToggle } from './ThemeToggle'
+
 import { WIZARD_STEPS, useStore } from '../../state/store'
 import type { WizardStep } from '../../state/store'
 
@@ -78,8 +78,6 @@ export function WizardLayout({ step, title, subtitle, onBack, children }: Props)
             <path d="M3 3v5h5" />
           </svg>
         </button>
-
-        <ThemeToggle />
       </div>
 
       {/* Content */}

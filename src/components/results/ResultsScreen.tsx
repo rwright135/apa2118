@@ -7,7 +7,7 @@ import { BettingOddsCard } from './BettingOddsCard'
 import { CumulativeLineChart } from './CumulativeLineChart'
 import { TransparentTable } from './TransparentTable'
 import { ShareSheet } from './ShareSheet'
-import { ThemeToggle } from '../shared/ThemeToggle'
+
 
 function RecalculateOverlay() {
   const [colorProgress, setColorProgress] = useState(0)
@@ -129,7 +129,6 @@ export function ResultsScreen() {
 
           <div className="flex items-center gap-2">
             <ShareSheet />
-            <ThemeToggle />
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../state/store'
-import { ThemeToggle } from '../shared/ThemeToggle'
+
 import { TermsOfServiceScreen } from '../legal/TermsOfServiceScreen'
 
 const BULLETS = [
@@ -32,11 +32,6 @@ export function StepWelcome() {
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
-      {/* Top bar — full width */}
-      <div className="flex justify-end px-6 pt-5">
-        <ThemeToggle />
-      </div>
-
       {/* Center content — expands horizontally on wider screens */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center w-full">
 

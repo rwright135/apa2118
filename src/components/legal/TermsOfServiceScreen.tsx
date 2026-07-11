@@ -1,4 +1,4 @@
-import { ThemeToggle } from '../shared/ThemeToggle'
+
 
 interface Props {
   onBack: () => void
@@ -74,7 +74,6 @@ export function TermsOfServiceScreen({ onBack }: Props) {
           </svg>
         </button>
         <h1 className="flex-1 text-lg font-bold">Terms of Service</h1>
-        <ThemeToggle />
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 max-w-xl mx-auto w-full">
