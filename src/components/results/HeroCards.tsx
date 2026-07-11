@@ -459,7 +459,7 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
     >
       <div className="text-sm font-bold mb-3" style={{ color: 'var(--text-base)' }}>
-        Voting Yes: Guaranteed Earnings
+        Voting Yes: What's Guaranteed
       </div>
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
         During the <Assumption>{jcba} months</Assumption> prior to JCBA you will earn {itemAmount(cGrossPayDiff)} in pay, {itemAmount(cPSDiff)} in profit sharing,
