@@ -223,10 +223,6 @@ function CollapsibleBreakdown({
   )
 }
 
-function fmtPlain(n: number) {
-  return `$${Math.round(n).toLocaleString('en-US')}`
-}
-
 function PlainTermsCallout({ cNetAfterRetention }: { cNetAfterRetention: number }) {
   const isNegative = cNetAfterRetention > 0
   return (
@@ -247,13 +243,13 @@ function PlainTermsCallout({ cNetAfterRetention }: { cNetAfterRetention: number 
         {isNegative ? (
           <>
             If you vote No and no second offer ever comes, you&apos;ll end up roughly{' '}
-            <span style={{ color: 'var(--negative)', fontWeight: 700 }}>{fmtPlain(cNetAfterRetention)} worse off</span>{' '}
+            <span style={{ color: 'var(--negative)', fontWeight: 700 }}>{fmt(cNetAfterRetention)} worse off</span>{' '}
             than if you had voted Yes — even after your retention bonus.
           </>
         ) : (
           <>
             Even if you vote No and no second offer ever comes, you&apos;d still come out roughly{' '}
-            <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmtPlain(Math.abs(cNetAfterRetention))} ahead</span>{' '}
+            <span style={{ color: 'var(--positive)', fontWeight: 700 }}>{fmt(Math.abs(cNetAfterRetention))} ahead</span>{' '}
             of Voting Yes — your retention bonus more than covers the difference.
           </>
         )}
