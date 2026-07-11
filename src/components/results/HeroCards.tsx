@@ -94,18 +94,11 @@ function RiskCard({ dotColor, title, value, valueColor, body, accentBg, accentBo
   )
 }
 
-function RiskRewardHeadline({
-  result,
-  assumptionScope = 'your',
-}: {
-  result: ComparisonResult
-  assumptionScope?: 'your' | 'these'
-}) {
+function RiskRewardHeadline({ result }: { result: ComparisonResult }) {
   const { bNominalGap, cHeadlineLoss, probability } = computeRiskRewardMetrics(result)
   const upsideIsGain = bNominalGap >= 0
   const upsideAmount = fmt(Math.abs(bNominalGap))
   const riskAmount = fmt(Math.abs(cHeadlineLoss))
-  const assumptionLabel = assumptionScope === 'your' ? 'your' : 'these'
 
   if (probability === 0) {
     return (
@@ -548,7 +541,7 @@ function CompactScenarioCard({ result, label, scenarioColor }: { result: Compari
       </div>
 
       <div className="px-5 pt-1 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
-        <RiskRewardHeadline result={result} assumptionScope="these" />
+        <RiskRewardHeadline result={result} />
       </div>
 
       {expanded && (
