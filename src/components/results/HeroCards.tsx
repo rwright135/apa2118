@@ -169,9 +169,20 @@ function RiskRewardHeadline({
 
 function BreakdownRow({ label, value, color, bold }: { label: string; value: string; color?: string; bold?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{label}</span>
-      <span className="text-xs tabular-nums font-semibold" style={{ color: color ?? 'var(--text-base)', fontWeight: bold ? 700 : 600 }}>
+    <div
+      className={`flex items-center justify-between gap-3 ${bold ? 'pt-2 mt-1' : 'py-1'}`}
+      style={bold ? { borderTop: '1px solid var(--border-subtle)' } : undefined}
+    >
+      <span
+        className="text-xs"
+        style={{ color: bold ? 'var(--text-muted)' : 'var(--text-faint)', fontWeight: bold ? 700 : 400 }}
+      >
+        {label}
+      </span>
+      <span
+        className="text-xs tabular-nums"
+        style={{ color: color ?? 'var(--text-base)', fontWeight: bold ? 700 : 600 }}
+      >
         {value}
       </span>
     </div>
