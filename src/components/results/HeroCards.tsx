@@ -110,8 +110,7 @@ function RiskRewardHeadline({
   if (probability === 0) {
     return (
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-        Based on {assumptionLabel} assumptions, you&apos;ve set the probability of a second offer to{' '}
-        <strong style={{ color: 'var(--text-faint)' }}>0%</strong>, so the upside scenario is{' '}
+        If a second offer arrives, the upside scenario is{' '}
         <strong style={{ color: 'var(--text-faint)' }}>N/A</strong>
         {cHeadlineLoss > 0 ? (
           <>
@@ -127,10 +126,9 @@ function RiskRewardHeadline({
   }
 
   if (!upsideIsGain) {
-    // Voting No doesn't pay off even if the 2nd offer arrives
     return (
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-        Based on {assumptionLabel} assumptions, Voting No doesn&apos;t pay off either way:{' '}
+        Voting No doesn&apos;t pay off either way:{' '}
         even with a 2nd offer you&apos;d be{' '}
         <strong style={{ color: 'var(--negative)' }}>down {upsideAmount}</strong>
         {cHeadlineLoss > 0 && (
@@ -146,7 +144,7 @@ function RiskRewardHeadline({
 
   return (
     <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
-      Based on {assumptionLabel} assumptions, if a second offer arrives, you stand to{' '}
+      If a second offer arrives, you stand to{' '}
       <strong style={{ color: 'var(--positive)' }}>gain {upsideAmount}</strong>
       {cHeadlineLoss > 0 ? (
         <>
