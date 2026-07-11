@@ -150,9 +150,7 @@ export function StepWelcome() {
 
         <p className="mt-6 text-xs leading-relaxed mx-auto" style={{ color: 'var(--text-faint)', maxWidth: '28rem' }}>
           <span className="font-medium" style={{ color: 'var(--text-muted)' }}>Version 1.8:</span>{' '}
-          Closed limited beta for authorized APA Local 2118 members only. This tool was built rapidly on a short timeline
-          with a small testing group because privileged Tentative Agreement information could not be shared more broadly under NDA,
-          so errors are possible. Please contact{' '}
+          Please contact{' '}
           <a
             href="mailto:rwright@apa2118.org"
             className="underline font-medium"
@@ -160,7 +158,7 @@ export function StepWelcome() {
           >
             rwright@apa2118.org
           </a>
-          {' '}with any questions or issues you find.
+          {' '}with any questions or if you encounter any inconsistencies or errors.
         </p>
 
       </div>
