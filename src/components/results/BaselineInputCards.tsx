@@ -284,7 +284,7 @@ export function BaselineInputCards({ inputs }: Props) {
       : undefined
 
   return (
-    <>
+    <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <SeatProfileCard
           longevity={formatLongevity(inputs.longevityAsOfJul2026)}
@@ -320,9 +320,9 @@ export function BaselineInputCards({ inputs }: Props) {
         />
       </div>
 
-      <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+      <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
         *To change Seat, Longevity, or Advanced Scenario Assumptions, click <strong>Edit Inputs</strong> in the top left.
       </p>
-    </>
+    </div>
   )
 }
