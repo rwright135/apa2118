@@ -54,6 +54,23 @@ async function captureImage(): Promise<string> {
 }
 
 async function exportPDF() {
+  const el = getResultsEl()
+  if (!el) throw new Error('Results container not found')
+
+  // Measure where each major card starts (relative to container top, in CSS px)
+  // BEFORE hiding the toolbar so we can compute the toolbar shift.
+  const toolbar = document.getElementById('results-toolbar')
+  const toolbarH = toolbar ? toolbar.offsetHeight : 0
+  const containerRect = el.getBoundingClientRect()
+
+  const sectionTopsCssPx: number[] = []
+  el.querySelectorAll<HTMLElement>('.rounded-2xl').forEach(card => {
+    const rect = card.getBoundingClientRect()
+    // When the toolbar is hidden during capture, all content below shifts up by toolbarH
+    const relY = (rect.top - containerRect.top) - toolbarH
+    if (relY > 4) sectionTopsCssPx.push(relY)
+  })
+
   const dataUrl = await captureImage()
   const { jsPDF } = await import('jspdf')
 
@@ -64,39 +81,58 @@ async function exportPDF() {
     i.src = dataUrl
   })
 
-  const MARGIN_MM   = 10
-  const pdf         = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-  const pageWmm     = pdf.internal.pageSize.getWidth()
-  const pageHmm     = pdf.internal.pageSize.getHeight()
-  const contentWmm  = pageWmm  - MARGIN_MM * 2
-  const contentHmm  = pageHmm  - MARGIN_MM * 2
-  const imgAspect   = img.naturalHeight / img.naturalWidth
-  const scaledHmm   = contentWmm * imgAspect
+  const MARGIN_MM  = 10
+  const pdf        = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  const pageWmm    = pdf.internal.pageSize.getWidth()
+  const pageHmm    = pdf.internal.pageSize.getHeight()
+  const contentWmm = pageWmm  - MARGIN_MM * 2
+  const contentHmm = pageHmm  - MARGIN_MM * 2
+  const imgAspect  = img.naturalHeight / img.naturalWidth
+  const scaledHmm  = contentWmm * imgAspect
 
   if (scaledHmm <= contentHmm) {
-    // Fits on one page — center it vertically
+    // Fits on one page — center vertically
     const offsetY = MARGIN_MM + (contentHmm - scaledHmm) / 2
     pdf.addImage(dataUrl, 'PNG', MARGIN_MM, offsetY, contentWmm, scaledHmm)
   } else {
-    // Multi-page slice — cut along row boundaries to avoid splitting content mid-element
-    const pxPerMm   = img.naturalWidth / contentWmm
-    const sliceHpx  = Math.floor(contentHmm * pxPerMm)
-    const totalPages = Math.ceil(img.naturalHeight / sliceHpx)
+    const pxPerMm  = img.naturalWidth / contentWmm
+    const sliceHpx = Math.floor(contentHmm * pxPerMm)
+
+    // Convert section tops from CSS px to image px
+    const scale = img.naturalWidth / el.offsetWidth
+    const sectionBreaksPx = sectionTopsCssPx.map(y => Math.floor(y * scale))
+
+    // Find the last section boundary that fits within this page, keeping a
+    // minimum slice height to avoid hairline pages right after a boundary.
+    const minSlice = Math.floor(sliceHpx * 0.15)
+    const findBreak = (fromPx: number): number => {
+      const maxCutPx = fromPx + sliceHpx
+      if (maxCutPx >= img.naturalHeight) return img.naturalHeight
+      let best = maxCutPx
+      for (const bp of sectionBreaksPx) {
+        if (bp >= fromPx + minSlice && bp <= maxCutPx) best = bp
+      }
+      return best
+    }
 
     const canvas = document.createElement('canvas')
     canvas.width = img.naturalWidth
     const ctx = canvas.getContext('2d')!
 
-    for (let page = 0; page < totalPages; page++) {
-      const srcY   = page * sliceHpx
-      const srcH   = Math.min(sliceHpx, img.naturalHeight - srcY)
-      const destHmm = srcH / pxPerMm
+    let page = 0
+    let srcY = 0
+    while (srcY < img.naturalHeight) {
+      const cutY = findBreak(srcY)
+      const srcH = cutY - srcY
+      if (srcH <= 0) break
       canvas.height = srcH
       ctx.clearRect(0, 0, canvas.width, srcH)
       ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH)
       const slice = canvas.toDataURL('image/png')
       if (page > 0) pdf.addPage()
-      pdf.addImage(slice, 'PNG', MARGIN_MM, MARGIN_MM, contentWmm, destHmm)
+      pdf.addImage(slice, 'PNG', MARGIN_MM, MARGIN_MM, contentWmm, srcH / pxPerMm)
+      srcY = cutY
+      page++
     }
   }
 
