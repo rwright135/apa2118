@@ -458,7 +458,7 @@ function VoteYesSummaryBanner({ result }: { result: ComparisonResult }) {
       className="rounded-2xl overflow-hidden px-5 py-5"
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-faint)' }}>
+      <div className="text-sm font-bold mb-3" style={{ color: 'var(--text-base)' }}>
         Voting Yes: Guaranteed Earnings
       </div>
       <p className="text-base leading-relaxed" style={{ color: 'var(--text-base)' }}>
@@ -484,7 +484,7 @@ function SingleScenarioVerdict({ result }: { result: ComparisonResult }) {
       <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
         <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+            <div className="text-sm font-bold" style={{ color: 'var(--text-base)' }}>
               Voting No: Risk vs. Reward
             </div>
             <RiskRewardHelp />
