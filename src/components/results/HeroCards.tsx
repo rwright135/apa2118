@@ -392,9 +392,6 @@ function RiskRewardBreakdown({
                       <BreakdownRow label={`Pre-JCBA Pay + PS + 401(k) shortfall (months 0–${jcba})`} value={`−${fmt(cPayDiff)}`} color="var(--negative)" />
                       <BreakdownRow label="Retention Bonus timing" value={`−${fmt(cRetentionForegone)}`} color="var(--negative)" />
                       <BreakdownRow label="Pre-JCBA Nominal Total" value={`−${fmt(cHeadlineLoss)}`} color="var(--negative)" bold />
-                      <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
-                        Pre-JCBA pay + profit sharing + 401(k) DC (excludes post-JCBA months). The month-by-month table's Cumulative column is higher because it adds post-JCBA months where Vote Yes continues to out-earn this path. Your expected Scenario C retention payout ({fmt(cExpectedRetentionPayout)}) offsets this in the &ldquo;Worth the Risk?&rdquo; card.
-                      </p>
                     </CollapsibleBreakdown>
                   </>
                 : <>
