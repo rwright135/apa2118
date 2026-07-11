@@ -28,8 +28,7 @@ export function AssumptionsFooter({
   const probability = `${Math.round(vns.probability * 100)}% 2nd Offer Probability in ${vns.arrivalMonths} months`
   const improvement = `${(vns.percentAboveTA * 100).toFixed(0)}% Higher`
   const jcba = `JCBA in ${vns.jcbaDurationMonths} months`
-  const bPayout = `B Retention Payout ${Math.round(retentionPayoutProbabilityB * 100)}%`
-  const cPayout = `C Retention Payout ${Math.round(retentionPayoutProbabilityC * 100)}%`
+  const retentionPayouts = `Retention Bonus Payouts ${Math.round(retentionPayoutProbabilityB * 100)}% & ${Math.round(retentionPayoutProbabilityC * 100)}%`
   const discount = `${Math.round(investmentRate * 100)}% Discount Rate`
 
   const renderValue = (value: string) =>
@@ -44,9 +43,7 @@ export function AssumptionsFooter({
       {' | '}
       {renderValue(jcba)}
       {' | '}
-      {renderValue(bPayout)}
-      {' | '}
-      {renderValue(cPayout)}
+      {renderValue(retentionPayouts)}
       {' | '}
       {renderValue(discount)}
     </span>
