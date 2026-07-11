@@ -33,7 +33,7 @@ export function StepWelcome() {
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
       {/* Center content — expands horizontally on wider screens */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center w-full">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-10 sm:pt-16 lg:pt-24 pb-12 text-center w-full">
 
         {/* Logo */}
         <div className="mb-6">
