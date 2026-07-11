@@ -1,4 +1,5 @@
 // useState no longer needed here — moved to ShareSheet
+import { useEffect, useState } from 'react'
 import { useStore } from '../../state/store'
 import { BaselineInputCards } from './BaselineInputCards'
 import { UserRiskRewardCard, IndustryBenchmarkCards } from './HeroCards'
@@ -8,8 +9,81 @@ import { TransparentTable } from './TransparentTable'
 import { ShareSheet } from './ShareSheet'
 import { ThemeToggle } from '../shared/ThemeToggle'
 
+function RecalculateOverlay() {
+  const [colorProgress, setColorProgress] = useState(0)
+
+  useEffect(() => {
+    const DURATION = 2600
+    const startTime = performance.now()
+    let raf: number
+    const tick = (now: number) => {
+      const t = Math.min((now - startTime) / DURATION, 1)
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      setColorProgress(eased)
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  const saturation = Math.round(colorProgress * 100)
+  const brightness = 0.6 + colorProgress * 0.4
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8"
+      style={{
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        background: 'color-mix(in srgb, var(--bg-base) 80%, transparent)',
+      }}
+    >
+      <div className="relative flex items-center justify-center">
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: 148,
+            height: 148,
+            background: `radial-gradient(circle, rgba(201,168,76,${colorProgress * 0.35}) 0%, transparent 70%)`,
+          }}
+        />
+        <img
+          src="/APA Teamsters Local 2118 Logo.webp"
+          alt="APA Teamsters Local 2118"
+          style={{
+            width: 120,
+            height: 120,
+            objectFit: 'contain',
+            filter: `saturate(${saturation}%) brightness(${brightness.toFixed(2)})`,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        />
+      </div>
+      <div className="text-center space-y-2">
+        <div className="text-lg font-semibold" style={{ color: 'var(--text-base)' }}>
+          Recalculating…
+        </div>
+      </div>
+      <div
+        className="rounded-full overflow-hidden"
+        style={{ width: 200, height: 3, background: 'var(--bg-elevated)' }}
+      >
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${colorProgress * 100}%`,
+            background: `rgba(201,168,76,${0.4 + colorProgress * 0.6})`,
+            transition: 'none',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function ResultsScreen() {
-  const { results, goToStep } = useStore()
+  const { results, goToStep, isRecalculating } = useStore()
 
   if (!results || results.length === 0) return null
 
@@ -19,6 +93,7 @@ export function ResultsScreen() {
       className="min-h-screen"
       style={{ background: 'var(--bg-base)', color: 'var(--text-base)' }}
     >
+      {isRecalculating && <RecalculateOverlay />}
       {/* Sticky header — id used by ShareSheet to hide during image capture */}
       <div
         id="results-toolbar"

@@ -135,6 +135,7 @@ interface AppState {
   inputs: Partial<UserInputs>
   results: ComparisonResult[] | null
   isComputing: boolean
+  isRecalculating: boolean
 
   setStep: (step: WizardStep) => void
   nextStep: () => void
@@ -152,6 +153,7 @@ export const useStore = create<AppState>((set, get) => ({
   inputs: { ...INITIAL_INPUTS },
   results: null,
   isComputing: false,
+  isRecalculating: false,
 
   setStep: (step) => set({ currentStep: step }),
 
@@ -262,18 +264,27 @@ export const useStore = create<AppState>((set, get) => ({
       !inputs.dateOfBirth ||
       inputs.investmentRate === undefined
     ) return
-    try {
-      const fullInputs = inputs as UserInputs
-      const userScenario = (fullInputs.voteNoScenarios ?? [])[0] ?? { ...DEFAULT_VOTE_NO_SCENARIO }
-      const multiResults = [
-        buildAllScenarios(fullInputs, userScenario),
-        buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
-        buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
-      ]
-      set({ results: multiResults })
-    } catch (e) {
-      console.error('Recalculation error', e)
-    }
+    set({ isRecalculating: true })
+    const start = Date.now()
+    setTimeout(() => {
+      try {
+        const fullInputs = inputs as UserInputs
+        const userScenario = (fullInputs.voteNoScenarios ?? [])[0] ?? { ...DEFAULT_VOTE_NO_SCENARIO }
+        const multiResults = [
+          buildAllScenarios(fullInputs, userScenario),
+          buildAllScenarios(fullInputs, AVERAGE_SCENARIO),
+          buildAllScenarios(fullInputs, WORST_CASE_SCENARIO),
+        ]
+        const elapsed = Date.now() - start
+        const remaining = Math.max(0, 3000 - elapsed)
+        setTimeout(() => {
+          set({ results: multiResults, isRecalculating: false })
+        }, remaining)
+      } catch (e) {
+        console.error('Recalculation error', e)
+        set({ isRecalculating: false })
+      }
+    }, 50)
   },
 
   reset: () => {
