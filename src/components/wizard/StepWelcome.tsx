@@ -149,12 +149,11 @@ export function StepWelcome() {
         )}
 
         <p className="mt-6 text-xs leading-relaxed mx-auto" style={{ color: 'var(--text-faint)', maxWidth: '28rem' }}>
-          <span className="font-medium" style={{ color: 'var(--text-muted)' }}>Version 1.8:</span>{' '}
-          Please contact{' '}
+          Version 1.8: Please contact{' '}
           <a
             href="mailto:rwright@apa2118.org"
-            className="underline font-medium"
-            style={{ color: 'var(--gold)' }}
+            className="underline"
+            style={{ color: 'var(--text-muted)' }}
           >
             rwright@apa2118.org
           </a>
