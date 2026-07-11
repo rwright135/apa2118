@@ -240,9 +240,9 @@ function PlainTermsCallout({ cNetAfterRetention }: { cNetAfterRetention: number 
       <div className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-base)' }}>
         {isNegative ? (
           <>
-            If you vote No and no second offer ever comes, you&apos;ll end up roughly{' '}
+            If you vote No and the second offer never comes, you&apos;ll end up roughly{' '}
             <span style={{ color: 'var(--negative)', fontWeight: 700 }}>{fmt(cNetAfterRetention)} worse off</span>{' '}
-            than if you had voted Yes — even after your retention bonus.
+            than if you had voted Yes... even after your retention bonus.
           </>
         ) : (
           <>
