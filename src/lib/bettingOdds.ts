@@ -62,8 +62,10 @@ export function computeBettingOdds(result: ComparisonResult): BettingOdds {
   const moneylineNo = toAmericanOdds(pricing)
   const moneylineYes = toAmericanOdds(1 - pricing)
 
+  // Mark 'even' only when the two displayed moneylines are identical in magnitude
+  // (i.e. both round to +100/−100). A tiny threshold prevents float drift.
   const favorite: BettingOdds['favorite'] =
-    Math.abs(pricing - 0.5) < 0.01 ? 'even' : pricing > 0.5 ? 'voteYes' : 'voteNo'
+    Math.abs(pricing - 0.5) < 0.0001 ? 'even' : pricing > 0.5 ? 'voteYes' : 'voteNo'
 
   const breakeven = risk > 0 && reward > 0 ? risk / (risk + reward) : null
   const edgePoints = breakeven !== null ? (probability - breakeven) * 100 : null
