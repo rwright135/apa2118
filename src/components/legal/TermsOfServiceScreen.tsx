@@ -11,7 +11,7 @@ const SECTIONS = [
   },
   {
     title: '2. Retention Bonus Payout Probability',
-    body: `The Tool includes sliders that let you assign payout probabilities to retention bonus scenarios in which the bonus might not be paid in full. These inputs are not an indication that APA Local 2118 considers any reduced or non-payment of the retention bonus to be acceptable, expected, or uncontested. The sliders exist solely so you can model your own assumptions about company performance, solvency, and other future uncertainties, because no outcome is guaranteed.`,
+    body: `The Tool includes sliders that let you assign payout probabilities to retention bonus scenarios in which the bonus might not be paid in full. These inputs are not an indication that APA Local 2118 or IBT or any other union body considers any reduced or non-payment of the retention bonus to be acceptable, expected, or uncontested. The sliders exist solely so you can model your own assumptions about company performance, solvency, and other future uncertainties, because no outcome is guaranteed.`,
   },
   {
     title: '3. What This Tool Is',
