@@ -148,24 +148,20 @@ export function StepWelcome() {
           </p>
         )}
 
-        <div className="mt-6 mx-auto space-y-2" style={{ maxWidth: '24rem' }}>
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-faint)' }}>
-            This is a closed, limited beta shared only with authorized APA Local 2118 members under NDA.
-            Because of the timeline and the privileged contract information involved, you may encounter bugs or rough edges.
-            Please contact{' '}
-            <a
-              href="mailto:rwright@apa2118.org"
-              className="underline font-medium"
-              style={{ color: 'var(--gold)' }}
-            >
-              rwright@apa2118.org
-            </a>
-            {' '}with any questions, issues, or potential bugs.
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-            Version 1.8
-          </p>
-        </div>
+        <p className="mt-6 text-xs leading-relaxed mx-auto" style={{ color: 'var(--text-faint)', maxWidth: '28rem' }}>
+          <span className="font-medium" style={{ color: 'var(--text-muted)' }}>Version 1.8:</span>{' '}
+          Closed limited beta for authorized APA Local 2118 members only. This tool was built rapidly on a short timeline
+          with a small testing group because privileged Tentative Agreement information could not be shared more broadly under NDA,
+          so errors are possible. Please contact{' '}
+          <a
+            href="mailto:rwright@apa2118.org"
+            className="underline font-medium"
+            style={{ color: 'var(--gold)' }}
+          >
+            rwright@apa2118.org
+          </a>
+          {' '}with any questions or issues you find.
+        </p>
 
       </div>
     </div>
