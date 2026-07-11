@@ -95,9 +95,9 @@ export function CumulativeLineChart({ results }: Props) {
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: '11px', color: textFaint }} />
 
-          <Line type="monotone" dataKey={KEY_YES} stroke={voteYes} strokeWidth={2.5} dot={false} />
-          <Line type="monotone" dataKey={KEY_B} stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
           <Line type="monotone" dataKey={KEY_C} stroke="var(--negative)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
+          <Line type="monotone" dataKey={KEY_B} stroke={scenarioOffer} strokeWidth={1.5} strokeDasharray="5 3" dot={false} opacity={0.85} />
+          <Line type="monotone" dataKey={KEY_YES} stroke={voteYes} strokeWidth={2.5} dot={false} />
         </LineChart>
       </ResponsiveContainer>
 
