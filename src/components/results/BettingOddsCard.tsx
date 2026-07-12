@@ -1,145 +1,113 @@
-import { useState } from 'react'
 import type { ComparisonResult } from '../../lib/types'
 import { computeBettingOdds } from '../../lib/bettingOdds'
 import { HelpButton } from '../shared/HelpButton'
 
 interface Props { results: ComparisonResult[] }
 
-function fmt(n: number) {
+function fmtDollars(n: number) {
   const abs = Math.abs(n)
-  const sign = n < 0 ? '−' : ''
-  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(2)}M`
-  if (abs >= 1_000) return `${sign}$${Math.round(abs / 1_000)}K`
-  return `${sign}$${Math.round(abs)}`
+  if (abs >= 1_000_000) return `$${(abs / 1_000_000).toFixed(2)}M`
+  if (abs >= 1_000) return `$${Math.round(abs / 1_000).toLocaleString()}K`
+  return `$${Math.round(abs).toLocaleString()}`
+}
+
+function fmtOddsRaw(n: number): string {
+  const abs = Math.abs(n)
+  const sign = n < 0 ? '−' : '+'
+  return `${sign}${abs.toLocaleString()}`
 }
 
 const ODDS_HELP = (
-  'These are American-style betting odds, priced off the dollar risk and reward — not off how likely you ' +
-  'think the outcome is. "Break-even" is the win probability that would make Voting No a wash. If your ' +
-  'assumed probability clears break-even, Vegas would call this a value bet.'
+  'The Vote No moneyline is the American-style odds equivalent of the dollar risk/reward ratio — ' +
+  'exactly how a sportsbook would price this bet based on payout alone. ' +
+  'It tells you how much you\'d need to risk to win $100, or how much $100 would win, ' +
+  'based purely on the dollar amounts at stake — not on how likely you think the outcome is.'
 )
 
-// ── Team crest ──────────────────────────────────────────────────────────────
-// Drop real logo files at these paths (e.g. public/teams/vote-yes.png and
-// public/teams/vote-no.png) and they'll appear automatically — otherwise a
-// generic placeholder crest is shown.
-
-function TeamCrest({ src, fallbackLabel, accent }: { src: string; fallbackLabel: string; accent: string }) {
-  const [failed, setFailed] = useState(false)
-
-  if (failed) {
-    return (
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center text-sm font-black shrink-0"
-        style={{ background: `color-mix(in srgb, ${accent} 16%, transparent)`, color: accent, border: `2px solid ${accent}` }}
-      >
-        {fallbackLabel}
-      </div>
-    )
-  }
-
-  return (
-    <img
-      src={src}
-      alt=""
-      className="w-14 h-14 rounded-full object-contain shrink-0"
-      style={{ border: `2px solid ${accent}`, background: 'var(--bg-elevated)' }}
-      onError={() => setFailed(true)}
-    />
-  )
-}
-
-// ── Explanation callout ───────────────────────────────────────────────────────
-
-function HowToReadThis() {
-  return (
-    <div
-      className="rounded-xl p-4 text-sm leading-relaxed"
-      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-    >
-      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
-      <span style={{ color: 'var(--text-muted)' }}>
-        The money line below is just a different way of showing the dollar risk and reward. On a sports book,
-        the money line pricing is set by the payout. A positive number means you win more than you risk — that&apos;s the
-        &ldquo;Favorite&rdquo; bet, the side with the better payout. A big negative number means you&apos;re risking a lot to win
-        a little — that&apos;s the &ldquo;Underdog&rdquo; bet. For example, +200 means bet $100 to win $200; −200 means bet $200 to win $100.
-      </span>
-    </div>
-  )
-}
-
-function BettingOddsMatchup({ result, showTeamCrests }: { result: ComparisonResult; showTeamCrests: boolean }) {
-  const odds = computeBettingOdds(result)
-
-  return (
-    <div className="space-y-4">
-      {/* Matchup row */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          {showTeamCrests && <TeamCrest src="/teams/vote-yes.png" fallbackLabel="YES" accent="var(--gold)" />}
-          <div className="min-w-0">
-            <div className="text-xs font-semibold uppercase tracking-wide truncate" style={{ color: 'var(--gold)' }}>
-              Vote Yes
-            </div>
-            <div className="text-xl font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
-              {odds.moneylineYes}
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-              {odds.favorite === 'even' ? "Pick 'em" : odds.favorite === 'voteYes' ? 'Favorite' : 'Underdog'}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-xs font-bold shrink-0" style={{ color: 'var(--text-faint)' }}>VS</div>
-
-        <div className="flex items-center justify-end gap-3 min-w-0 text-right">
-          <div className="min-w-0">
-            <div className="text-xs font-semibold uppercase tracking-wide truncate" style={{ color: 'var(--vote-no)' }}>
-              Vote No
-            </div>
-            <div className="text-xl font-black tabular-nums" style={{ color: 'var(--text-base)' }}>
-              {odds.moneylineNo}
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
-              {odds.favorite === 'even' ? "Pick 'em" : odds.favorite === 'voteNo' ? 'Favorite' : 'Underdog'}
-            </div>
-          </div>
-          {showTeamCrests && <TeamCrest src="/teams/vote-no.png" fallbackLabel="NO" accent="var(--negative)" />}
-        </div>
-      </div>
-
-      {/* The bet */}
-      <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-        <p className="text-xs leading-relaxed text-center" style={{ color: 'var(--text-muted)' }}>
-          Risking <strong style={{ color: 'var(--negative)' }}>{fmt(Math.abs(odds.risk))}</strong> to win{' '}
-          <strong style={{ color: 'var(--positive)' }}>{fmt(Math.abs(odds.reward))}</strong>
-        </p>
-      </div>
-    </div>
-  )
-}
-
-// ── Export ────────────────────────────────────────────────────────────────────
-
-/** Vegas Odds card for the user's own scenario. Belongs directly under the
- *  user's Risk vs Reward card — no need to repeat the assumptions footer
- *  since it's already shown there. */
 export function BettingOddsCard({ results }: Props) {
   const userResult = results[0]
+  const odds = computeBettingOdds(userResult)
+
+  const risk   = Math.abs(odds.risk)
+  const reward = Math.abs(odds.reward)
+
+  // Raw integer moneyline for Vote No (positive = you win more than you risk, negative = you risk more than you win)
+  const rawNo = parseInt(odds.moneylineNo.replace('−', '-'), 10)
+
+  // Plain-English explanation of what the moneyline means
+  let explanation: React.ReactNode
+  if (odds.risk <= 0 && odds.reward > 0) {
+    explanation = (
+      <>
+        Voting No costs you nothing even if no offer arrives — so this is a{' '}
+        <strong style={{ color: 'var(--positive)' }}>free shot</strong> at{' '}
+        <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong> in upside.
+      </>
+    )
+  } else if (odds.reward <= 0 && odds.risk > 0) {
+    explanation = (
+      <>
+        Voting No has no upside — you&apos;re only risking{' '}
+        <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong> for nothing.
+      </>
+    )
+  } else if (rawNo < 0) {
+    const toWin100 = Math.abs(rawNo)
+    explanation = (
+      <>
+        Risking{' '}
+        <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong>{' '}
+        in guaranteed value for the chance to gain{' '}
+        <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong>{' '}
+        is equivalent to laying <strong>{fmtOddsRaw(rawNo)}</strong> odds
+        {' '}(risk ${toWin100.toLocaleString()} to win $100).
+      </>
+    )
+  } else {
+    explanation = (
+      <>
+        Risking{' '}
+        <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong>{' '}
+        in guaranteed value for the chance to gain{' '}
+        <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong>{' '}
+        is equivalent to <strong>{fmtOddsRaw(rawNo)}</strong> odds
+        {' '}(win ${Math.abs(rawNo).toLocaleString()} for every $100 risked).
+      </>
+    )
+  }
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
       <div className="px-5 pt-5 pb-4 space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
+          <div className="text-sm font-bold" style={{ color: 'var(--text-base)' }}>
             Vegas Odds — Is Voting No Worth the Bet?
           </div>
           <HelpButton label="About these betting odds" helpText={ODDS_HELP} />
         </div>
 
-        <BettingOddsMatchup result={userResult} showTeamCrests />
+        {/* Moneyline display */}
+        <div className="flex items-end gap-4">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--vote-no)' }}>
+              Vote No Moneyline
+            </div>
+            <div
+              className="text-4xl font-black tabular-nums leading-none"
+              style={{ color: rawNo < 0 ? 'var(--negative)' : 'var(--positive)' }}
+            >
+              {odds.moneylineNo.startsWith('-') ? odds.moneylineNo : `+${odds.moneylineNo}`}
+            </div>
+          </div>
+        </div>
 
-        <HowToReadThis />
+        {/* Plain-English explanation */}
+        <div
+          className="rounded-xl px-4 py-3 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
+        >
+          {explanation}
+        </div>
       </div>
     </div>
   )
