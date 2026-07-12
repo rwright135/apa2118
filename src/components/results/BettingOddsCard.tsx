@@ -109,19 +109,6 @@ export function BettingOddsCard({ results }: Props) {
           {explanation}
         </div>
 
-        {/* How to read this */}
-        <div
-          className="rounded-xl p-4 text-sm leading-relaxed"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
-        >
-          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
-          <span style={{ color: 'var(--text-muted)' }}>
-            American style moneyline odds express the payout ratio. A negative number means you risk more than you win,
-            e.g. −300 means risk $100 to win $300. A positive number means you win more than you risk,
-            e.g. +300 means risk $100 to win $300. These odds are priced purely off the dollar amounts at stake,
-            not off the probability you assigned.
-          </span>
-        </div>
       </div>
     </div>
   )
