@@ -59,7 +59,7 @@ export function BettingOddsCard({ results }: Props) {
         <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong>{' '}
         in guaranteed value for the chance to gain{' '}
         <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong>{' '}
-        is equivalent to laying <strong>{fmtOddsRaw(rawNo)}</strong> odds
+        is equivalent to playing <strong>{fmtOddsRaw(rawNo)}</strong> odds
         {' '}(risk ${toWin100.toLocaleString()} to win $100).
       </>
     )
