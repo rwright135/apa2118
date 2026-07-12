@@ -49,7 +49,7 @@ export function BettingOddsCard({ results }: Props) {
       <>
         Risking{' '}
         <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong>{' '}
-        in guaranteed value for the chance to gain{' '}
+        in guaranteed value for the chance to gain an additional{' '}
         <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong>{' '}
         is equivalent to playing <strong>{fmtOddsRaw(rawNo)}</strong> odds
         {' '}(risk ${toWin100.toLocaleString()} to win $100).
@@ -60,7 +60,7 @@ export function BettingOddsCard({ results }: Props) {
       <>
         Risking{' '}
         <strong style={{ color: 'var(--negative)' }}>{fmtDollars(risk)}</strong>{' '}
-        in guaranteed value for the chance to gain{' '}
+        in guaranteed value for the chance to gain an additional{' '}
         <strong style={{ color: 'var(--positive)' }}>{fmtDollars(reward)}</strong>{' '}
         is equivalent to <strong>{fmtOddsRaw(rawNo)}</strong> odds
         {' '}(win ${Math.abs(rawNo).toLocaleString()} for every $100 risked).
