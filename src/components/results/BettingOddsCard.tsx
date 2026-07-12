@@ -96,7 +96,7 @@ export function BettingOddsCard({ results }: Props) {
               className="text-4xl font-black tabular-nums leading-none"
               style={{ color: rawNo < 0 ? 'var(--negative)' : 'var(--positive)' }}
             >
-              {odds.moneylineNo.startsWith('-') ? odds.moneylineNo : `+${odds.moneylineNo}`}
+              {odds.moneylineNo}
             </div>
           </div>
         </div>
@@ -107,6 +107,20 @@ export function BettingOddsCard({ results }: Props) {
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
         >
           {explanation}
+        </div>
+
+        {/* How to read this */}
+        <div
+          className="rounded-xl p-4 text-sm leading-relaxed"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+        >
+          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>How to read this: </span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            American-style odds express the payout ratio. A negative number means you risk more than you win —
+            e.g. −300 means risk $300 to win $100. A positive number means you win more than you risk —
+            e.g. +300 means risk $100 to win $300. These odds are priced purely off the dollar amounts at stake,
+            not off the probability you assigned.
+          </span>
         </div>
       </div>
     </div>
