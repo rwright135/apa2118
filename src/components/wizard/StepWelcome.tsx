@@ -149,7 +149,7 @@ export function StepWelcome() {
         )}
 
         <p className="mt-6 w-full max-w-md mx-auto px-4 text-xs leading-relaxed text-center" style={{ color: 'var(--text-faint)' }}>
-          Version 1.8: Please contact{' '}
+          Version 1.9: Please contact{' '}
           <a
             href="mailto:rwright@apa2118.org"
             className="underline"
