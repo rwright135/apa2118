@@ -17,16 +17,6 @@ function fmtOddsRaw(n: number): string {
   return `${sign}${abs.toLocaleString()}`
 }
 
-/** Color scales with how extreme the positive moneyline is (higher payout vs risk). */
-function moneylineColor(rawNo: number): string {
-  if (rawNo < 0) return 'var(--negative)'
-  if (rawNo >= 1000) return 'var(--negative)'
-  if (rawNo >= 400) return '#f87171'
-  if (rawNo >= 200) return 'var(--warning)'
-  if (rawNo >= 100) return '#eab308'
-  return '#eab308'
-}
-
 const ODDS_HELP = (
   'The Vote No moneyline is the American-style odds equivalent of the dollar risk/reward ratio — ' +
   'exactly how a sportsbook would price this bet based on payout alone. ' +
@@ -104,7 +94,7 @@ export function BettingOddsCard({ results }: Props) {
             </div>
             <div
               className="text-4xl font-black tabular-nums leading-none"
-              style={{ color: moneylineColor(rawNo) }}
+              style={{ color: 'var(--text-base)' }}
             >
               {odds.moneylineNo}
             </div>
